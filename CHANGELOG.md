@@ -35,6 +35,7 @@ This file records notable changes to Rivet.
 - SARIF, Trivy, CycloneDX, and SPDX security evidence normalization.
 - Dated CISA KEV and FIRST EPSS vulnerability enrichment.
 - Expiring, owned security waiver templates and validation.
+- Revision-bound vulnerability reachability evidence.
 
 ### Changed
 

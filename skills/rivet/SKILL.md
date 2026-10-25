@@ -219,6 +219,16 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" waiver validate \
 
 A valid structure does not prove that an approval or compensating control is adequate. Organizational policy can reject a valid waiver.
 
+Apply revision-bound reachability evidence:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" security \
+  --reachability reports/findings.json \
+  --evidence evidence/reachability.json
+```
+
+A `not-reachable` record requires a named method and evidence artifacts. Rivet downgrades unsupported claims to `unknown`. Unknown reachability must not suppress a vulnerability.
+
 Write a machine-readable receipt only when useful:
 
 ```sh

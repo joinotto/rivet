@@ -24,6 +24,7 @@ import {
 } from "./lib/test-evidence.mjs";
 import { reviewMarkdown, reviewPacket } from "./lib/review.mjs";
 import {
+  applyReachability,
   enrichVulnerabilities,
   normalizeSarif,
   normalizeSbom,
@@ -1099,6 +1100,21 @@ function evidenceArtifact(flag) {
 
 function securityEvidence() {
   try {
+    const reachability = value("--reachability");
+    if (reachability) {
+      const findings = evidenceArtifact("--reachability");
+      const evidence = evidenceArtifact("--evidence");
+      if (!evidence) {
+        throw new Error("Reachability requires --reachability and --evidence.");
+      }
+      const report = applyReachability(findings, evidence);
+      report.sources.findings = path.relative(cwd, findings);
+      report.sources.reachability = path.relative(cwd, evidence);
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+      if (report.decision === "invalid-evidence") process.exitCode = 2;
+      if (report.decision === "incomplete") process.exitCode = 1;
+      return;
+    }
     const enrichment = value("--enrich");
     if (enrichment) {
       const findings = evidenceArtifact("--enrich");
@@ -1430,7 +1446,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date) | sbom --file file --revision value | waiver (init | validate) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

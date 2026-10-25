@@ -525,6 +525,68 @@ assert.strictEqual(expiredWaiver.status, 2, expiredWaiver.stderr);
 assert.ok(
   JSON.parse(expiredWaiver.stdout).faults.includes("the waiver is expired"),
 );
+
+fs.writeFileSync(
+  path.join(intelligence, "reachability.json"),
+  JSON.stringify({
+    revision: "fixture-revision",
+    observed_at: "2026-10-25T10:00:00Z",
+    entries: [{
+      id: "CVE-2021-44228",
+      status: "not-reachable",
+      method: "static call graph plus runtime class-load trace",
+      evidence: ["reports/call-graph.json", "reports/class-load.json"],
+    }],
+  }),
+);
+const incompleteReachability = invoke(intelligence, [
+  "security",
+  "--reachability",
+  "findings.json",
+  "--evidence",
+  "reachability.json",
+]);
+assert.strictEqual(
+  incompleteReachability.status,
+  1,
+  incompleteReachability.stderr,
+);
+const reachabilityReport = JSON.parse(incompleteReachability.stdout);
+assert.strictEqual(
+  reachabilityReport.vulnerabilities[0].reachability,
+  "not-reachable",
+);
+assert.strictEqual(
+  reachabilityReport.vulnerabilities[1].reachability,
+  "unknown",
+);
+assert.match(reachabilityReport.limitations[2], /must not suppress/);
+
+fs.writeFileSync(
+  path.join(intelligence, "invalid-reachability.json"),
+  JSON.stringify({
+    revision: "fixture-revision",
+    observed_at: "2026-10-25T10:00:00Z",
+    entries: [{
+      id: "CVE-2021-44228",
+      status: "not-reachable",
+      method: "",
+      evidence: [],
+    }],
+  }),
+);
+const invalidReachability = invoke(intelligence, [
+  "security",
+  "--reachability",
+  "findings.json",
+  "--evidence",
+  "invalid-reachability.json",
+]);
+assert.strictEqual(invalidReachability.status, 2, invalidReachability.stderr);
+assert.strictEqual(
+  JSON.parse(invalidReachability.stdout).vulnerabilities[0].reachability,
+  "unknown",
+);
 const nestedVerification = invoke(topology, [
   "verify",
   "--checks",

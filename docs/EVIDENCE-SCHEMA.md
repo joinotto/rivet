@@ -57,3 +57,5 @@ An enrichment record must include its retrieval date and source artifact. “Not
 
 EPSS is stored as a probability and percentile. Rivet must not convert it into a severity label.
 
+A `not-reachable` result must name the source revision, observation time, method, and evidence artifacts. If these fields are absent, Rivet records reachability as `unknown`.
+

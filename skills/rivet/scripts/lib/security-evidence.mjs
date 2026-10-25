@@ -230,3 +230,66 @@ export function enrichVulnerabilities(findingsFile, kevFile, epssFile, retrieved
     ],
   };
 }
+
+export function applyReachability(findingsFile, evidenceFile) {
+  const findingsDocument = readJson(findingsFile);
+  const evidenceDocument = readJson(evidenceFile);
+  if (!Array.isArray(evidenceDocument.entries)) {
+    throw new Error("The reachability artifact has no entries array.");
+  }
+  if (!evidenceDocument.revision || !evidenceDocument.observed_at) {
+    throw new Error("Reachability evidence requires revision and observed_at.");
+  }
+  const entries = new Map(
+    evidenceDocument.entries.map((item) => [item.id, item]),
+  );
+  const faults = [];
+  const vulnerabilities = [...new Set(vulnerabilityIds(findingsDocument))]
+    .sort()
+    .map((id) => {
+      const entry = entries.get(id);
+      let status = entry?.status || "unknown";
+      if (!["reachable", "not-reachable", "unknown"].includes(status)) {
+        faults.push(`${id}: unsupported reachability status`);
+        status = "unknown";
+      }
+      const evidence = Array.isArray(entry?.evidence) ? entry.evidence : [];
+      if (
+        status === "not-reachable" &&
+        (!String(entry?.method || "").trim() || evidence.length === 0)
+      ) {
+        faults.push(`${id}: not-reachable requires method and evidence`);
+        status = "unknown";
+      }
+      return {
+        id,
+        reachability: status,
+        method: entry?.method || null,
+        evidence,
+        notes: entry?.notes || null,
+      };
+    });
+  return {
+    schema: 1,
+    kind: "reachability",
+    evidence_class: "derived",
+    revision: evidenceDocument.revision,
+    observed_at: evidenceDocument.observed_at,
+    sources: {
+      findings: findingsFile,
+      reachability: evidenceFile,
+    },
+    vulnerabilities,
+    faults,
+    decision: faults.length
+      ? "invalid-evidence"
+      : vulnerabilities.some((item) => item.reachability === "unknown")
+        ? "incomplete"
+        : "observed",
+    limitations: [
+      "Reachability is bound to the supplied revision and observation method.",
+      "Not reachable does not mean not vulnerable and can change with configuration or runtime paths.",
+      "Unknown reachability must not suppress a finding.",
+    ],
+  };
+}

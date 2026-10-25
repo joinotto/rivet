@@ -182,12 +182,12 @@ Implemented:
 - Dated CISA KEV and FIRST EPSS snapshot enrichment.
 - Explicit unknown priority factors for reachability and business context.
 - Expiring, owned, evidence-linked waiver templates and validation.
+- Revision-bound reachability records with fail-safe unknown handling.
 
 Not implemented:
 
 - Active SAST adapter execution.
 - Full SBOM schema and signature validation.
-- Reachability evidence.
 - Signed evidence artifacts.
 
 Commands:

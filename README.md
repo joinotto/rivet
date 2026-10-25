@@ -43,6 +43,7 @@ Version `0.1.0` contains:
 - SARIF, Trivy, CycloneDX, and SPDX security evidence normalization.
 - Reproducible CISA KEV and FIRST EPSS snapshot enrichment.
 - Expiring security waiver templates and structural validation.
+- Revision-bound vulnerability reachability evidence.
 
 Run the tests:
 
