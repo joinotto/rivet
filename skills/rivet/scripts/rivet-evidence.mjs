@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import path from "path";
+import os from "os";
 import crypto from "crypto";
 import { spawnSync } from "child_process";
 import {
@@ -23,7 +24,13 @@ import {
   normalizeJunit,
   normalizeMutation,
 } from "./lib/test-evidence.mjs";
-import { reviewMarkdown, reviewPacket } from "./lib/review.mjs";
+import {
+  reviewFindingsSchema,
+  reviewMarkdown,
+  reviewPacket,
+  reviewPrompt,
+  validateReviewFindings,
+} from "./lib/review.mjs";
 import {
   applyReachability,
   enrichVulnerabilities,
@@ -82,6 +89,7 @@ function run(executable, args, options = {}) {
     timeout: options.timeout || 120000,
     maxBuffer: 8 * 1024 * 1024,
     shell: false,
+    input: options.input,
   });
 }
 
@@ -1191,6 +1199,11 @@ function testSelection() {
 }
 
 function prepareReview() {
+  const action = argv[1];
+  if (action === "run" || action === "ingest") {
+    reviewResultWorkflow(action);
+    return;
+  }
   const recordPath = value("--record");
   if (!recordPath) {
     console.error("Independent review requires --record <file>.");
@@ -1237,6 +1250,156 @@ function prepareReview() {
     process.stdout.write(`${JSON.stringify(packet, null, 2)}\n`);
   } else {
     process.stdout.write(reviewMarkdown(packet));
+  }
+}
+
+function reviewPacketArtifact() {
+  const artifact = evidenceArtifact("--packet");
+  if (!artifact) throw new Error("Review requires --packet <json-file>.");
+  const packet = readJson(artifact);
+  if (
+    !packet ||
+    packet.schema !== 1 ||
+    packet.workflow !== "independent-review" ||
+    packet.status !== "prepared-not-reviewed"
+  ) {
+    throw new Error("The review packet must be a prepared Rivet JSON packet.");
+  }
+  return { artifact, packet };
+}
+
+function parseClaudeReviewOutput(output) {
+  const envelope = JSON.parse(output);
+  if (envelope.structured_output) return envelope.structured_output;
+  if (typeof envelope.result === "string") return JSON.parse(envelope.result);
+  if (envelope.verdict) return envelope;
+  throw new Error("Claude Code returned no structured review findings.");
+}
+
+function reviewResultWorkflow(action) {
+  try {
+    const { artifact: packetArtifact, packet } = reviewPacketArtifact();
+    if (action === "ingest") {
+      const findingsArtifact = evidenceArtifact("--findings");
+      if (!findingsArtifact) {
+        throw new Error("Review ingestion requires --findings <json-file>.");
+      }
+      const findings = readJson(findingsArtifact);
+      if (!findings) throw new Error("The review findings must contain valid JSON.");
+      const report = validateReviewFindings(packet, findings);
+      report.sources = {
+        packet: path.relative(cwd, packetArtifact),
+        findings: path.relative(cwd, findingsArtifact),
+      };
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+      if (report.decision === "invalid-findings") process.exitCode = 1;
+      if (report.decision === "review-findings") process.exitCode = 2;
+      return;
+    }
+
+    const provider = value("--provider");
+    if (!["codex", "claude"].includes(provider)) {
+      throw new Error("Native review requires --provider codex or --provider claude.");
+    }
+    if (!has("--allow-network")) {
+      throw new Error("Native review requires explicit --allow-network.");
+    }
+    const output = value("--output");
+    if (!output) throw new Error("Native review requires --output <json-file>.");
+    const outputArtifact = outputPath(output);
+    if (fs.existsSync(outputArtifact) && !has("--force")) {
+      throw new Error(`Refusing to overwrite existing file: ${output}`);
+    }
+
+    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-review-"));
+    let result;
+    let findings;
+    let command;
+    try {
+      const prompt = reviewPrompt(packet);
+      if (provider === "codex") {
+        const schemaFile = path.join(temporary, "review-schema.json");
+        const responseFile = path.join(temporary, "review-findings.json");
+        fs.writeFileSync(schemaFile, JSON.stringify(reviewFindingsSchema), {
+          mode: 0o600,
+        });
+        command = [
+          "codex",
+          "exec",
+          "--sandbox",
+          "read-only",
+          "--ephemeral",
+          "--skip-git-repo-check",
+          "--color",
+          "never",
+          "--output-schema",
+          schemaFile,
+          "--output-last-message",
+          responseFile,
+          "-",
+        ];
+        result = run(command[0], command.slice(1), {
+          cwd: temporary,
+          input: prompt,
+          timeout: 600000,
+        });
+        if (result.status === 0) findings = readJson(responseFile);
+      } else {
+        command = [
+          "claude",
+          "--print",
+          "--bare",
+          "--no-session-persistence",
+          "--tools",
+          "",
+          "--permission-mode",
+          "plan",
+          "--output-format",
+          "json",
+          "--json-schema",
+          JSON.stringify(reviewFindingsSchema),
+        ];
+        result = run(command[0], command.slice(1), {
+          cwd: temporary,
+          input: prompt,
+          timeout: 600000,
+        });
+        if (result.status === 0) {
+          findings = parseClaudeReviewOutput(result.stdout);
+        }
+      }
+    } finally {
+      fs.rmSync(temporary, { recursive: true, force: true });
+    }
+    if (result.error?.code === "ENOENT") {
+      throw new Error(`The ${provider} CLI is unavailable.`);
+    }
+    if (result.status !== 0) {
+      throw new Error(
+        `${provider} review failed with exit ${result.status}: ${redact(combinedOutput(result)).slice(-2000)}`,
+      );
+    }
+    if (!findings) throw new Error(`${provider} returned no valid JSON findings.`);
+    const report = validateReviewFindings(packet, findings);
+    report.evidence_class = "observed";
+    report.reviewer = {
+      provider,
+      command_digest: digest(JSON.stringify(command)),
+      isolation: provider === "codex"
+        ? "temporary-directory, ephemeral, read-only"
+        : "temporary-directory, bare, no-session, no-tools",
+    };
+    report.sources = { packet: path.relative(cwd, packetArtifact) };
+    fs.mkdirSync(path.dirname(outputArtifact), { recursive: true });
+    fs.writeFileSync(outputArtifact, `${JSON.stringify(report, null, 2)}\n`, {
+      mode: 0o600,
+    });
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    if (report.decision === "invalid-findings") process.exitCode = 1;
+    if (report.decision === "review-findings") process.exitCode = 2;
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
   }
 }
 
@@ -1971,7 +2134,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review --record file [--files list] [--output file] [--json] | threat-model (init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
+    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
   );
   process.exitCode = 1;
 }

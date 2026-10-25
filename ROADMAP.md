@@ -136,10 +136,11 @@ Implemented:
 - Authorization-gated active API contract execution for repository-declared checks.
 - Cross-ecosystem coverage normalization for Istanbul, Cobertura, JaCoCo, LCOV, and Go profiles.
 - Cross-tool mutation normalization for Stryker, PIT, and cargo-mutants.
+- Isolated Codex and Claude Code review adapters with schema-validated finding ingestion.
 
 Not implemented:
 
-- Native independent reviewer execution and finding ingestion.
+- Native end-to-end reviewer execution against configured model providers.
 
 Commands:
 

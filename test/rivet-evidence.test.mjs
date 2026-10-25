@@ -17,10 +17,11 @@ const steScript = path.resolve(
   "../skills/rivet/scripts/rivet-ste.mjs",
 );
 
-function invoke(cwd, args) {
+function invoke(cwd, args, options = {}) {
   return spawnSync(process.execPath, [script, ...args], {
     cwd,
     encoding: "utf8",
+    env: options.env ? { ...process.env, ...options.env } : process.env,
   });
 }
 
@@ -1531,6 +1532,103 @@ const reviewBody = fs.readFileSync(reviewPacketPath, "utf8");
 assert.match(reviewBody, /# Independent review packet/);
 assert.match(reviewBody, /Do not accept the implementation explanation as evidence/);
 assert.match(reviewBody, /## Invariants\n\n- None recorded/);
+
+const reviewJsonPath = path.join(fixture, ".rivet/review.json");
+const preparedJsonReview = invoke(fixture, [
+  "review",
+  "--record",
+  "change.md",
+  "--files",
+  "src/auth/policy.js",
+  "--output",
+  ".rivet/review.json",
+]);
+assert.strictEqual(preparedJsonReview.status, 0, preparedJsonReview.stderr);
+const reviewFindingsPath = path.join(fixture, ".rivet/findings.json");
+fs.writeFileSync(
+  reviewFindingsPath,
+  JSON.stringify({
+    verdict: "findings",
+    findings: [
+      {
+        id: "REV-001",
+        severity: "high",
+        category: "authorization",
+        summary: "The negative authorization path has no evidence.",
+        evidence: "The change record lists no negative authorization check.",
+        requirement: null,
+        file: "src/auth/policy.js",
+        line: 1,
+        recommendation: "Add a cross-account denial test.",
+        confidence: "high",
+      },
+    ],
+    limitations: ["The packet has no runtime authorization trace."],
+  }),
+);
+const ingestedReview = invoke(fixture, [
+  "review",
+  "ingest",
+  "--packet",
+  ".rivet/review.json",
+  "--findings",
+  ".rivet/findings.json",
+]);
+assert.strictEqual(ingestedReview.status, 2, ingestedReview.stderr);
+assert.strictEqual(JSON.parse(ingestedReview.stdout).decision, "review-findings");
+
+const mockBin = path.join(fixture, "mock-review-bin");
+fs.mkdirSync(mockBin);
+fs.writeFileSync(
+  path.join(mockBin, "codex"),
+  `#!/usr/bin/env node
+const fs = require("fs");
+const args = process.argv.slice(2);
+const output = args[args.indexOf("--output-last-message") + 1];
+fs.writeFileSync(output, JSON.stringify({
+  verdict: "pass",
+  findings: [],
+  limitations: ["Mocked native reviewer protocol."]
+}));
+`,
+  { mode: 0o755 },
+);
+const nativeReviewWithoutAuthorization = invoke(
+  fixture,
+  [
+    "review",
+    "run",
+    "--packet",
+    ".rivet/review.json",
+    "--provider",
+    "codex",
+    "--output",
+    ".rivet/native-review.json",
+  ],
+  { env: { PATH: `${mockBin}${path.delimiter}${process.env.PATH}` } },
+);
+assert.strictEqual(nativeReviewWithoutAuthorization.status, 1);
+assert.match(nativeReviewWithoutAuthorization.stderr, /explicit --allow-network/);
+const nativeReview = invoke(
+  fixture,
+  [
+    "review",
+    "run",
+    "--packet",
+    ".rivet/review.json",
+    "--provider",
+    "codex",
+    "--output",
+    ".rivet/native-review.json",
+    "--allow-network",
+  ],
+  { env: { PATH: `${mockBin}${path.delimiter}${process.env.PATH}` } },
+);
+assert.strictEqual(nativeReview.status, 0, nativeReview.stderr);
+const nativeReviewReport = JSON.parse(nativeReview.stdout);
+assert.strictEqual(nativeReviewReport.decision, "pass");
+assert.strictEqual(nativeReviewReport.reviewer.provider, "codex");
+assert.match(nativeReviewReport.reviewer.isolation, /ephemeral, read-only/);
 assert.doesNotMatch(reviewBody, /## Alternatives/);
 
 const cleanDoc = path.join(fixture, "clean.md");

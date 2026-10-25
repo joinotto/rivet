@@ -235,6 +235,33 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" review \
 
 Packet generation is not an independent review. Report its status as `prepared-not-reviewed` until a separate reviewer returns findings.
 
+Run an isolated native review with an installed Codex or Claude Code CLI:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" review run \
+  --packet .rivet/reviews/change.json \
+  --provider codex \
+  --output .rivet/reviews/change-findings.json \
+  --allow-network
+```
+
+Use a JSON packet for native review. Rivet runs the reviewer in a temporary
+directory. Codex uses ephemeral read-only mode. Claude Code uses bare,
+no-session, no-tools mode. The command requires explicit network authorization
+because it can use a paid model API.
+
+Ingest findings from a human or another supported reviewer:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" review ingest \
+  --packet .rivet/reviews/change.json \
+  --findings .rivet/reviews/external-findings.json
+```
+
+Rivet validates severity, confidence, evidence, changed-file references, and
+verdict consistency. Native output remains reviewer evidence, not proof that
+the change is correct.
+
 Normalize established security artifacts:
 
 ```sh

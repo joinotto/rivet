@@ -132,6 +132,19 @@ node skills/rivet/scripts/rivet-evidence.mjs threat-model init \
 
 Validate it with `threat-model validate --file .rivet/threat-model.json`.
 
+Run an isolated independent review:
+
+```sh
+node skills/rivet/scripts/rivet-evidence.mjs review run \
+  --packet .rivet/reviews/change.json \
+  --provider codex \
+  --output .rivet/reviews/change-findings.json \
+  --allow-network
+```
+
+Codex and Claude Code are supported. External JSON findings can use
+`review ingest`.
+
 Generate host packages:
 
 ```sh
