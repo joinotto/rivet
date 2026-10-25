@@ -235,11 +235,12 @@ Implemented:
 - Adjacent-layer retry amplification detection.
 - Timeout budget inversion detection.
 - Retry and idempotency consistency review.
+- Expand–migrate–validate–contract plan validation.
+- Revision-bound migration dry-run and reconciliation evidence.
+- Interruption and resume evidence validation.
 
 Not implemented:
 
-- Expand-and-contract planner.
-- Migration dry-run evidence.
 - Runtime retry discovery.
 - OpenTelemetry semantic review.
 

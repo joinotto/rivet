@@ -259,6 +259,17 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" resilience \
 
 Record hidden client, proxy, queue, and platform retries when known. Treat `idempotent: true` as an assertion until tests or runtime evidence verify it.
 
+Validate an expand–migrate–validate–contract plan or a recorded dry run:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" migrate \
+  --plan .rivet/migration-plan.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" migrate \
+  --dry-run .rivet/migration-dry-run.json
+```
+
+Require bounded resumable batches, a compatibility window, recovery, an abort rule, count reconciliation, and interruption/resume evidence. A valid plan is not runtime proof.
+
 Write a machine-readable receipt only when useful:
 
 ```sh

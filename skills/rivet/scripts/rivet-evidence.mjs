@@ -34,6 +34,10 @@ import {
 import { validateWaiver, waiverTemplate } from "./lib/waiver.mjs";
 import { cosignPlan, cosignResult } from "./lib/attest.mjs";
 import { analyzeResilience } from "./lib/resilience.mjs";
+import {
+  validateMigrationDryRun,
+  validateMigrationPlan,
+} from "./lib/migration.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -1323,6 +1327,25 @@ function resilienceEvidence() {
   }
 }
 
+function migrationEvidence() {
+  try {
+    const plan = evidenceArtifact("--plan");
+    const dryRun = evidenceArtifact("--dry-run");
+    if (Boolean(plan) === Boolean(dryRun)) {
+      throw new Error("Use exactly one of --plan <file> or --dry-run <file>.");
+    }
+    const report = plan
+      ? validateMigrationPlan(plan)
+      : validateMigrationDryRun(dryRun);
+    report.artifact = path.relative(cwd, plan || dryRun);
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    if (!["valid", "observed"].includes(report.decision)) process.exitCode = 2;
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}
+
 function markdownSummary(receipt) {
   const lines = [
     "# Rivet verification",
@@ -1561,10 +1584,12 @@ if (command === "init") {
   attestWorkflow();
 } else if (command === "resilience") {
   resilienceEvidence();
+} else if (command === "migrate") {
+  migrationEvidence();
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

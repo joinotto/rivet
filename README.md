@@ -47,6 +47,7 @@ Version `0.1.0` contains:
 - Sigstore/Cosign evidence-signing and identity-constrained verification plans.
 - Explicitly authorized execution of repository-declared SAST commands.
 - Timeout, retry-amplification, idempotency, and deadline-budget analysis.
+- Expand-and-contract migration plan and dry-run evidence validation.
 
 Run the tests:
 

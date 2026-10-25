@@ -707,6 +707,85 @@ assert.ok(
 assert.ok(
   resilienceReport.findings.some((item) => item.id === "unsafe-retry"),
 );
+
+fs.writeFileSync(
+  path.join(intelligence, "migration-plan.json"),
+  JSON.stringify({
+    engine: "postgresql",
+    compatibility_window: "Keep both columns through release 2026-11.",
+    recovery_method: "Restore the old read path and retain the original column.",
+    abort_rule: "Stop when error rate exceeds 0.5% or reconciliation differs.",
+    owner: "data-platform",
+    batch: {
+      max_items: 1000,
+      resume_cursor: "last_account_id",
+    },
+    phases: [
+      {
+        name: "expand",
+        actions: ["Add the nullable replacement column."],
+        completion_evidence: ["Old and new application versions start."],
+      },
+      {
+        name: "migrate",
+        actions: ["Backfill in bounded batches."],
+        completion_evidence: ["Every batch records its cursor and count."],
+      },
+      {
+        name: "validate",
+        actions: ["Reconcile source and destination values."],
+        completion_evidence: ["Mismatch count is zero."],
+      },
+      {
+        name: "contract",
+        actions: ["Remove the old column after the compatibility window."],
+        completion_evidence: ["No supported version reads the old column."],
+      },
+    ],
+  }),
+);
+const migrationPlan = invoke(intelligence, [
+  "migrate",
+  "--plan",
+  "migration-plan.json",
+]);
+assert.strictEqual(migrationPlan.status, 0, migrationPlan.stderr);
+assert.strictEqual(JSON.parse(migrationPlan.stdout).decision, "valid");
+
+fs.writeFileSync(
+  path.join(intelligence, "migration-dry-run.json"),
+  JSON.stringify({
+    revision: "fixture-revision",
+    environment: "isolated-copy",
+    started_at: "2026-10-25T10:00:00Z",
+    finished_at: "2026-10-25T10:05:00Z",
+    source_count: 100,
+    migrated_count: 99,
+    validated_count: 99,
+    interrupted: true,
+    resumed: false,
+    recovery_test: "Restored the old application read path.",
+    batches: [{ cursor: "50", count: 50 }, { cursor: "99", count: 49 }],
+    lock_observations: [],
+  }),
+);
+const migrationDryRun = invoke(intelligence, [
+  "migrate",
+  "--dry-run",
+  "migration-dry-run.json",
+]);
+assert.strictEqual(migrationDryRun.status, 2, migrationDryRun.stderr);
+const dryRunReport = JSON.parse(migrationDryRun.stdout);
+assert.ok(
+  dryRunReport.faults.includes(
+    "source_count and migrated_count do not reconcile",
+  ),
+);
+assert.ok(
+  dryRunReport.faults.includes(
+    "an interrupted dry run must record successful resume or remain incomplete",
+  ),
+);
 const nestedVerification = invoke(topology, [
   "verify",
   "--checks",

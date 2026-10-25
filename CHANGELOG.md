@@ -39,6 +39,7 @@ This file records notable changes to Rivet.
 - Sigstore/Cosign keyless evidence-signing adapter.
 - Gated execution of repository-declared SAST commands.
 - Timeout, retry amplification, idempotency, and deadline-budget analysis.
+- Expand-and-contract migration plan and dry-run validation.
 
 ### Changed
 
