@@ -54,6 +54,7 @@ Version `0.1.0` contains:
 - Read-only, approval-aware, hash-chained incident timelines.
 - Blameless postmortem drafts from validated incident evidence.
 - Repeated-sample performance statistics with explicit adequacy limits.
+- Owned preventive actions with due dates and follow-up verification.
 
 Run the tests:
 

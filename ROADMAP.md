@@ -283,10 +283,12 @@ Implemented:
 - Blameless postmortem drafts from validated incident timelines.
 - Repeated-sample descriptive statistics and approximate confidence intervals.
 - Insufficient-sample reporting.
+- Owned preventive actions with due dates and observed follow-up verification.
+- Overdue preventive-action reporting.
 
 Not implemented:
 
-- Preventive-action workflow and follow-up verification.
+- Native ticket-system synchronization.
 
 Commands:
 

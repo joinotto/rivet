@@ -1141,6 +1141,79 @@ const rejectedPostmortem = invoke(intelligence, [
 ]);
 assert.strictEqual(rejectedPostmortem.status, 1);
 assert.match(rejectedPostmortem.stderr, /timeline is invalid/);
+
+const actionInit = invoke(intelligence, [
+  "action",
+  "init",
+  "--id",
+  "ACT-001",
+  "--incident",
+  "INC-2026-001",
+  "--created-at",
+  "2026-10-25",
+  "--output",
+  "action.json",
+]);
+assert.strictEqual(actionInit.status, 0, actionInit.stderr);
+const actionFile = path.join(intelligence, "action.json");
+const preventiveAction = JSON.parse(fs.readFileSync(actionFile, "utf8"));
+Object.assign(preventiveAction, {
+  contributing_condition: "The release gate did not verify rollback readiness.",
+  change: "Add an automated rollback exercise to release evidence.",
+  owner: "release-platform",
+  priority: "high",
+  due_at: "2026-11-15",
+  status: "completed",
+});
+fs.writeFileSync(actionFile, JSON.stringify(preventiveAction));
+const invalidCompletedAction = invoke(intelligence, [
+  "action",
+  "validate",
+  "--file",
+  "action.json",
+  "--as-of",
+  "2026-10-25",
+]);
+assert.strictEqual(invalidCompletedAction.status, 2, invalidCompletedAction.stderr);
+assert.ok(
+  JSON.parse(invalidCompletedAction.stdout).faults.some((item) =>
+    item.includes("verification.evidence"),
+  ),
+);
+
+preventiveAction.verification = {
+  method: "Run rollback exercise against the release fixture.",
+  evidence: ["rollback-exercise-2026-10-25.json"],
+  result: "pass",
+  verified_at: "2026-10-25T11:00:00Z",
+};
+fs.writeFileSync(actionFile, JSON.stringify(preventiveAction));
+const completedAction = invoke(intelligence, [
+  "action",
+  "validate",
+  "--file",
+  "action.json",
+  "--as-of",
+  "2026-10-25",
+]);
+assert.strictEqual(completedAction.status, 0, completedAction.stderr);
+assert.strictEqual(
+  JSON.parse(completedAction.stdout).decision,
+  "verified-complete",
+);
+
+preventiveAction.status = "open";
+fs.writeFileSync(actionFile, JSON.stringify(preventiveAction));
+const overdueAction = invoke(intelligence, [
+  "action",
+  "validate",
+  "--file",
+  "action.json",
+  "--as-of",
+  "2026-12-01",
+]);
+assert.strictEqual(overdueAction.status, 1, overdueAction.stderr);
+assert.strictEqual(JSON.parse(overdueAction.stdout).decision, "overdue");
 assert.ok(
   telemetryReport.findings.some(
     (item) => item.id === "unbounded-metric-dimension",

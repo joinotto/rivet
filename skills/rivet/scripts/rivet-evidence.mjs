@@ -53,6 +53,7 @@ import {
   buildPostmortem,
   postmortemMarkdown,
 } from "./lib/postmortem.mjs";
+import { actionTemplate, validateAction } from "./lib/action.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -1523,6 +1524,57 @@ function postmortemEvidence() {
   }
 }
 
+function actionWorkflow() {
+  const action = argv[1];
+  try {
+    if (action === "init") {
+      const output = value("--output");
+      if (!output || !value("--id") || !value("--incident")) {
+        throw new Error(
+          "Action initialization requires --id, --incident, and --output.",
+        );
+      }
+      const absolute = outputPath(output);
+      if (fs.existsSync(absolute) && !has("--force")) {
+        throw new Error(`Refusing to overwrite existing file: ${output}`);
+      }
+      fs.mkdirSync(path.dirname(absolute), { recursive: true });
+      fs.writeFileSync(
+        absolute,
+        `${JSON.stringify(
+          actionTemplate(
+            value("--id"),
+            value("--incident"),
+            value("--created-at") || new Date().toISOString().slice(0, 10),
+          ),
+          null,
+          2,
+        )}\n`,
+        { mode: 0o600 },
+      );
+      console.log(`Preventive action: ${output}`);
+      return;
+    }
+    if (action === "validate") {
+      const artifact = evidenceArtifact("--file");
+      if (!artifact) throw new Error("Action validation requires --file <file>.");
+      const report = validateAction(
+        artifact,
+        value("--as-of") || new Date().toISOString().slice(0, 10),
+      );
+      report.artifact = path.relative(cwd, artifact);
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+      if (report.decision === "invalid") process.exitCode = 2;
+      if (report.decision === "overdue") process.exitCode = 1;
+      return;
+    }
+    throw new Error("Use action init or action validate.");
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}
+
 function markdownSummary(receipt) {
   const lines = [
     "# Rivet verification",
@@ -1773,10 +1825,12 @@ if (command === "init") {
   incidentWorkflow();
 } else if (command === "postmortem") {
   postmortemEvidence();
+} else if (command === "action") {
+  actionWorkflow();
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

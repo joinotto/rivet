@@ -46,6 +46,7 @@ This file records notable changes to Rivet.
 - Read-only, approval-aware incident action timelines.
 - Blameless postmortem drafts from validated timelines.
 - Repeated-sample performance statistics and adequacy reporting.
+- Preventive-action ownership, due dates, and follow-up verification.
 
 ### Changed
 

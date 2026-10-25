@@ -336,6 +336,19 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" postmortem \
 
 The draft preserves observed events and leaves contributing conditions unknown. Add evidence before stating a root cause. Do not use human error as a root cause without analyzing enabling system conditions.
 
+Create and verify a preventive action:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" action init \
+  --id action-id \
+  --incident incident-id \
+  --output .rivet/incidents/action.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" action validate \
+  --file .rivet/incidents/action.json
+```
+
+A completed action requires a contributing condition, concrete change, owner, priority, due date, verification method, evidence, passing result, and verification time. Rivet reports overdue open actions.
+
 Write a machine-readable receipt only when useful:
 
 ```sh
