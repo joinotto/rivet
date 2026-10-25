@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Seed-excluding native blind-evaluation runner and initial Codex comparison
+  artifacts for no-Rivet, prose-only, and tool-backed conditions.
 - Blinded evaluation-campaign scoring with per-condition metrics and pairwise
   reviewer agreement.
 - Native Codex and Claude Code review conformance against a seeded

@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "kind": "blind-evaluation-run",
+  "condition": "tool-backed-rivet",
+  "blind": true,
+  "provider": "codex",
+  "reviewer_id": "codex:tool-backed-rivet",
+  "fixture_source": "fixtures/reference-systems",
+  "source_file_count": 8,
+  "seed_metadata_excluded": true,
+  "started_at": "2026-10-25T15:08:58.279Z",
+  "finished_at": "2026-10-25T15:09:35.498Z",
+  "duration_seconds": 37.219,
+  "command_digest": "b18021d31d7729000402682b7ae7135c81e3bead50fdca809df7ff08a35db294",
+  "isolation": "temporary-directory, ephemeral, read-only",
+  "findings": [
+    {
+      "fixture": "broken-authorization",
+      "class": "authorization",
+      "summary": "Any authenticated user can read any invoice, regardless of ownership, tenant, or permission.",
+      "evidence": "canReadInvoice returns true whenever user.authenticated and invoice are truthy; it performs no object-level authorization check.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "cross-tenant-data",
+      "class": "tenant-isolation",
+      "summary": "Document listing exposes records across tenant boundaries.",
+      "evidence": "listDocuments returns the complete documents argument without filtering it by the requesting user's tenant or access rights.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "distributed-failure-recovery",
+      "class": "partial-failure",
+      "summary": "A charge failure after a successful reservation leaves the reservation uncompensated.",
+      "evidence": "processOrder awaits gateway.reserve, then calls gateway.charge without rollback, cancellation, or reconciliation when charging fails.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "distributed-failure-recovery",
+      "class": "event-ordering",
+      "summary": "Stale or duplicate events can overwrite newer order state.",
+      "evidence": "applyStatus assigns event.status and event.sequence unconditionally, without verifying that the incoming sequence exceeds order.sequence.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "duplicate-side-effect",
+      "class": "idempotency",
+      "summary": "Duplicate message delivery can charge the customer multiple times.",
+      "evidence": "processPayment directly invokes provider.charge on every call and supplies no message identifier, idempotency key, or deduplication check.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "high-cardinality-telemetry",
+      "class": "telemetry-cardinality",
+      "summary": "Using individual user IDs as telemetry attributes creates unbounded cardinality.",
+      "evidence": "requestAttributes emits request.userId as the \"user.id\" attribute, potentially creating one attribute value per user.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "kev-dependency",
+      "class": "vulnerable-dependency",
+      "summary": "The project pins a Log4j version affected by the actively exploited Log4Shell vulnerability.",
+      "evidence": "pom.xml declares org.apache.logging.log4j:log4j-core:2.14.1, a version affected by CVE-2021-44228 and listed through that vulnerability in the CISA Known Exploited Vulnerabilities catalog.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "retry-amplification",
+      "class": "retry-amplification",
+      "summary": "One logical call can invoke the failing dependency nine times immediately.",
+      "evidence": "Nested loops each iterate three times around operation(), producing 3 × 3 attempts with no backoff, jitter, deadline, or retryability classification.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "unsafe-migration",
+      "class": "destructive-migration",
+      "summary": "The migration immediately and irreversibly removes account data and breaks code that still reads or writes the column.",
+      "evidence": "The sole statement is ALTER TABLE accounts DROP COLUMN legacy_status. Rivet's migration inspection classified the DROP as a critical destructive operation; no compatibility window or recovery mechanism is present.",
+      "confidence": "high"
+    }
+  ],
+  "limitations": [
+    "No application tests, architecture documentation, schemas, runtime configuration, or calling code were present to measure reachability or impact.",
+    "Rivet detected no dependency-audit adapter for the isolated Maven fixture, so dependency reachability and mitigating Log4j configuration were not established.",
+    "Static migration inspection cannot measure production lock duration, table size, dependencies, backups, or recoverability."
+  ]
+}

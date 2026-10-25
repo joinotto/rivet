@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "kind": "blind-evaluation-run",
+  "condition": "prose-only-rivet",
+  "blind": true,
+  "provider": "codex",
+  "reviewer_id": "codex:prose-only-rivet",
+  "fixture_source": "fixtures/reference-systems",
+  "source_file_count": 8,
+  "seed_metadata_excluded": true,
+  "started_at": "2026-10-25T15:08:02.388Z",
+  "finished_at": "2026-10-25T15:08:24.742Z",
+  "duration_seconds": 22.354,
+  "command_digest": "87cd0028f00dbdb1b55f706bb173286519579a9a9b4839031ec854586b2a642b",
+  "isolation": "temporary-directory, ephemeral, read-only",
+  "findings": [
+    {
+      "fixture": "broken-authorization",
+      "class": "Broken object-level authorization",
+      "summary": "Any authenticated user can read any invoice, regardless of ownership or permissions.",
+      "evidence": "canReadInvoice returns true solely when user.authenticated and invoice are truthy; it never compares tenant, owner, role, or access grants.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "cross-tenant-data",
+      "class": "Cross-tenant data exposure",
+      "summary": "The document listing function returns documents without tenant filtering.",
+      "evidence": "listDocuments ignores user entirely and returns the complete documents collection.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "distributed-failure-recovery",
+      "class": "Incomplete distributed rollback",
+      "summary": "A successful reservation is left active when the subsequent charge fails.",
+      "evidence": "processOrder calls gateway.reserve before gateway.charge but has no compensation, cancellation, or recovery handling for charge failure.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "distributed-failure-recovery",
+      "class": "Out-of-order event corruption",
+      "summary": "Older status events can overwrite newer order state.",
+      "evidence": "applyStatus unconditionally assigns event.status and event.sequence without rejecting an event whose sequence is not newer than order.sequence.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "duplicate-side-effect",
+      "class": "Non-idempotent message processing",
+      "summary": "Repeated delivery of the same payment message can produce duplicate charges.",
+      "evidence": "processPayment directly invokes provider.charge without an idempotency key, deduplication record, or processed-message check.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "high-cardinality-telemetry",
+      "class": "Unbounded telemetry cardinality",
+      "summary": "Per-user identifiers create an unbounded telemetry attribute dimension.",
+      "evidence": "requestAttributes emits request.userId as the \"user.id\" attribute for every request.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "kev-dependency",
+      "class": "Known exploited vulnerable dependency",
+      "summary": "The project pins a Log4j version affected by the Log4Shell remote-code-execution vulnerability.",
+      "evidence": "pom.xml declares org.apache.logging.log4j:log4j-core:2.14.1, which is affected by CVE-2021-44228.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "retry-amplification",
+      "class": "Retry amplification",
+      "summary": "Nested retry loops invoke a failing operation up to nine times per logical call.",
+      "evidence": "The three-iteration outer loop contains a three-iteration inner loop, and every inner iteration calls operation().",
+      "confidence": "high"
+    },
+    {
+      "fixture": "unsafe-migration",
+      "class": "Destructive incompatible migration",
+      "summary": "The migration immediately drops a column, breaking callers that still read or write it and preventing simple rollback.",
+      "evidence": "migration.sql contains only ALTER TABLE accounts DROP COLUMN legacy_status, with no staged deprecation, compatibility period, or data-preserving recovery step.",
+      "confidence": "high"
+    }
+  ],
+  "limitations": [
+    "Only the supplied fixture source was available; no tests, runtime behavior, schemas, deployment topology, or consumer contracts were provided.",
+    "The reference files linked from RIVET-GUIDANCE.md were absent, and Rivet executable evidence tools were unavailable as stated."
+  ]
+}

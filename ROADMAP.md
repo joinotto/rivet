@@ -353,12 +353,12 @@ Implemented:
 - Published expected-finding baseline.
 - Blinded comparison-campaign schema and per-condition scoring.
 - Pairwise observed agreement and Cohen kappa across seeded-defect labels.
+- Seed-excluding native blind-run harness for Codex and Claude Code.
+- Initial observed Codex runs without Rivet, with prose-only Rivet, and with
+  tool-backed Rivet.
 
 Not implemented:
 
-- Blind agent-without-Rivet runs.
-- Blind prose-only Rivet runs.
-- Blind tool-backed Rivet runs.
 - Experienced human baseline.
 
 Compare:

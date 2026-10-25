@@ -1,0 +1,268 @@
+{
+  "schema": 1,
+  "kind": "evaluation-campaign",
+  "created_at": "2026-10-25T15:10:00.853Z",
+  "fixtures": "fixtures/reference-systems",
+  "evidence_completeness_definition": "Fraction of six required run-provenance fields present.",
+  "seeds": [
+    {
+      "id": "broken-object-authorization",
+      "fixture": "broken-authorization"
+    },
+    {
+      "id": "cross-tenant-data-access",
+      "fixture": "cross-tenant-data"
+    },
+    {
+      "id": "distributed-failure-recovery-gaps",
+      "fixture": "distributed-failure-recovery"
+    },
+    {
+      "id": "duplicate-payment-side-effect",
+      "fixture": "duplicate-side-effect"
+    },
+    {
+      "id": "high-cardinality-metric-label",
+      "fixture": "high-cardinality-telemetry"
+    },
+    {
+      "id": "CVE-2021-44228",
+      "fixture": "kev-dependency"
+    },
+    {
+      "id": "multiplicative-retries",
+      "fixture": "retry-amplification"
+    },
+    {
+      "id": "unsafe-contract-migration",
+      "fixture": "unsafe-migration"
+    }
+  ],
+  "runs": [
+    {
+      "id": "codex-agent-without-rivet",
+      "condition": "agent-without-rivet",
+      "blind": true,
+      "reviewer_id": "codex:agent-without-rivet",
+      "artifact": "fixtures/evaluation-runs/codex-without-rivet.json",
+      "findings": [
+        {
+          "fixture": "broken-authorization",
+          "class": "Broken object-level authorization",
+          "summary": "Any authenticated user can read any invoice because ownership, tenant, and permission checks are absent.",
+          "evidence": "canReadInvoice returns true whenever user.authenticated and invoice are truthy.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "cross-tenant-data",
+          "class": "Cross-tenant data exposure",
+          "summary": "The document listing returns every supplied document without restricting results to the user's tenant.",
+          "evidence": "listDocuments(user, documents) directly returns documents and never uses user.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "distributed-failure-recovery",
+          "class": "Uncompensated partial failure",
+          "summary": "A charge failure after reservation leaves the reservation in place, with no rollback or recovery mechanism.",
+          "evidence": "processOrder awaits gateway.reserve before gateway.charge but has no error handling or compensation.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "distributed-failure-recovery",
+          "class": "Out-of-order event overwrite",
+          "summary": "Older status events can overwrite newer order state because event sequence ordering is not validated.",
+          "evidence": "applyStatus unconditionally assigns event.status and event.sequence to the order.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "duplicate-side-effect",
+          "class": "Non-idempotent side effect",
+          "summary": "Redelivery or retry of a payment message can charge the customer multiple times.",
+          "evidence": "processPayment invokes provider.charge without an idempotency key or duplicate-message check.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "high-cardinality-telemetry",
+          "class": "High-cardinality telemetry attribute",
+          "summary": "Emitting individual user IDs as request attributes creates an unbounded telemetry dimension.",
+          "evidence": "requestAttributes assigns request.userId to the \"user.id\" attribute.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "kev-dependency",
+          "class": "Known-exploited vulnerable dependency",
+          "summary": "The project pins Log4j Core 2.14.1, a version affected by the Log4Shell remote-code-execution vulnerability (CVE-2021-44228).",
+          "evidence": "pom.xml declares org.apache.logging.log4j:log4j-core version 2.14.1.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "retry-amplification",
+          "class": "Retry amplification",
+          "summary": "Nested retry loops invoke the operation up to nine times, amplifying load and side effects during failures.",
+          "evidence": "Three outer iterations each contain three inner attempts, with no backoff or retry filtering.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "unsafe-migration",
+          "class": "Destructive incompatible migration",
+          "summary": "The migration immediately drops a column, risking data loss and failures in application instances that still reference it.",
+          "evidence": "migration.sql contains only ALTER TABLE accounts DROP COLUMN legacy_status.",
+          "confidence": "high"
+        }
+      ],
+      "defects_introduced": 0,
+      "duration_seconds": 15.611,
+      "evidence_completeness": 1
+    },
+    {
+      "id": "codex-prose-only-rivet",
+      "condition": "prose-only-rivet",
+      "blind": true,
+      "reviewer_id": "codex:prose-only-rivet",
+      "artifact": "fixtures/evaluation-runs/codex-prose-only.json",
+      "findings": [
+        {
+          "fixture": "broken-authorization",
+          "class": "Broken object-level authorization",
+          "summary": "Any authenticated user can read any invoice, regardless of ownership or permissions.",
+          "evidence": "canReadInvoice returns true solely when user.authenticated and invoice are truthy; it never compares tenant, owner, role, or access grants.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "cross-tenant-data",
+          "class": "Cross-tenant data exposure",
+          "summary": "The document listing function returns documents without tenant filtering.",
+          "evidence": "listDocuments ignores user entirely and returns the complete documents collection.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "distributed-failure-recovery",
+          "class": "Incomplete distributed rollback",
+          "summary": "A successful reservation is left active when the subsequent charge fails.",
+          "evidence": "processOrder calls gateway.reserve before gateway.charge but has no compensation, cancellation, or recovery handling for charge failure.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "distributed-failure-recovery",
+          "class": "Out-of-order event corruption",
+          "summary": "Older status events can overwrite newer order state.",
+          "evidence": "applyStatus unconditionally assigns event.status and event.sequence without rejecting an event whose sequence is not newer than order.sequence.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "duplicate-side-effect",
+          "class": "Non-idempotent message processing",
+          "summary": "Repeated delivery of the same payment message can produce duplicate charges.",
+          "evidence": "processPayment directly invokes provider.charge without an idempotency key, deduplication record, or processed-message check.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "high-cardinality-telemetry",
+          "class": "Unbounded telemetry cardinality",
+          "summary": "Per-user identifiers create an unbounded telemetry attribute dimension.",
+          "evidence": "requestAttributes emits request.userId as the \"user.id\" attribute for every request.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "kev-dependency",
+          "class": "Known exploited vulnerable dependency",
+          "summary": "The project pins a Log4j version affected by the Log4Shell remote-code-execution vulnerability.",
+          "evidence": "pom.xml declares org.apache.logging.log4j:log4j-core:2.14.1, which is affected by CVE-2021-44228.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "retry-amplification",
+          "class": "Retry amplification",
+          "summary": "Nested retry loops invoke a failing operation up to nine times per logical call.",
+          "evidence": "The three-iteration outer loop contains a three-iteration inner loop, and every inner iteration calls operation().",
+          "confidence": "high"
+        },
+        {
+          "fixture": "unsafe-migration",
+          "class": "Destructive incompatible migration",
+          "summary": "The migration immediately drops a column, breaking callers that still read or write it and preventing simple rollback.",
+          "evidence": "migration.sql contains only ALTER TABLE accounts DROP COLUMN legacy_status, with no staged deprecation, compatibility period, or data-preserving recovery step.",
+          "confidence": "high"
+        }
+      ],
+      "defects_introduced": 0,
+      "duration_seconds": 22.354,
+      "evidence_completeness": 1
+    },
+    {
+      "id": "codex-tool-backed-rivet",
+      "condition": "tool-backed-rivet",
+      "blind": true,
+      "reviewer_id": "codex:tool-backed-rivet",
+      "artifact": "fixtures/evaluation-runs/codex-tool-backed.json",
+      "findings": [
+        {
+          "fixture": "broken-authorization",
+          "class": "authorization",
+          "summary": "Any authenticated user can read any invoice, regardless of ownership, tenant, or permission.",
+          "evidence": "canReadInvoice returns true whenever user.authenticated and invoice are truthy; it performs no object-level authorization check.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "cross-tenant-data",
+          "class": "tenant-isolation",
+          "summary": "Document listing exposes records across tenant boundaries.",
+          "evidence": "listDocuments returns the complete documents argument without filtering it by the requesting user's tenant or access rights.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "distributed-failure-recovery",
+          "class": "partial-failure",
+          "summary": "A charge failure after a successful reservation leaves the reservation uncompensated.",
+          "evidence": "processOrder awaits gateway.reserve, then calls gateway.charge without rollback, cancellation, or reconciliation when charging fails.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "distributed-failure-recovery",
+          "class": "event-ordering",
+          "summary": "Stale or duplicate events can overwrite newer order state.",
+          "evidence": "applyStatus assigns event.status and event.sequence unconditionally, without verifying that the incoming sequence exceeds order.sequence.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "duplicate-side-effect",
+          "class": "idempotency",
+          "summary": "Duplicate message delivery can charge the customer multiple times.",
+          "evidence": "processPayment directly invokes provider.charge on every call and supplies no message identifier, idempotency key, or deduplication check.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "high-cardinality-telemetry",
+          "class": "telemetry-cardinality",
+          "summary": "Using individual user IDs as telemetry attributes creates unbounded cardinality.",
+          "evidence": "requestAttributes emits request.userId as the \"user.id\" attribute, potentially creating one attribute value per user.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "kev-dependency",
+          "class": "vulnerable-dependency",
+          "summary": "The project pins a Log4j version affected by the actively exploited Log4Shell vulnerability.",
+          "evidence": "pom.xml declares org.apache.logging.log4j:log4j-core:2.14.1, a version affected by CVE-2021-44228 and listed through that vulnerability in the CISA Known Exploited Vulnerabilities catalog.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "retry-amplification",
+          "class": "retry-amplification",
+          "summary": "One logical call can invoke the failing dependency nine times immediately.",
+          "evidence": "Nested loops each iterate three times around operation(), producing 3 × 3 attempts with no backoff, jitter, deadline, or retryability classification.",
+          "confidence": "high"
+        },
+        {
+          "fixture": "unsafe-migration",
+          "class": "destructive-migration",
+          "summary": "The migration immediately and irreversibly removes account data and breaks code that still reads or writes the column.",
+          "evidence": "The sole statement is ALTER TABLE accounts DROP COLUMN legacy_status. Rivet's migration inspection classified the DROP as a critical destructive operation; no compatibility window or recovery mechanism is present.",
+          "confidence": "high"
+        }
+      ],
+      "defects_introduced": 0,
+      "duration_seconds": 37.219,
+      "evidence_completeness": 1
+    }
+  ]
+}

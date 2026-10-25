@@ -176,14 +176,21 @@ export function evaluateCampaign(campaign) {
     }
     const findings = Array.isArray(run?.findings) ? run.findings : [];
     const foundSeeds = new Set();
-    let unexpected = 0;
-    for (const finding of findings) {
-      if (seedIds.includes(finding?.seed_id)) {
-        foundSeeds.add(finding.seed_id);
-      } else {
-        unexpected += 1;
+    const matchedFindingIndexes = new Set();
+    for (const seed of seeds) {
+      const index = findings.findIndex(
+        (finding, findingIndex) =>
+          !matchedFindingIndexes.has(findingIndex) &&
+          (finding?.seed_id === seed.id ||
+            (finding?.fixture === seed.fixture &&
+              (!finding?.class || !seed.class || finding.class === seed.class))),
+      );
+      if (index >= 0) {
+        matchedFindingIndexes.add(index);
+        foundSeeds.add(seed.id);
       }
     }
+    const unexpected = findings.length - matchedFindingIndexes.size;
     const truePositives = foundSeeds.size;
     const falseNegatives = seedIds.length - truePositives;
     const precision = truePositives + unexpected
@@ -196,15 +203,14 @@ export function evaluateCampaign(campaign) {
       reviewer_id: run?.reviewer_id || null,
       artifact: run?.artifact || null,
       found_seed_ids: [...foundSeeds].sort(),
-      unexpected_findings: unexpected,
+      unmatched_findings: unexpected,
       defects_introduced: run?.defects_introduced ?? null,
       duration_seconds: run?.duration_seconds ?? null,
       evidence_completeness: run?.evidence_completeness ?? null,
       metrics: {
         true_positives: truePositives,
-        false_positives: unexpected,
         false_negatives: falseNegatives,
-        precision,
+        provisional_precision: precision,
         recall,
       },
     });
@@ -218,7 +224,9 @@ export function evaluateCampaign(campaign) {
     );
     conditions[condition] = {
       run_count: conditionRuns.length,
-      mean_precision: mean(conditionRuns.map((run) => run.metrics.precision)),
+      mean_provisional_precision: mean(
+        conditionRuns.map((run) => run.metrics.provisional_precision),
+      ),
       mean_recall: mean(conditionRuns.map((run) => run.metrics.recall)),
       mean_defects_introduced: mean(
         conditionRuns.map((run) => run.defects_introduced),
@@ -281,6 +289,7 @@ export function evaluateCampaign(campaign) {
     limitations: [
       "Scores apply only to the declared seeds, tasks, reviewers, and run conditions.",
       "Blindness and reviewer experience require procedural evidence outside this calculation.",
+      "An unmatched finding is not a confirmed false positive until adjudication.",
       "Pairwise agreement does not determine which reviewer is correct.",
     ],
   };

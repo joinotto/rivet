@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "kind": "blind-evaluation-run",
+  "condition": "agent-without-rivet",
+  "blind": true,
+  "provider": "codex",
+  "reviewer_id": "codex:agent-without-rivet",
+  "fixture_source": "fixtures/reference-systems",
+  "source_file_count": 8,
+  "seed_metadata_excluded": true,
+  "started_at": "2026-10-25T15:07:09.366Z",
+  "finished_at": "2026-10-25T15:07:24.977Z",
+  "duration_seconds": 15.611,
+  "command_digest": "ed59fe8b9f83e47da12581fe0a4616d5129abc3f37020f8c4a78f5f39c4b852e",
+  "isolation": "temporary-directory, ephemeral, read-only",
+  "findings": [
+    {
+      "fixture": "broken-authorization",
+      "class": "Broken object-level authorization",
+      "summary": "Any authenticated user can read any invoice because ownership, tenant, and permission checks are absent.",
+      "evidence": "canReadInvoice returns true whenever user.authenticated and invoice are truthy.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "cross-tenant-data",
+      "class": "Cross-tenant data exposure",
+      "summary": "The document listing returns every supplied document without restricting results to the user's tenant.",
+      "evidence": "listDocuments(user, documents) directly returns documents and never uses user.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "distributed-failure-recovery",
+      "class": "Uncompensated partial failure",
+      "summary": "A charge failure after reservation leaves the reservation in place, with no rollback or recovery mechanism.",
+      "evidence": "processOrder awaits gateway.reserve before gateway.charge but has no error handling or compensation.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "distributed-failure-recovery",
+      "class": "Out-of-order event overwrite",
+      "summary": "Older status events can overwrite newer order state because event sequence ordering is not validated.",
+      "evidence": "applyStatus unconditionally assigns event.status and event.sequence to the order.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "duplicate-side-effect",
+      "class": "Non-idempotent side effect",
+      "summary": "Redelivery or retry of a payment message can charge the customer multiple times.",
+      "evidence": "processPayment invokes provider.charge without an idempotency key or duplicate-message check.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "high-cardinality-telemetry",
+      "class": "High-cardinality telemetry attribute",
+      "summary": "Emitting individual user IDs as request attributes creates an unbounded telemetry dimension.",
+      "evidence": "requestAttributes assigns request.userId to the \"user.id\" attribute.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "kev-dependency",
+      "class": "Known-exploited vulnerable dependency",
+      "summary": "The project pins Log4j Core 2.14.1, a version affected by the Log4Shell remote-code-execution vulnerability (CVE-2021-44228).",
+      "evidence": "pom.xml declares org.apache.logging.log4j:log4j-core version 2.14.1.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "retry-amplification",
+      "class": "Retry amplification",
+      "summary": "Nested retry loops invoke the operation up to nine times, amplifying load and side effects during failures.",
+      "evidence": "Three outer iterations each contain three inner attempts, with no backoff or retry filtering.",
+      "confidence": "high"
+    },
+    {
+      "fixture": "unsafe-migration",
+      "class": "Destructive incompatible migration",
+      "summary": "The migration immediately drops a column, risking data loss and failures in application instances that still reference it.",
+      "evidence": "migration.sql contains only ALTER TABLE accounts DROP COLUMN legacy_status.",
+      "confidence": "high"
+    }
+  ],
+  "limitations": []
+}

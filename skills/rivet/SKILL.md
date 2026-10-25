@@ -306,6 +306,22 @@ Rivet calculates per-condition precision and recall and pairwise reviewer
 agreement. Procedural evidence must establish blindness and reviewer
 experience. Agreement does not determine correctness.
 
+Run agent arms only from a seed-free workspace:
+
+```sh
+npm run evaluate:blind -- \
+  --condition agent-without-rivet \
+  --provider codex \
+  --output reports/without-rivet.json \
+  --allow-network
+```
+
+The runner supports `agent-without-rivet`, `prose-only-rivet`, and
+`tool-backed-rivet`. It copies source fixtures but excludes `seed.json`.
+Native runs can consume paid model tokens. Do not run them without explicit
+network authorization. Use a separate qualified process for the experienced
+human condition.
+
 Coverage normalization accepts Istanbul summary JSON, Cobertura XML, JaCoCo
 XML, LCOV, and Go cover profiles. Rivet reports only aggregate metrics that the
 source artifact contains.

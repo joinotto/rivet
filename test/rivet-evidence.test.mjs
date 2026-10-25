@@ -18,6 +18,9 @@ import {
 import { validatePrivacyAnalysis } from "../skills/rivet/scripts/lib/privacy.mjs";
 import { evaluateCapacityPlan } from "../skills/rivet/scripts/lib/capacity.mjs";
 import { evaluateCampaign } from "../skills/rivet/scripts/lib/evaluate.mjs";
+import {
+  prepareBlindWorkspace,
+} from "../skills/rivet/scripts/lib/blind-evaluation.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repository = path.resolve(here, "..");
@@ -97,6 +100,29 @@ function invokeSte(cwd, args) {
 }
 
 const fixture = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-evidence-"));
+
+const blindWorkspace = fs.mkdtempSync(
+  path.join(os.tmpdir(), "rivet-blind-workspace-"),
+);
+const blindFiles = prepareBlindWorkspace({
+  repository,
+  fixtures: path.join(repository, "fixtures/reference-systems"),
+  destination: blindWorkspace,
+  condition: "tool-backed-rivet",
+});
+assert.ok(blindFiles.includes("fixtures/broken-authorization/system.mjs"));
+assert.ok(blindFiles.includes("fixtures/kev-dependency/pom.xml"));
+assert.strictEqual(
+  fs.existsSync(
+    path.join(blindWorkspace, "fixtures/broken-authorization/seed.json"),
+  ),
+  false,
+);
+assert.strictEqual(
+  fs.existsSync(path.join(blindWorkspace, "skills/rivet/SKILL.md")),
+  true,
+);
+fs.rmSync(blindWorkspace, { recursive: true });
 
 const statefulModel = {
   schema: 1,
@@ -435,7 +461,10 @@ assert.strictEqual(
 const evaluationCampaign = {
   schema: 1,
   kind: "evaluation-campaign",
-  seeds: [{ id: "seed-a" }, { id: "seed-b" }],
+  seeds: [
+    { id: "seed-a", fixture: "fixture-a", class: "class-a" },
+    { id: "seed-b", fixture: "fixture-b", class: "class-b" },
+  ],
   runs: [
     ["without", "agent-without-rivet", ["seed-a"], 0.5],
     ["prose", "prose-only-rivet", ["seed-a"], 0.6],
@@ -457,6 +486,22 @@ const campaignResult = evaluateCampaign(evaluationCampaign);
 assert.strictEqual(campaignResult.decision, "comparison-ready");
 assert.strictEqual(campaignResult.conditions["tool-backed-rivet"].mean_recall, 1);
 assert.strictEqual(campaignResult.reviewer_agreement.length, 6);
+const observedCampaign = JSON.parse(
+  fs.readFileSync(
+    path.join(repository, "fixtures/evaluation-runs/codex-campaign.json"),
+    "utf8",
+  ),
+);
+assert.strictEqual(observedCampaign.runs.length, 3);
+assert.ok(observedCampaign.runs.every((run) => run.blind === true));
+assert.deepStrictEqual(
+  observedCampaign.runs.map((run) => run.condition).sort(),
+  [
+    "agent-without-rivet",
+    "prose-only-rivet",
+    "tool-backed-rivet",
+  ],
+);
 
 fs.writeFileSync(
   path.join(fixture, "package.json"),
