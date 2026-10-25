@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "workflow": "independent-review",
+  "status": "prepared-not-reviewed",
+  "evidence_class": "derived",
+  "revision": "native-review-fixture-1",
+  "requirements": [
+    "A signed-in user can read only that user's profile."
+  ],
+  "invariants": [
+    "The requested profile owner must equal the authenticated user."
+  ],
+  "failure_cases": [
+    "A user changes the profile identifier to another user's identifier."
+  ],
+  "open_risks": [
+    "The route has no separate policy-enforcement layer."
+  ],
+  "changed_files": [
+    "profile-route.mjs"
+  ],
+  "affected_components": [
+    "profile-api"
+  ],
+  "risk_mode": "security-critical",
+  "risk_signals": [
+    {
+      "file": "profile-route.mjs",
+      "mode": "security-critical",
+      "reason": "The change controls access to personal profile data."
+    }
+  ],
+  "diff": "diff --git a/profile-route.mjs b/profile-route.mjs\nnew file mode 100644\n--- /dev/null\n+++ b/profile-route.mjs\n@@ -0,0 +1,4 @@\n+export async function getProfile(request, store) {\n+  const profile = await store.get(request.params.userId);\n+  return { status: 200, body: profile };\n+}\n",
+  "reviewer_instructions": [
+    "Review requirements and invariants before the diff.",
+    "Identify correctness, security, data, concurrency, compatibility, recovery, and test-evidence gaps.",
+    "Tie each finding to an observable behavior, invariant, threat, or failure mode.",
+    "Do not accept the implementation explanation as evidence.",
+    "State when the available evidence is insufficient."
+  ],
+  "omitted_to_reduce_anchoring": [
+    "Implementation rationale.",
+    "Author conclusions.",
+    "Proposed review findings."
+  ],
+  "limitations": [
+    "The packet is a synthetic native-adapter conformance fixture.",
+    "The diff does not include deployed middleware or runtime configuration."
+  ]
+}

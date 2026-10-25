@@ -223,6 +223,8 @@ The product must not present an inferred result as an observed result.
 - [ASD-STE100 for agent skills](docs/ASD-STE100-FOR-SKILLS.md)
 - [Host integration contract](docs/HOST-INTEGRATIONS.md)
 - [Native SAST conformance](docs/NATIVE-SAST-CONFORMANCE.md)
+- [Native signature conformance](docs/NATIVE-SIGNATURE-CONFORMANCE.md)
+- [Native review conformance](docs/NATIVE-REVIEW-CONFORMANCE.md)
 - [Native host conformance](docs/HOST-CONFORMANCE.md)
 - [Seeded reference systems](fixtures/reference-systems/README.md)
 

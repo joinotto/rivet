@@ -61,6 +61,24 @@ assert.doesNotMatch(
   nativeSignatureWorkflow,
   /uses:\s+[^@\n]+@(main|master|v\d+)\s*$/m,
 );
+for (const provider of ["codex", "claude"]) {
+  const nativeReview = JSON.parse(
+    fs.readFileSync(
+      path.join(repository, `fixtures/native-review/${provider}-findings.json`),
+      "utf8",
+    ),
+  );
+  assert.strictEqual(nativeReview.evidence_class, "observed");
+  assert.strictEqual(nativeReview.reviewer.provider, provider);
+  assert.strictEqual(nativeReview.decision, "review-findings");
+  assert.strictEqual(nativeReview.faults.length, 0);
+  assert.ok(
+    nativeReview.findings.some((finding) =>
+      /authori[sz]ation|IDOR|authenticated user|belongs to/i.test(
+        `${finding.category} ${finding.summary} ${finding.evidence} ${finding.recommendation}`,
+      )),
+  );
+}
 
 function invoke(cwd, args, options = {}) {
   return spawnSync(process.execPath, [script, ...args], {

@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "workflow": "independent-review-ingestion",
+  "evidence_class": "observed",
+  "revision": "native-review-fixture-1",
+  "verdict": "findings",
+  "findings": [
+    {
+      "id": "AUTHZ-001",
+      "severity": "high",
+      "category": "security",
+      "summary": "The route does not enforce that the requested profile belongs to the authenticated user.",
+      "evidence": "profile-route.mjs line 2 passes request.params.userId directly to store.get without reading authenticated-user identity or comparing the two identifiers. Changing the route parameter therefore controls which profile the handler requests.",
+      "requirement": "A signed-in user can read only that user's profile; the requested profile owner must equal the authenticated user.",
+      "file": "profile-route.mjs",
+      "line": 2,
+      "recommendation": "Obtain the authenticated user's trusted identifier and reject requests when it differs from request.params.userId, or fetch exclusively by the authenticated identifier. Add a test proving that one user cannot request another user's profile.",
+      "confidence": "high"
+    }
+  ],
+  "limitations": [
+    "The packet omits deployed middleware and runtime configuration, so it cannot establish whether an external layer independently prevents mismatched identifiers. The supplied route itself contains no such enforcement."
+  ],
+  "faults": [],
+  "decision": "review-findings",
+  "reviewer": {
+    "provider": "codex",
+    "command_digest": "a19db477c07864bd034a543c7f0377e8a8726d2131486dc7629b74c40067d32d",
+    "isolation": "temporary-directory, ephemeral, read-only"
+  },
+  "sources": {
+    "packet": "fixtures/native-review/packet.json"
+  }
+}

@@ -137,10 +137,8 @@ Implemented:
 - Cross-ecosystem coverage normalization for Istanbul, Cobertura, JaCoCo, LCOV, and Go profiles.
 - Cross-tool mutation normalization for Stryker, PIT, and cargo-mutants.
 - Isolated Codex and Claude Code review adapters with schema-validated finding ingestion.
-
-Not implemented:
-
-- Native end-to-end reviewer execution against configured model providers.
+- Observed native end-to-end Codex and Claude Code reviews against a seeded
+  authorization defect.
 
 Commands:
 

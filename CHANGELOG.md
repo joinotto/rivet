@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Native Codex and Claude Code review conformance against a seeded
+  authorization defect.
 - Workload-bound cost and capacity planning with measured limits, dated prices,
   scenario evaluation, headroom, and monthly cost.
 - Revision-bound engineering privacy analysis with data-minimization,
