@@ -39,7 +39,7 @@ Do not request or publish private chain-of-thought. Show concise decisions, assu
 - For test design or verification, read [references/testing.md](references/testing.md).
 - For security, authorization, secrets, dependencies, or vulnerabilities, read [references/security.md](references/security.md).
 - For APIs, queues, retries, concurrency, reliability, or architecture, read [references/systems.md](references/systems.md).
-- For procedures, warnings, findings, runbooks, or evidence reports, read [references/writing.md](references/writing.md).
+- For high-risk procedures, warnings, findings, recovery steps, or formal evidence reports, read [references/writing.md](references/writing.md).
 
 Load only the references that apply.
 
@@ -109,10 +109,10 @@ Report:
 
 Never state that the system is secure, has no vulnerabilities, covers all edge cases, or is fully compliant.
 
-Check changed Rivet documentation with:
+When precise procedural language is important, check the applicable document with:
 
 ```sh
 node "<skill-dir>/scripts/rivet-ste.mjs" <file-or-directory>
 ```
 
-This check is not ASD-STE100 certification.
+Do not run this check for ordinary discussion, research notes, or low-risk informal text. This check is not ASD-STE100 certification.

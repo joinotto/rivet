@@ -13,6 +13,11 @@ This file records notable changes to Rivet.
 - TRACE change-record generation.
 - Tests for local, service, and critical workflow results.
 
+### Changed
+
+- Made the ASD-STE100-aligned profile optional and risk-based.
+- Limited STE routing to consequential procedures and formal evidence.
+
 ## 0.1.0 — 2026-10-25
 
 ### Added

@@ -2,7 +2,9 @@
 
 ## 1. Standard
 
-Write project documents in a style that aligns with ASD-STE100 Simplified Technical English.
+Use an ASD-STE100-aligned style when ambiguity can cause operational, security, data, or recovery risk.
+
+Do not apply this style as a global requirement. Ordinary discussion, research, brainstorming, and low-risk text can use natural language.
 
 ASD-STE100 Issue 9 was published on 2025-01-15. ASD owns the standard and its trademark. The official standard has writing rules and a controlled dictionary.
 

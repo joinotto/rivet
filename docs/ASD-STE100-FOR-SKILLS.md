@@ -49,13 +49,13 @@ Ambiguous instructions can cause an agent to:
 
 STE principles reduce these risks.
 
-## 4. Where Rivet uses STE
+## 4. Where Rivet can use STE
 
-Use the Rivet STE profile for:
+Use the Rivet STE profile when ambiguous text can cause an incorrect or unsafe action:
 
-- `SKILL.md`.
-- Command references.
-- Procedures.
+- High-risk skill instructions.
+- High-risk command references.
+- Destructive or privileged procedures.
 - Warnings.
 - Findings.
 - Runbooks.
@@ -64,8 +64,12 @@ Use the Rivet STE profile for:
 - Recovery steps.
 - Configuration instructions.
 
-Do not force strict procedural form on:
+Do not force the profile on:
 
+- Ordinary conversation.
+- Brainstorming.
+- Low-risk tasks.
+- Informal code-review comments.
 - Research analysis.
 - Legal text.
 - Direct quotations.
@@ -74,7 +78,9 @@ Do not force strict procedural form on:
 - API identifiers.
 - Terms that a standard requires.
 
-For these items, preserve precision before style.
+For these items, preserve usefulness, precision, and natural language before controlled style.
+
+The agent can use selected STE principles without applying the full Rivet profile. For example, it can put one dangerous action in one sentence without checking every descriptive sentence.
 
 ## 5. Three validation levels
 
@@ -118,9 +124,9 @@ Examples:
 
 Rivet must not convert a Level 3 review into an automatic pass.
 
-## 6. Rivet STE profile
+## 6. Optional Rivet STE profile
 
-Use these defaults:
+Use these defaults when the profile applies:
 
 - Use one term for one meaning.
 - Use one meaning for one term.
@@ -220,7 +226,7 @@ Do not hide a warning in a note after the action.
 
 ## 11. Prompt and context design
 
-Keep the skill entry point short.
+Keep the skill entry point short. Do not add STE rules that do not change an agent decision or reduce a real ambiguity.
 
 Put domain procedures in references. Load only the applicable reference. This method reduces instruction conflict and keeps one term in one context.
 
@@ -250,7 +256,7 @@ The checker must not:
 
 ## 13. Human review
 
-Before a public release, a trained technical writer must review:
+Before a public release, use a trained technical writer to review high-risk controlled documents:
 
 - Safety warnings.
 - Security procedures.

@@ -1,6 +1,24 @@
 # Technical Writing
 
-Use this reference when you write a procedure, warning, finding, runbook, change record, or evidence report.
+Use this reference when ambiguity can create operational, security, data, or recovery risk.
+
+Applicable examples:
+
+- Destructive or privileged procedures.
+- Security findings.
+- Migration and recovery steps.
+- Runbooks.
+- Formal evidence reports.
+- Instructions that another agent will execute.
+
+Do not load or enforce this reference for:
+
+- Ordinary discussion.
+- Brainstorming.
+- Research notes.
+- Informal code-review comments.
+- Simple low-risk tasks.
+- Text in which natural expression is more useful than controlled language.
 
 Use the Rivet ASD-STE100-aligned profile:
 
@@ -29,7 +47,7 @@ Do not change:
 - Required legal text.
 - Precise technical terms.
 
-Run the checker:
+Run the checker only when the controlled profile improves the applicable document:
 
 ```sh
 node "<skill-dir>/scripts/rivet-ste.mjs" <file-or-directory>
