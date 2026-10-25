@@ -17,6 +17,25 @@ const steScript = path.resolve(
   "../skills/rivet/scripts/rivet-ste.mjs",
 );
 
+const nativeSastFixture = fs.readFileSync(
+  path.join(repository, "fixtures/native-sast/command-injection.js"),
+  "utf8",
+);
+assert.match(nativeSastFixture, /\bexec\(command,/);
+const nativeSastWorkflow = fs.readFileSync(
+  path.join(repository, ".github/workflows/native-sast.yml"),
+  "utf8",
+);
+assert.match(
+  nativeSastWorkflow,
+  /github\/codeql-action\/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370/,
+);
+assert.match(nativeSastWorkflow, /js\/command-line-injection/);
+assert.doesNotMatch(
+  nativeSastWorkflow,
+  /uses:\s+[^@\n]+@(main|master|v\d+)\s*$/m,
+);
+
 function invoke(cwd, args, options = {}) {
   return spawnSync(process.execPath, [script, ...args], {
     cwd,

@@ -48,6 +48,7 @@ Version `0.1.0` contains:
 - Revision-bound vulnerability reachability evidence.
 - Sigstore/Cosign evidence-signing and identity-constrained verification plans.
 - Explicitly authorized execution of repository-declared SAST commands.
+- A pinned GitHub CodeQL fixture that produces and normalizes native SARIF.
 - Timeout, retry-amplification, idempotency, and deadline-budget analysis.
 - Expand-and-contract migration plan and dry-run evidence validation.
 - OpenTelemetry semantic, cardinality, sensitive-data, and alert review.

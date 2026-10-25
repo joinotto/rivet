@@ -1,0 +1,55 @@
+name: Native SAST fixture
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/native-sast.yml"
+      - "fixtures/native-sast/**"
+      - "skills/rivet/scripts/lib/security-evidence.mjs"
+      - "skills/rivet/scripts/rivet-evidence.mjs"
+
+permissions:
+  contents: read
+
+jobs:
+  codeql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+
+      - name: Analyze fixture
+        uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
+        with:
+          output: /tmp/rivet-codeql
+          upload: false
+
+      - name: Normalize and verify SARIF
+        shell: bash
+        run: |
+          set +e
+          sarif_file="$(find /tmp/rivet-codeql -type f -name '*.sarif' -print -quit)"
+          node skills/rivet/scripts/rivet-evidence.mjs security \
+            --sarif "$sarif_file" > /tmp/rivet-sast.json
+          rivet_status="$?"
+          set -e
+          test "$rivet_status" -eq 2
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const report = JSON.parse(fs.readFileSync("/tmp/rivet-sast.json", "utf8"));
+            const found = report.findings.some((item) =>
+              item.rule_id === "js/command-line-injection"
+            );
+            if (!found) {
+              console.error(JSON.stringify(report, null, 2));
+              process.exit(1);
+            }
+          '

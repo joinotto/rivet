@@ -188,10 +188,10 @@ Implemented:
 - Sigstore/Cosign keyless signing and identity-constrained verification adapter.
 - Repository-declared SAST command discovery and gated execution.
 - Structured threat-model initialization and validation with control evidence.
+- Pinned GitHub CodeQL fixture with native SARIF production and expected-rule verification.
 
 Not implemented:
 
-- Native SAST tool fixtures with SARIF production.
 - Full SBOM schema and signature validation.
 - Native signed-artifact fixture because Cosign is unavailable in the current environment.
 
