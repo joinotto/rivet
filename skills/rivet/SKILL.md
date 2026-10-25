@@ -195,6 +195,18 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" sbom \
 
 Preserve source identifiers such as CWE only when the tool supplies them. Do not present a clean artifact as proof that the system is secure.
 
+Join vulnerability findings with saved CISA KEV and FIRST EPSS snapshots:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" security \
+  --enrich reports/findings.json \
+  --kev evidence/kev.json \
+  --epss evidence/epss.json \
+  --retrieved-at YYYY-MM-DD
+```
+
+Treat EPSS as exploitation probability, not severity. Keep reachability, exposure, asset criticality, mitigations, fix availability, and fix risk unknown until evidence supplies them.
+
 Write a machine-readable receipt only when useful:
 
 ```sh

@@ -24,6 +24,7 @@ import {
 } from "./lib/test-evidence.mjs";
 import { reviewMarkdown, reviewPacket } from "./lib/review.mjs";
 import {
+  enrichVulnerabilities,
   normalizeSarif,
   normalizeSbom,
   normalizeTrivy,
@@ -1097,6 +1098,30 @@ function evidenceArtifact(flag) {
 
 function securityEvidence() {
   try {
+    const enrichment = value("--enrich");
+    if (enrichment) {
+      const findings = evidenceArtifact("--enrich");
+      const kev = evidenceArtifact("--kev");
+      const epss = evidenceArtifact("--epss");
+      const retrievedAt = value("--retrieved-at");
+      if (!kev || !epss || !retrievedAt) {
+        throw new Error(
+          "Enrichment requires --enrich, --kev, --epss, and --retrieved-at.",
+        );
+      }
+      const report = enrichVulnerabilities(
+        findings,
+        kev,
+        epss,
+        retrievedAt,
+      );
+      report.sources.findings = path.relative(cwd, findings);
+      report.sources.kev.artifact = path.relative(cwd, kev);
+      report.sources.epss.artifact = path.relative(cwd, epss);
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+      if (report.decision === "insufficient-evidence") process.exitCode = 1;
+      return;
+    }
     const sarif = evidenceArtifact("--sarif");
     const trivy = evidenceArtifact("--trivy");
     if (Boolean(sarif) === Boolean(trivy)) {
@@ -1364,7 +1389,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--sarif file | --trivy file) | sbom --file file --revision value | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date) | sbom --file file --revision value | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

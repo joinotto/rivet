@@ -137,3 +137,96 @@ export function normalizeSbom(file, revision) {
     ],
   };
 }
+
+function vulnerabilityIds(document) {
+  if (Array.isArray(document.findings)) {
+    return document.findings
+      .map((item) => item.id || item.vulnerability_id)
+      .filter((item) => /^CVE-\d{4}-\d+$/i.test(item || ""));
+  }
+  if (Array.isArray(document.Results)) {
+    return document.Results.flatMap((result) =>
+      (result.Vulnerabilities || []).map((item) => item.VulnerabilityID),
+    ).filter((item) => /^CVE-\d{4}-\d+$/i.test(item || ""));
+  }
+  throw new Error("The findings artifact has no supported vulnerability list.");
+}
+
+export function enrichVulnerabilities(findingsFile, kevFile, epssFile, retrievedAt) {
+  const findingsDocument = readJson(findingsFile);
+  const kevDocument = readJson(kevFile);
+  const epssDocument = readJson(epssFile);
+  if (!Array.isArray(kevDocument.vulnerabilities)) {
+    throw new Error("The KEV snapshot has no vulnerabilities array.");
+  }
+  if (!Array.isArray(epssDocument.data)) {
+    throw new Error("The EPSS snapshot has no data array.");
+  }
+  const kev = new Map(
+    kevDocument.vulnerabilities.map((item) => [item.cveID, item]),
+  );
+  const epss = new Map(epssDocument.data.map((item) => [item.cve, item]));
+  const vulnerabilities = [...new Set(vulnerabilityIds(findingsDocument))]
+    .sort()
+    .map((id) => {
+      const kevItem = kev.get(id);
+      const epssItem = epss.get(id);
+      return {
+        id,
+        known_exploited: Boolean(kevItem),
+        kev: kevItem
+          ? {
+              date_added: kevItem.dateAdded || null,
+              due_date: kevItem.dueDate || null,
+              known_ransomware_use:
+                kevItem.knownRansomwareCampaignUse || "Unknown",
+              cwes: kevItem.cwes || [],
+            }
+          : null,
+        epss: epssItem
+          ? {
+              probability: Number(epssItem.epss),
+              percentile: Number(epssItem.percentile),
+              model_date: epssItem.date || null,
+            }
+          : null,
+        priority_factors: {
+          known_exploitation: kevItem ? "observed" : "not-listed-in-snapshot",
+          exploitation_probability: epssItem
+            ? Number(epssItem.epss)
+            : "unknown",
+          runtime_reachability: "unknown",
+          exposure: "unknown",
+          asset_criticality: "unknown",
+          mitigation_strength: "unknown",
+          fix_availability: "unknown",
+          fix_risk: "unknown",
+        },
+      };
+    });
+  return {
+    schema: 1,
+    kind: "vulnerability-enrichment",
+    evidence_class: "derived",
+    retrieved_at: retrievedAt,
+    sources: {
+      findings: findingsFile,
+      kev: {
+        artifact: kevFile,
+        catalog_version: kevDocument.catalogVersion || null,
+        date_released: kevDocument.dateReleased || null,
+      },
+      epss: {
+        artifact: epssFile,
+        status: epssDocument.status || null,
+      },
+    },
+    vulnerabilities,
+    decision: vulnerabilities.length ? "enriched-with-unknowns" : "insufficient-evidence",
+    limitations: [
+      "Not listed in one KEV snapshot does not prove that exploitation has not occurred.",
+      "EPSS probability is not severity, impact, or a remediation deadline.",
+      "Rivet does not calculate a universal priority score while material factors are unknown.",
+    ],
+  };
+}

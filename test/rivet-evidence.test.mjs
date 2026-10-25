@@ -421,6 +421,63 @@ const sbomReport = JSON.parse(sbomEvidence.stdout);
 assert.strictEqual(sbomReport.format, "CycloneDX");
 assert.strictEqual(sbomReport.component_count, 1);
 assert.strictEqual(sbomReport.subject_revision, "fixture-revision");
+
+fs.writeFileSync(
+  path.join(intelligence, "findings.json"),
+  JSON.stringify({
+    findings: [
+      { id: "CVE-2021-44228" },
+      { id: "CVE-2099-0001" },
+    ],
+  }),
+);
+fs.writeFileSync(
+  path.join(intelligence, "kev.json"),
+  JSON.stringify({
+    catalogVersion: "fixture-1",
+    dateReleased: "2026-10-25",
+    vulnerabilities: [{
+      cveID: "CVE-2021-44228",
+      dateAdded: "2021-12-10",
+      dueDate: "2021-12-24",
+      knownRansomwareCampaignUse: "Known",
+      cwes: ["CWE-502"],
+    }],
+  }),
+);
+fs.writeFileSync(
+  path.join(intelligence, "epss.json"),
+  JSON.stringify({
+    status: "OK",
+    data: [{
+      cve: "CVE-2021-44228",
+      epss: "0.975",
+      percentile: "0.999",
+      date: "2026-10-25",
+    }],
+  }),
+);
+const enrichedEvidence = invoke(intelligence, [
+  "security",
+  "--enrich",
+  "findings.json",
+  "--kev",
+  "kev.json",
+  "--epss",
+  "epss.json",
+  "--retrieved-at",
+  "2026-10-25",
+]);
+assert.strictEqual(enrichedEvidence.status, 0, enrichedEvidence.stderr);
+const enrichedReport = JSON.parse(enrichedEvidence.stdout);
+assert.strictEqual(enrichedReport.vulnerabilities[0].known_exploited, true);
+assert.strictEqual(enrichedReport.vulnerabilities[0].epss.probability, 0.975);
+assert.strictEqual(
+  enrichedReport.vulnerabilities[0].priority_factors.runtime_reachability,
+  "unknown",
+);
+assert.strictEqual(enrichedReport.vulnerabilities[1].epss, null);
+assert.match(enrichedReport.limitations[1], /not severity/);
 const nestedVerification = invoke(topology, [
   "verify",
   "--checks",

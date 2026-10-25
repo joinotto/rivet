@@ -179,12 +179,13 @@ Implemented:
 - Trivy container and IaC result normalization.
 - CycloneDX and SPDX structural SBOM evidence.
 - Explicit SBOM source-revision binding.
+- Dated CISA KEV and FIRST EPSS snapshot enrichment.
+- Explicit unknown priority factors for reachability and business context.
 
 Not implemented:
 
 - Active SAST adapter execution.
 - Full SBOM schema and signature validation.
-- KEV and EPSS enrichment.
 - Reachability evidence.
 - Waiver workflow.
 - Signed evidence artifacts.

@@ -33,6 +33,7 @@ This file records notable changes to Rivet.
 - Requirements-first independent-review packet generation.
 - Seven executable backend reference systems with stable seeded defects.
 - SARIF, Trivy, CycloneDX, and SPDX security evidence normalization.
+- Dated CISA KEV and FIRST EPSS vulnerability enrichment.
 
 ### Changed
 
