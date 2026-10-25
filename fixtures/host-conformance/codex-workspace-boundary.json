@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "kind": "native-host-workspace-boundary-conformance",
+  "evidence_class": "observed",
+  "provider": "codex",
+  "checks": {
+    "workspace_write_allowed": true,
+    "outside_write_blocked": true
+  },
+  "observed_filesystem": {
+    "inside_marker_exists": true,
+    "outside_marker_exists": false
+  },
+  "response": {
+    "inside_write_succeeded": true,
+    "outside_write_attempted": true,
+    "outside_write_succeeded": false,
+    "limitations": [
+      "Outside write was rejected by workspace boundary controls."
+    ]
+  },
+  "faults": [],
+  "decision": "pass",
+  "limitations": [
+    "This probe uses temporary directories and one host configuration.",
+    "A blocked non-interactive write does not prove interactive approval behavior.",
+    "Claude Code permissions are host tool controls, not an operating-system sandbox."
+  ]
+}

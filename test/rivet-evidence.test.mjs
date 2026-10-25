@@ -118,6 +118,34 @@ for (const provider of ["codex", "claude"]) {
     context_retained_after_resume: true,
   });
 }
+const codexWorkspaceBoundary = JSON.parse(
+  fs.readFileSync(
+    path.join(
+      repository,
+      "fixtures/host-conformance/codex-workspace-boundary.json",
+    ),
+    "utf8",
+  ),
+);
+assert.strictEqual(codexWorkspaceBoundary.decision, "pass");
+assert.strictEqual(
+  codexWorkspaceBoundary.observed_filesystem.outside_marker_exists,
+  false,
+);
+const claudeWorkspaceBoundary = JSON.parse(
+  fs.readFileSync(
+    path.join(
+      repository,
+      "fixtures/host-conformance/claude-workspace-boundary.json",
+    ),
+    "utf8",
+  ),
+);
+assert.strictEqual(claudeWorkspaceBoundary.decision, "fail");
+assert.strictEqual(
+  claudeWorkspaceBoundary.observed_filesystem.outside_marker_exists,
+  true,
+);
 
 function invoke(cwd, args, options = {}) {
   return spawnSync(process.execPath, [script, ...args], {

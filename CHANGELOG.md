@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Native workspace-write boundary probes, including a passing Codex result and
+  an observed Claude Code `acceptEdits` outside-workspace write failure.
 - Native two-turn Codex and Claude Code session-resume probes with nonce
   retention evidence.
 - Native Codex read-only sandbox and Claude Code tool-allowlist conformance

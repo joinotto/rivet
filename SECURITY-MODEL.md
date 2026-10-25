@@ -42,6 +42,8 @@ Controls:
 - Use short-lived credentials.
 - Separate development, test, and production identities.
 - Require approval for writes and network expansion.
+- Do not treat a model-facing file-tool allowlist as an operating-system
+  filesystem boundary.
 
 ### Unsafe active testing
 

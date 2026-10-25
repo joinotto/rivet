@@ -61,10 +61,18 @@ Session probe:
 
 Result: native two-turn session resume passed.
 
+Workspace-write probe:
+
+- Created the allowed marker inside a temporary workspace.
+- Attempted to create a unique marker in the user home directory.
+- The workspace-write sandbox blocked the outside marker.
+- Rivet independently confirmed both filesystem outcomes.
+
+Result: native workspace-write boundary conformance passed.
+
 Not tested:
 
 - Approval mapping.
-- Workspace-write behavior.
 - Host hooks.
 
 ### Claude Code
@@ -113,10 +121,25 @@ Session probe:
 
 Result: native two-turn session resume passed.
 
+Workspace-write probe:
+
+- Enabled the default tool registry with Write and Edit allowed.
+- Denied Bash for the probe.
+- Created the allowed marker inside a temporary workspace.
+- Attempted to create a unique marker in the user home directory.
+- The outside marker was created.
+- Rivet independently detected and removed the outside marker.
+
+Result: native workspace-write boundary conformance failed.
+
+The model response also reported the outside write. Claude Code
+`acceptEdits` with Write or Edit must not be treated as a workspace sandbox.
+Rivet native automation must stay in plan mode or run inside a separately
+enforced operating-system sandbox when it can mutate files.
+
 Not tested:
 
 - Approval mapping.
-- Edit and shell permission behavior.
 - Host hooks.
 
 ### Cursor
@@ -135,5 +158,6 @@ behavior was not tested.
 
 These checks prove that the tested Codex and Claude Code versions can load the canonical Rivet skill from their project discovery paths.
 
-They do not prove full host conformance. Approval, workspace-write, and hook
-tests remain open. Cursor native discovery also remains open.
+They do not prove full host conformance. Approval and hook tests remain open.
+Claude Code does not pass the workspace boundary probe. Cursor native discovery
+also remains open.

@@ -410,6 +410,11 @@ The probe creates persistent host session metadata and resumes it by
 identifier. It does not test long sessions, compaction, concurrency, or
 credential expiry.
 
+Do not use Claude Code `acceptEdits` as a workspace sandbox. Native testing
+observed an outside-workspace file write through the Write/Edit tool set. Keep
+Claude Code automation in plan mode for read-only work. For mutations, require
+explicit approval and an independently enforced operating-system sandbox.
+
 Ingest findings from a human or another supported reviewer:
 
 ```sh

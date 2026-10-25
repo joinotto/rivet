@@ -73,12 +73,16 @@ Implemented:
 - Native Claude Code file-read, command-execution, and tool-allowlist
   conformance.
 - Native two-turn session-resume conformance for Codex and Claude Code.
+- Native Codex workspace-write boundary conformance.
+- Observed Claude Code `acceptEdits` outside-workspace write failure with a
+  required external-sandbox mitigation.
 - Canonical `shape` and `impact` commands with compatibility aliases.
 
 Not implemented:
 
 - Native Cursor skill discovery.
-- Native approval, workspace-write, and hook conformance.
+- Native approval and hook conformance.
+- Passing Claude Code workspace-write boundary conformance.
 
 Commands:
 

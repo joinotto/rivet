@@ -30,6 +30,11 @@ Use a project or user skill directory supported by Claude Code.
 
 Keep Claude-specific hooks, allowed tools, and metadata outside the canonical skill. Do not weaken Rivet approval rules through a host permission setting.
 
+Do not treat Claude Code `acceptEdits` as a workspace filesystem boundary. A
+native conformance probe created a file outside the selected workspace. Use
+plan mode for read-only Rivet automation. Put mutating automation inside an
+independently enforced operating-system sandbox and require explicit approval.
+
 ### Cursor
 
 Use Cursor project skills for reusable Rivet instructions.
