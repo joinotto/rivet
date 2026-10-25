@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  security-events: read
 
 jobs:
   codeql:
@@ -31,14 +32,17 @@ jobs:
         with:
           output: /tmp/rivet-codeql
           upload: false
+          upload-database: false
 
       - name: Normalize and verify SARIF
         shell: bash
         run: |
           set +e
           sarif_file="$(find /tmp/rivet-codeql -type f -name '*.sarif' -print -quit)"
+          mkdir -p .rivet/ci
+          cp "$sarif_file" .rivet/ci/codeql.sarif
           node skills/rivet/scripts/rivet-evidence.mjs security \
-            --sarif "$sarif_file" > /tmp/rivet-sast.json
+            --sarif .rivet/ci/codeql.sarif > /tmp/rivet-sast.json
           rivet_status="$?"
           set -e
           test "$rivet_status" -eq 2
