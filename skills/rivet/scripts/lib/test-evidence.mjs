@@ -4,31 +4,161 @@ function percentage(value) {
   return Number.isFinite(Number(value)) ? Number(value) : null;
 }
 
-export function normalizeCoverage(file) {
-  const document = JSON.parse(fs.readFileSync(file, "utf8"));
-  const total = document.total;
-  if (!total) throw new Error("Coverage JSON has no total record.");
-  const metrics = {};
-  for (const key of ["lines", "statements", "functions", "branches"]) {
-    const item = total[key];
-    if (!item) continue;
-    metrics[key] = {
-      total: Number(item.total),
-      covered: Number(item.covered),
-      skipped: Number(item.skipped || 0),
-      percent: percentage(item.pct),
+function metric(total, covered, skipped = 0) {
+  const normalizedTotal = Number(total);
+  const normalizedCovered = Number(covered);
+  return {
+    total: normalizedTotal,
+    covered: normalizedCovered,
+    skipped: Number(skipped),
+    percent: normalizedTotal
+      ? Number(((normalizedCovered / normalizedTotal) * 100).toFixed(2))
+      : null,
+  };
+}
+
+function xmlNumber(xml, name) {
+  const match = xml.match(new RegExp(`\\b${name}=["']([0-9.]+)["']`));
+  return match ? Number(match[1]) : null;
+}
+
+function normalizeCoverageXml(xml) {
+  if (/<coverage\b/.test(xml)) {
+    const linesCovered = xmlNumber(xml, "lines-covered");
+    const linesValid = xmlNumber(xml, "lines-valid");
+    const branchesCovered = xmlNumber(xml, "branches-covered");
+    const branchesValid = xmlNumber(xml, "branches-valid");
+    if (linesCovered === null || linesValid === null) {
+      throw new Error("Cobertura XML has no aggregate line counts.");
+    }
+    return {
+      format: "cobertura-xml",
+      metrics: {
+        lines: metric(linesValid, linesCovered),
+        ...(branchesCovered !== null && branchesValid !== null
+          ? { branches: metric(branchesValid, branchesCovered) }
+          : {}),
+      },
     };
+  }
+  if (/<report\b/.test(xml) && /<counter\b/.test(xml)) {
+    const counters = {};
+    for (const match of xml.matchAll(
+      /<counter\b[^>]*type=["']([^"']+)["'][^>]*missed=["'](\d+)["'][^>]*covered=["'](\d+)["'][^>]*\/?>/g,
+    )) {
+      counters[match[1]] = {
+        missed: Number(match[2]),
+        covered: Number(match[3]),
+      };
+    }
+    const mapping = {
+      LINE: "lines",
+      BRANCH: "branches",
+      METHOD: "functions",
+      INSTRUCTION: "instructions",
+    };
+    const metrics = {};
+    for (const [counter, name] of Object.entries(mapping)) {
+      if (!counters[counter]) continue;
+      metrics[name] = metric(
+        counters[counter].missed + counters[counter].covered,
+        counters[counter].covered,
+      );
+    }
+    if (!Object.keys(metrics).length) {
+      throw new Error("JaCoCo XML has no aggregate counters.");
+    }
+    return { format: "jacoco-xml", metrics };
+  }
+  throw new Error("The XML artifact is not Cobertura or JaCoCo coverage.");
+}
+
+function normalizeLcov(body) {
+  const totals = {
+    lines: [0, 0],
+    branches: [0, 0],
+    functions: [0, 0],
+  };
+  const fields = {
+    LF: ["lines", 0],
+    LH: ["lines", 1],
+    BRF: ["branches", 0],
+    BRH: ["branches", 1],
+    FNF: ["functions", 0],
+    FNH: ["functions", 1],
+  };
+  for (const line of body.split(/\r?\n/)) {
+    const match = line.match(/^(LF|LH|BRF|BRH|FNF|FNH):(\d+)$/);
+    if (!match) continue;
+    const [name, position] = fields[match[1]];
+    totals[name][position] += Number(match[2]);
+  }
+  const metrics = {};
+  for (const [name, [total, covered]] of Object.entries(totals)) {
+    if (total) metrics[name] = metric(total, covered);
+  }
+  if (!metrics.lines) throw new Error("LCOV data has no line summary.");
+  return { format: "lcov", metrics };
+}
+
+function normalizeGoCover(body) {
+  if (!/^mode:\s*(set|count|atomic)\s*$/m.test(body)) {
+    throw new Error("The artifact is not a Go cover profile.");
+  }
+  let total = 0;
+  let covered = 0;
+  for (const line of body.split(/\r?\n/).slice(1)) {
+    const match = line.match(/\s(\d+)\s+(\d+)$/);
+    if (!match) continue;
+    const statements = Number(match[1]);
+    total += statements;
+    if (Number(match[2]) > 0) covered += statements;
+  }
+  if (!total) throw new Error("The Go cover profile has no statement blocks.");
+  return {
+    format: "go-coverprofile",
+    metrics: { statements: metric(total, covered) },
+  };
+}
+
+export function normalizeCoverage(file) {
+  const body = fs.readFileSync(file, "utf8");
+  let normalized;
+  if (body.trimStart().startsWith("{")) {
+    const document = JSON.parse(body);
+    const total = document.total;
+    if (!total) throw new Error("Coverage JSON has no total record.");
+    const metrics = {};
+    for (const key of ["lines", "statements", "functions", "branches"]) {
+      const item = total[key];
+      if (!item) continue;
+      metrics[key] = {
+        total: Number(item.total),
+        covered: Number(item.covered),
+        skipped: Number(item.skipped || 0),
+        percent: percentage(item.pct),
+      };
+    }
+    normalized = { format: "istanbul-summary-json", metrics };
+  } else if (body.trimStart().startsWith("<")) {
+    normalized = normalizeCoverageXml(body);
+  } else if (/^TN:|^SF:/m.test(body)) {
+    normalized = normalizeLcov(body);
+  } else {
+    normalized = normalizeGoCover(body);
   }
   return {
     schema: 1,
     kind: "coverage",
     evidence_class: "observed",
     artifact: file,
-    metrics,
-    decision: Object.keys(metrics).length ? "observed" : "insufficient-evidence",
+    format: normalized.format,
+    metrics: normalized.metrics,
+    decision: Object.keys(normalized.metrics).length ? "observed" : "insufficient-evidence",
     limitations: [
       "Coverage shows executed code. It does not prove that tests detect incorrect behavior.",
       "Aggregate coverage can hide untested changed lines and critical branches.",
+      "A missing metric means that the source format did not provide an aggregate value.",
     ],
   };
 }

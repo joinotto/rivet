@@ -190,6 +190,10 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" contract \
 
 Rivet can also read a JUnit property-test report with `--property-report`. A coverage percentage is execution evidence, not proof that tests detect defects.
 
+Coverage normalization accepts Istanbul summary JSON, Cobertura XML, JaCoCo
+XML, LCOV, and Go cover profiles. Rivet reports only aggregate metrics that the
+source artifact contains.
+
 Preview repository-declared active contract checks:
 
 ```sh

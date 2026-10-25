@@ -416,7 +416,64 @@ const coverageEvidence = invoke(intelligence, [
 assert.strictEqual(coverageEvidence.status, 0, coverageEvidence.stderr);
 const coverageReport = JSON.parse(coverageEvidence.stdout);
 assert.strictEqual(coverageReport.metrics.lines.percent, 80);
+assert.strictEqual(coverageReport.format, "istanbul-summary-json");
 assert.match(coverageReport.limitations[0], /does not prove/);
+
+fs.writeFileSync(
+  path.join(intelligence, "coverage.xml"),
+  '<coverage lines-valid="20" lines-covered="15" branches-valid="8" branches-covered="6"></coverage>',
+);
+const coberturaEvidence = invoke(intelligence, [
+  "test",
+  "--coverage-report",
+  "coverage.xml",
+]);
+assert.strictEqual(coberturaEvidence.status, 0, coberturaEvidence.stderr);
+const coberturaReport = JSON.parse(coberturaEvidence.stdout);
+assert.strictEqual(coberturaReport.format, "cobertura-xml");
+assert.strictEqual(coberturaReport.metrics.branches.percent, 75);
+
+fs.writeFileSync(
+  path.join(intelligence, "jacoco.xml"),
+  '<report name="fixture"><package name="orders"><counter type="LINE" missed="4" covered="6"/></package><counter type="INSTRUCTION" missed="8" covered="12"/><counter type="BRANCH" missed="2" covered="2"/><counter type="LINE" missed="4" covered="6"/><counter type="METHOD" missed="1" covered="3"/></report>',
+);
+const jacocoEvidence = invoke(intelligence, [
+  "test",
+  "--coverage-report",
+  "jacoco.xml",
+]);
+assert.strictEqual(jacocoEvidence.status, 0, jacocoEvidence.stderr);
+const jacocoReport = JSON.parse(jacocoEvidence.stdout);
+assert.strictEqual(jacocoReport.format, "jacoco-xml");
+assert.strictEqual(jacocoReport.metrics.functions.percent, 75);
+
+fs.writeFileSync(
+  path.join(intelligence, "coverage.lcov"),
+  "TN:\nSF:src/order.c\nFNF:2\nFNH:1\nBRF:4\nBRH:3\nLF:10\nLH:8\nend_of_record\n",
+);
+const lcovEvidence = invoke(intelligence, [
+  "test",
+  "--coverage-report",
+  "coverage.lcov",
+]);
+assert.strictEqual(lcovEvidence.status, 0, lcovEvidence.stderr);
+const lcovReport = JSON.parse(lcovEvidence.stdout);
+assert.strictEqual(lcovReport.format, "lcov");
+assert.strictEqual(lcovReport.metrics.lines.percent, 80);
+
+fs.writeFileSync(
+  path.join(intelligence, "cover.out"),
+  "mode: atomic\nexample/order.go:10.1,12.2 2 1\nexample/order.go:14.1,15.2 1 0\n",
+);
+const goCoverageEvidence = invoke(intelligence, [
+  "test",
+  "--coverage-report",
+  "cover.out",
+]);
+assert.strictEqual(goCoverageEvidence.status, 0, goCoverageEvidence.stderr);
+const goCoverageReport = JSON.parse(goCoverageEvidence.stdout);
+assert.strictEqual(goCoverageReport.format, "go-coverprofile");
+assert.strictEqual(goCoverageReport.metrics.statements.percent, 66.67);
 
 fs.writeFileSync(
   path.join(intelligence, "mutation.json"),
