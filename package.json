@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node test/rivet-evidence.test.mjs",
+    "test:fixtures": "node fixtures/reference-systems/test-seeds.mjs",
     "test:hosts": "node scripts/test-host-packages.mjs",
     "check:ste": "node skills/rivet/scripts/rivet-ste.mjs skills/rivet",
     "validate:skill": "python3 /Users/apple/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/rivet",

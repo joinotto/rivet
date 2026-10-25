@@ -26,6 +26,7 @@ Deliver:
 - Database design and migration specification.
 - Host integration contract.
 - One canonical portable skill source.
+- Seven executable reference systems with seeded defects.
 
 Exit criteria:
 

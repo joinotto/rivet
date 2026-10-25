@@ -1,0 +1,7 @@
+{
+  "id": "cross-tenant-data-access",
+  "class": "multi-tenant-isolation",
+  "expected": "A tenant must receive only documents owned by that tenant.",
+  "control": "tenant predicate in the data access boundary",
+  "risk_mode": "critical"
+}

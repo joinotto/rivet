@@ -1,0 +1,7 @@
+{
+  "id": "broken-object-authorization",
+  "class": "authorization",
+  "expected": "A user from another tenant must not read the invoice.",
+  "control": "tenant ownership check",
+  "risk_mode": "critical"
+}

@@ -1,0 +1,7 @@
+{
+  "id": "unsafe-contract-migration",
+  "class": "migration",
+  "expected": "The old column must remain during the compatibility window.",
+  "control": "expand, migrate, validate, and contract",
+  "risk_mode": "critical"
+}

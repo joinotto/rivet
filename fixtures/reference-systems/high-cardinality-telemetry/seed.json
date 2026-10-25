@@ -1,0 +1,7 @@
+{
+  "id": "high-cardinality-metric-label",
+  "class": "observability",
+  "expected": "A user identifier must not be a metric dimension.",
+  "control": "bounded semantic attributes for metrics",
+  "risk_mode": "service"
+}

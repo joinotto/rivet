@@ -1,0 +1,7 @@
+{
+  "id": "CVE-2021-44228",
+  "class": "known-exploited-vulnerability",
+  "expected": "The report must identify the vulnerable Log4j component and known exploitation.",
+  "control": "upgrade to a supported fixed version and verify runtime inventory",
+  "risk_mode": "critical"
+}

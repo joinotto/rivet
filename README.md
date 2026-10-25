@@ -46,6 +46,7 @@ Run the tests:
 ```sh
 cd rivet
 npm test
+npm run test:fixtures
 ```
 
 Inspect a project:
@@ -166,6 +167,7 @@ The product must not present an inferred result as an observed result.
 - [ASD-STE100 for agent skills](docs/ASD-STE100-FOR-SKILLS.md)
 - [Host integration contract](docs/HOST-INTEGRATIONS.md)
 - [Native host conformance](docs/HOST-CONFORMANCE.md)
+- [Seeded reference systems](fixtures/reference-systems/README.md)
 
 ## Honest assessment
 

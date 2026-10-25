@@ -1,0 +1,7 @@
+{
+  "id": "multiplicative-retries",
+  "class": "resilience",
+  "expected": "One request must use one bounded retry budget.",
+  "control": "single retry owner with deadline and jitter",
+  "risk_mode": "distributed"
+}

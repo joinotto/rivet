@@ -1,0 +1,7 @@
+{
+  "id": "duplicate-payment-side-effect",
+  "class": "idempotency",
+  "expected": "Repeated delivery must create one provider charge.",
+  "control": "stable idempotency key and stored outcome",
+  "risk_mode": "critical"
+}
