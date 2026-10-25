@@ -319,6 +319,15 @@ Rivet records data necessity, purpose, flows, retention, deletion, third
 parties, request handling, harms, controls, and residual risk. It does not
 determine legal basis or certify compliance.
 
+### `capacity`
+
+Purpose: Initialize and evaluate a workload-bound cost and capacity plan.
+
+Rivet calculates declared headroom, scenario sufficiency, and monthly cost from
+measured capacity, a project-selected utilization limit, and a dated price
+snapshot. It does not set universal thresholds or predict unmodeled
+bottlenecks.
+
 ### `hooks`
 
 Purpose: Configure low-cost automatic checks for changed backend files.
@@ -332,7 +341,6 @@ Add only after Version 1 has evidence that users need them:
 - `mutation`
 - `load`
 - `compliance-map`
-- `capacity`
 - `cost`
 - `deprecate`
 - `recover`

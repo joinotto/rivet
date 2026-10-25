@@ -275,6 +275,23 @@ Bind the analysis to a source revision. Do not infer a legal basis or claim
 compliance. Route applicable-law and legal-basis decisions to a qualified
 reviewer.
 
+Create a cost and capacity plan from measured workload evidence:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" capacity init \
+  --system checkout \
+  --output .rivet/capacity-checkout.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" capacity evaluate \
+  --file .rivet/capacity-checkout.json
+```
+
+Define the workload unit and period, baseline, peak, growth assumption, service
+objective, measured capacity per resource, instance count, project-selected
+utilization limit, price snapshot, and demand scenarios. Rivet calculates
+declared headroom and monthly cost. It does not invent a universal utilization
+target or treat a provider price as permanent. Test quotas, queues, failover,
+and correlated bottlenecks separately.
+
 Coverage normalization accepts Istanbul summary JSON, Cobertura XML, JaCoCo
 XML, LCOV, and Go cover profiles. Rivet reports only aggregate metrics that the
 source artifact contains.

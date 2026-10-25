@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Workload-bound cost and capacity planning with measured limits, dated prices,
+  scenario evaluation, headroom, and monthly cost.
 - Revision-bound engineering privacy analysis with data-minimization,
   retention, deletion, third-party, request, and qualified-review controls.
 - TLA+ abstraction-contract and model-check evidence with explicit bounds,

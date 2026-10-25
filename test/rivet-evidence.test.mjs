@@ -16,6 +16,7 @@ import {
   validateFormalModel,
 } from "../skills/rivet/scripts/lib/formalize.mjs";
 import { validatePrivacyAnalysis } from "../skills/rivet/scripts/lib/privacy.mjs";
+import { evaluateCapacityPlan } from "../skills/rivet/scripts/lib/capacity.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repository = path.resolve(here, "..");
@@ -352,6 +353,65 @@ const privacyAnalysis = {
 assert.strictEqual(
   validatePrivacyAnalysis(privacyAnalysis).decision,
   "ready-for-qualified-review",
+);
+const capacityPlan = {
+  schema: 1,
+  kind: "capacity-plan",
+  system: "checkout",
+  revision: "fixture-revision",
+  created_at: "2026-10-25",
+  workload: {
+    name: "checkout requests",
+    demand_unit: "requests",
+    observation_window: "rolling seven days",
+    demand_period_seconds: 1,
+    baseline_demand: 100,
+    peak_demand: 300,
+    growth_assumption: "Twenty percent growth over twelve months.",
+    service_objective: "Project latency and availability objectives.",
+  },
+  resources: [{
+    id: "api",
+    description: "Checkout API instances.",
+    capacity_unit: "requests per second",
+    measurement_source: "staging load test report.",
+    capacity_per_instance: 200,
+    instances: 3,
+    observed_peak_demand: 300,
+    max_utilization: 0.7,
+    cost_per_instance_hour: 0.2,
+  }],
+  cost: {
+    currency: "USD",
+    price_snapshot_at: "2026-10-25",
+    price_source: "Saved provider price record.",
+    hours_per_month: 730,
+    other_monthly_cost: 50,
+  },
+  scenarios: [{
+    id: "forecast-peak",
+    description: "Expected peak after forecast growth.",
+    assumption: "Traffic shape stays comparable to the measured peak.",
+    demand: 360,
+    allocations: [{ resource_id: "api", instances: 3 }],
+  }],
+  review: {
+    owner: "platform-team",
+    evidence: ["load-test-123"],
+  },
+};
+const capacityEvaluation = evaluateCapacityPlan(capacityPlan);
+assert.strictEqual(capacityEvaluation.decision, "within-declared-limits");
+assert.strictEqual(capacityEvaluation.cost.monthly, 488);
+assert.strictEqual(
+  evaluateCapacityPlan({
+    ...capacityPlan,
+    scenarios: [{
+      ...capacityPlan.scenarios[0],
+      demand: 500,
+    }],
+  }).decision,
+  "capacity-gap",
 );
 
 fs.writeFileSync(

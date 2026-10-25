@@ -328,10 +328,9 @@ Implemented:
 - Revision-bound privacy analysis for data categories, processing purposes,
   flows, minimization, retention, deletion, third parties, rights, and risks.
 - Explicit qualified review for legal basis and applicable-law decisions.
-
-Candidates:
-
-- Cost and capacity planning.
+- Workload-bound cost and capacity planning with measured resource limits,
+  project-selected utilization thresholds, dated prices, headroom, and demand
+  scenarios.
 
 ## 2. Reference repositories
 
