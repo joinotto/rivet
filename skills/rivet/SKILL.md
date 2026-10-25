@@ -270,6 +270,15 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" migrate \
 
 Require bounded resumable batches, a compatibility window, recovery, an abort rule, count reconciliation, and interruption/resume evidence. A valid plan is not runtime proof.
 
+Review a declared OpenTelemetry and alert model:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" observe \
+  --file .rivet/telemetry.json
+```
+
+Record the semantic-convention version. Avoid unbounded or sensitive metric dimensions. Each alert must identify user or system harm, urgency, owner, and the first diagnostic action.
+
 Write a machine-readable receipt only when useful:
 
 ```sh

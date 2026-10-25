@@ -48,6 +48,7 @@ Version `0.1.0` contains:
 - Explicitly authorized execution of repository-declared SAST commands.
 - Timeout, retry-amplification, idempotency, and deadline-budget analysis.
 - Expand-and-contract migration plan and dry-run evidence validation.
+- OpenTelemetry semantic, cardinality, sensitive-data, and alert review.
 
 Run the tests:
 

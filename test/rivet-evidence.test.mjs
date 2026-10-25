@@ -786,6 +786,57 @@ assert.ok(
     "an interrupted dry run must record successful resume or remain incomplete",
   ),
 );
+
+fs.writeFileSync(
+  path.join(intelligence, "telemetry.json"),
+  JSON.stringify({
+    semantic_convention_version: "1.38.0",
+    resource_attributes: {
+      "deployment.environment": "production",
+    },
+    metrics: [{
+      name: "http.server.requests",
+      attributes: [
+        { name: "http.request.method", bounded: true },
+        {
+          name: "user.id",
+          cardinality: "unbounded",
+          sensitive: true,
+        },
+      ],
+    }],
+    alerts: [{
+      name: "Request failures",
+      urgency: "page",
+      owner: "service-team",
+    }],
+  }),
+);
+const telemetryEvidence = invoke(intelligence, [
+  "observe",
+  "--file",
+  "telemetry.json",
+]);
+assert.strictEqual(telemetryEvidence.status, 2, telemetryEvidence.stderr);
+const telemetryReport = JSON.parse(telemetryEvidence.stdout);
+assert.ok(
+  telemetryReport.findings.some(
+    (item) => item.id === "missing-service-name",
+  ),
+);
+assert.ok(
+  telemetryReport.findings.some(
+    (item) => item.id === "unbounded-metric-dimension",
+  ),
+);
+assert.ok(
+  telemetryReport.findings.some(
+    (item) =>
+      item.id === "incomplete-alert" &&
+      item.missing.includes("harm") &&
+      item.missing.includes("first_action"),
+  ),
+);
 const nestedVerification = invoke(topology, [
   "verify",
   "--checks",

@@ -238,11 +238,12 @@ Implemented:
 - Expand–migrate–validate–contract plan validation.
 - Revision-bound migration dry-run and reconciliation evidence.
 - Interruption and resume evidence validation.
+- OpenTelemetry service identity, deployment attribute, metric cardinality, and sensitive-data review.
+- Alert harm, urgency, ownership, and first-action validation.
 
 Not implemented:
 
 - Runtime retry discovery.
-- OpenTelemetry semantic review.
 
 Commands:
 
