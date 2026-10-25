@@ -39,6 +39,7 @@ import {
   validateMigrationPlan,
 } from "./lib/migration.mjs";
 import { analyzeTelemetry } from "./lib/observe.mjs";
+import { comparePerformance } from "./lib/performance.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -1361,6 +1362,26 @@ function observationEvidence() {
   }
 }
 
+function performanceEvidence() {
+  try {
+    const baseline = evidenceArtifact("--baseline");
+    const candidate = evidenceArtifact("--candidate");
+    if (!baseline || !candidate) {
+      throw new Error(
+        "Performance comparison requires --baseline <file> and --candidate <file>.",
+      );
+    }
+    const report = comparePerformance(baseline, candidate);
+    report.baseline_artifact = path.relative(cwd, baseline);
+    report.candidate_artifact = path.relative(cwd, candidate);
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    if (report.decision === "invalid-comparison") process.exitCode = 2;
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}
+
 function markdownSummary(receipt) {
   const lines = [
     "# Rivet verification",
@@ -1603,10 +1624,12 @@ if (command === "init") {
   migrationEvidence();
 } else if (command === "observe") {
   observationEvidence();
+} else if (command === "performance") {
+  performanceEvidence();
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance --baseline file --candidate file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

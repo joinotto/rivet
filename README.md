@@ -49,6 +49,7 @@ Version `0.1.0` contains:
 - Timeout, retry-amplification, idempotency, and deadline-budget analysis.
 - Expand-and-contract migration plan and dry-run evidence validation.
 - OpenTelemetry semantic, cardinality, sensitive-data, and alert review.
+- Workload-bound performance baseline and candidate comparison.
 
 Run the tests:
 

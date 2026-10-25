@@ -279,6 +279,16 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" observe \
 
 Record the semantic-convention version. Avoid unbounded or sensitive metric dimensions. Each alert must identify user or system harm, urgency, owner, and the first diagnostic action.
 
+Compare performance artifacts that use the same workload:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" performance \
+  --baseline reports/baseline.json \
+  --candidate reports/candidate.json
+```
+
+Reject different workloads. Report measured deltas without labeling them improvements or regressions until the project supplies metric direction and acceptable thresholds.
+
 Write a machine-readable receipt only when useful:
 
 ```sh

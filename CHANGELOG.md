@@ -41,6 +41,7 @@ This file records notable changes to Rivet.
 - Timeout, retry amplification, idempotency, and deadline-budget analysis.
 - Expand-and-contract migration plan and dry-run validation.
 - OpenTelemetry semantic, cardinality, sensitive-data, and alert review.
+- Workload-bound performance evidence comparison.
 
 ### Changed
 

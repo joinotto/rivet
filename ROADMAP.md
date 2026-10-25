@@ -269,6 +269,22 @@ Exit criteria:
 
 Duration: 8 weeks
 
+Status: In progress.
+
+Implemented:
+
+- Workload-bound baseline and candidate comparison.
+- Metric deltas without inferred direction or universal thresholds.
+- Invalid comparison detection for changed workloads.
+
+Not implemented:
+
+- Statistical sample analysis.
+- Threshold-based release gates.
+- Staged rollout plans.
+- Incident read-only mode.
+- Postmortem timeline generation.
+
 Commands:
 
 - `performance`

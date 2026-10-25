@@ -824,6 +824,76 @@ assert.ok(
     (item) => item.id === "missing-service-name",
   ),
 );
+
+const performanceWorkload = {
+  id: "orders-read",
+  duration_seconds: 60,
+  concurrency: 20,
+  data_set: "fixture-v1",
+};
+fs.writeFileSync(
+  path.join(intelligence, "performance-baseline.json"),
+  JSON.stringify({
+    revision: "baseline",
+    environment: { cpu: "4", memory_gb: 8 },
+    workload: performanceWorkload,
+    metrics: {
+      latency_p95_ms: 100,
+      throughput_rps: 200,
+      error_rate: 0.001,
+    },
+  }),
+);
+fs.writeFileSync(
+  path.join(intelligence, "performance-candidate.json"),
+  JSON.stringify({
+    revision: "candidate",
+    environment: { cpu: "4", memory_gb: 8 },
+    workload: performanceWorkload,
+    metrics: {
+      latency_p95_ms: 120,
+      throughput_rps: 210,
+      error_rate: 0.002,
+    },
+  }),
+);
+const performanceEvidence = invoke(intelligence, [
+  "performance",
+  "--baseline",
+  "performance-baseline.json",
+  "--candidate",
+  "performance-candidate.json",
+]);
+assert.strictEqual(performanceEvidence.status, 0, performanceEvidence.stderr);
+const performanceReport = JSON.parse(performanceEvidence.stdout);
+assert.strictEqual(performanceReport.decision, "comparison-observed");
+assert.strictEqual(
+  performanceReport.metrics.find((item) => item.name === "latency_p95_ms")
+    .delta_percent,
+  20,
+);
+assert.match(performanceReport.limitations[0], /user-defined/);
+
+const changedCandidate = JSON.parse(
+  fs.readFileSync(path.join(intelligence, "performance-candidate.json"), "utf8"),
+);
+changedCandidate.workload.concurrency = 40;
+fs.writeFileSync(
+  path.join(intelligence, "performance-invalid.json"),
+  JSON.stringify(changedCandidate),
+);
+const invalidPerformance = invoke(intelligence, [
+  "performance",
+  "--baseline",
+  "performance-baseline.json",
+  "--candidate",
+  "performance-invalid.json",
+]);
+assert.strictEqual(invalidPerformance.status, 2, invalidPerformance.stderr);
+assert.strictEqual(
+  JSON.parse(invalidPerformance.stdout).decision,
+  "invalid-comparison",
+);
 assert.ok(
   telemetryReport.findings.some(
     (item) => item.id === "unbounded-metric-dimension",
