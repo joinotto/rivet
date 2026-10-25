@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "kind": "native-host-session-conformance",
+  "evidence_class": "observed",
+  "provider": "claude",
+  "session_id": "b104a42f-a5e0-4000-a10f-932ad2f82b42",
+  "started_at": "2026-10-25T16:33:37.046Z",
+  "finished_at": "2026-10-25T16:33:49.370Z",
+  "expected_token_digest": "13e2fdb2fbdfd6f9ab88b24d040fb8d3c8e595134b1b00781da189b99391d5de",
+  "response": "RIVET_SESSION_424175f624dc5772",
+  "checks": {
+    "session_created": true,
+    "context_retained_after_resume": true
+  },
+  "decision": "pass",
+  "limitations": [
+    "This probe tests one two-turn session on one host version.",
+    "It does not test long-lived sessions, compaction, concurrent access, or credential expiry.",
+    "The host can retain session metadata outside the temporary workspace."
+  ]
+}

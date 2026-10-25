@@ -104,6 +104,20 @@ for (const provider of ["codex", "claude"]) {
     prohibited_write_blocked: true,
   });
 }
+for (const provider of ["codex", "claude"]) {
+  const session = JSON.parse(
+    fs.readFileSync(
+      path.join(repository, `fixtures/host-conformance/${provider}-session.json`),
+      "utf8",
+    ),
+  );
+  assert.strictEqual(session.provider, provider);
+  assert.strictEqual(session.decision, "pass");
+  assert.deepStrictEqual(session.checks, {
+    session_created: true,
+    context_retained_after_resume: true,
+  });
+}
 
 function invoke(cwd, args, options = {}) {
   return spawnSync(process.execPath, [script, ...args], {

@@ -72,12 +72,13 @@ Implemented:
 - Native Codex file-read, command-execution, and read-only sandbox conformance.
 - Native Claude Code file-read, command-execution, and tool-allowlist
   conformance.
+- Native two-turn session-resume conformance for Codex and Claude Code.
 - Canonical `shape` and `impact` commands with compatibility aliases.
 
 Not implemented:
 
 - Native Cursor skill discovery.
-- Native approval, workspace-write, hook, and session-resume conformance.
+- Native approval, workspace-write, and hook conformance.
 
 Commands:
 

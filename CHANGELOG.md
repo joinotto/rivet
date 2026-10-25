@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Native two-turn Codex and Claude Code session-resume probes with nonce
+  retention evidence.
 - Native Codex read-only sandbox and Claude Code tool-allowlist conformance
   probes with observed read, command, and prohibited-write evidence.
 - Seed-excluding native blind-evaluation runner and initial Codex comparison

@@ -52,12 +52,20 @@ Tool-boundary probe:
 
 Result: native read, command, and read-only sandbox conformance passed.
 
+Session probe:
+
+- Created a persistent native thread and captured its thread identifier.
+- Stored a random nonce in the first turn.
+- Resumed the thread by identifier in a second process.
+- Returned the exact nonce.
+
+Result: native two-turn session resume passed.
+
 Not tested:
 
 - Approval mapping.
 - Workspace-write behavior.
 - Host hooks.
-- Session resume.
 
 ### Claude Code
 
@@ -96,12 +104,20 @@ Tool-boundary probe:
 
 Result: native read, command, and tool-allowlist conformance passed.
 
+Session probe:
+
+- Created a session with an explicit random UUID.
+- Stored a random nonce in the first turn.
+- Resumed the session by UUID in a second process.
+- Returned the exact nonce.
+
+Result: native two-turn session resume passed.
+
 Not tested:
 
 - Approval mapping.
 - Edit and shell permission behavior.
 - Host hooks.
-- Session resume.
 
 ### Cursor
 
@@ -119,5 +135,5 @@ behavior was not tested.
 
 These checks prove that the tested Codex and Claude Code versions can load the canonical Rivet skill from their project discovery paths.
 
-They do not prove full host conformance. Approval, workspace-write, hook, and
-session-resume tests remain open. Cursor native discovery also remains open.
+They do not prove full host conformance. Approval, workspace-write, and hook
+tests remain open. Cursor native discovery also remains open.

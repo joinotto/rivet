@@ -397,6 +397,19 @@ sandbox. Claude Code uses an explicit tool allowlist, which is not an
 operating-system filesystem sandbox. Native probes can consume paid model
 tokens.
 
+Test two-turn session resume with a random nonce:
+
+```sh
+npm run test:host-session -- \
+  --provider codex \
+  --output reports/codex-session.json \
+  --allow-network
+```
+
+The probe creates persistent host session metadata and resumes it by
+identifier. It does not test long sessions, compaction, concurrency, or
+credential expiry.
+
 Ingest findings from a human or another supported reviewer:
 
 ```sh
