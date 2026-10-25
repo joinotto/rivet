@@ -102,6 +102,17 @@ Preview available dependency audits:
 node "<skill-dir>/scripts/rivet-evidence.mjs" dependencies --dry-run
 ```
 
+Inspect PostgreSQL migration SQL or a saved JSON query plan:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" database --migration path/to/migration.sql
+node "<skill-dir>/scripts/rivet-evidence.mjs" database \
+  --plan path/to/plan.json \
+  --query named-query
+```
+
+Rivet does not connect to a database for these checks. Treat plan observations as evidence, not automatic index recommendations.
+
 Preview detected checks:
 
 ```sh

@@ -11,6 +11,10 @@ import {
 import { fingerprint, redact } from "./lib/redact.mjs";
 import { discoverTopology, topologyImpact } from "./lib/topology.mjs";
 import { normalizeDependencyResult } from "./lib/dependencies.mjs";
+import {
+  inspectPostgresMigration,
+  inspectPostgresPlan,
+} from "./lib/postgres.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -418,6 +422,31 @@ function runAdapters(adapters, workflow) {
 
 function dependencyAudit() {
   runAdapters(discoverDependencyAdapters(cwd), "dependencies");
+}
+
+function databaseEvidence() {
+  const migration = value("--migration");
+  const plan = value("--plan");
+  if (Boolean(migration) === Boolean(plan)) {
+    console.error("Use exactly one of --migration <file> or --plan <file>.");
+    process.exitCode = 1;
+    return;
+  }
+  try {
+    const artifact = path.resolve(cwd, migration || plan);
+    if (!artifact.startsWith(`${cwd}${path.sep}`) || !fs.existsSync(artifact)) {
+      throw new Error("The database artifact must be an existing file inside the project.");
+    }
+    const report = migration
+      ? inspectPostgresMigration(artifact)
+      : inspectPostgresPlan(artifact, value("--query") || "unspecified");
+    report.artifact = path.relative(cwd, artifact);
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    if (report.decision !== "pass") process.exitCode = 2;
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
 }
 
 function changedFiles() {
@@ -866,12 +895,14 @@ if (command === "init") {
   secretScan();
 } else if (command === "dependencies") {
   dependencyAudit();
+} else if (command === "database") {
+  databaseEvidence();
 } else if (command === "verify") {
   verify();
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | verify [--dry-run] [--checks list] [--receipt path] [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | verify [--dry-run] [--checks list] [--receipt path] [--json]",
   );
   process.exitCode = 1;
 }

@@ -21,6 +21,7 @@ This file records notable changes to Rivet.
 - Host package generator for Codex, Claude Code, Cursor, and portable hosts.
 - Repository topology discovery and reverse dependency impact.
 - Normalized dependency advisory findings and tool failures.
+- Read-only PostgreSQL migration and query-plan inspection.
 
 ### Changed
 

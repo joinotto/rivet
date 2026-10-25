@@ -290,6 +290,48 @@ const goFindings = normalizeDependencyResult(
 );
 assert.strictEqual(goFindings.result, "findings");
 
+const migrationFile = path.join(fixture, "migration.sql");
+fs.writeFileSync(
+  migrationFile,
+  "BEGIN;\nCREATE INDEX CONCURRENTLY users_email_idx ON users(email);\nCOMMIT;\n",
+);
+const migrationInspection = invoke(fixture, [
+  "database",
+  "--migration",
+  "migration.sql",
+]);
+assert.strictEqual(migrationInspection.status, 2, migrationInspection.stderr);
+assert.ok(
+  JSON.parse(migrationInspection.stdout).findings.some(
+    (item) => item.id === "concurrent-index-in-transaction",
+  ),
+);
+
+const planFile = path.join(fixture, "plan.json");
+fs.writeFileSync(
+  planFile,
+  JSON.stringify([{
+    Plan: {
+      "Node Type": "Seq Scan",
+      "Relation Name": "orders",
+      "Plan Rows": 10000,
+      "Total Cost": 250,
+    },
+  }]),
+);
+const planInspection = invoke(fixture, [
+  "database",
+  "--plan",
+  "plan.json",
+  "--query",
+  "orders-by-customer",
+]);
+assert.strictEqual(planInspection.status, 2, planInspection.stderr);
+const planReport = JSON.parse(planInspection.stdout);
+assert.strictEqual(planReport.query_id, "orders-by-customer");
+assert.strictEqual(planReport.observations[0].relation, "orders");
+assert.match(planReport.limitations[0], /not sufficient evidence/);
+
 const packages = path.join(os.tmpdir(), `rivet-hosts-${process.pid}`);
 const packageResult = spawnSync(
   process.execPath,

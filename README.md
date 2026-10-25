@@ -31,6 +31,7 @@ Version `0.1.0` contains:
 - Topology discovery for components, internal dependency edges, data-store artifacts, and messaging dependencies.
 - Reverse dependency impact for changed workspace components.
 - Normalized npm, Cargo, Go, and Python dependency-audit results.
+- Read-only PostgreSQL migration SQL and JSON query-plan inspection.
 
 Run the tests:
 
