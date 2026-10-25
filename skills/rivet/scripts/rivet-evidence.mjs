@@ -16,6 +16,11 @@ import {
   inspectPostgresPlan,
 } from "./lib/postgres.mjs";
 import { extractChangeRecord, testFamilies } from "./lib/test-plan.mjs";
+import {
+  normalizeCoverage,
+  normalizeJunit,
+  normalizeMutation,
+} from "./lib/test-evidence.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -888,6 +893,42 @@ function inspect() {
 }
 
 function testSelection() {
+  const artifactOptions = [
+    ["--coverage-report", "coverage"],
+    ["--mutation-report", "mutation"],
+    ["--property-report", "property"],
+    ["--contract-report", "contract"],
+  ].filter(([flag]) => value(flag));
+  if (artifactOptions.length) {
+    if (artifactOptions.length !== 1) {
+      console.error("Use one test evidence report at a time.");
+      process.exitCode = 1;
+      return;
+    }
+    const [flag, kind] = artifactOptions[0];
+    const absolute = path.resolve(cwd, value(flag));
+    if (!absolute.startsWith(`${cwd}${path.sep}`) || !fs.existsSync(absolute)) {
+      console.error("The test evidence artifact must be an existing file inside the project.");
+      process.exitCode = 1;
+      return;
+    }
+    try {
+      const report =
+        kind === "coverage"
+          ? normalizeCoverage(absolute)
+          : kind === "mutation"
+            ? normalizeMutation(absolute)
+            : normalizeJunit(absolute, kind);
+      report.artifact = path.relative(cwd, absolute);
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+      if (["fail", "test-gaps"].includes(report.decision)) process.exitCode = 2;
+      if (report.decision === "insufficient-evidence") process.exitCode = 1;
+    } catch (error) {
+      console.error(error.message);
+      process.exitCode = 1;
+    }
+    return;
+  }
   const files = changedFiles();
   const project = detectProject();
   const impact = topologyImpact(discoverTopology(cwd), files);
@@ -1187,7 +1228,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--json] | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file] [--json] | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

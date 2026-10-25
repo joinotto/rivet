@@ -151,6 +151,19 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" test \
 
 Rivet reports missing inputs. It does not invent product requirements.
 
+Normalize saved coverage, mutation, property, or contract-test artifacts:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" test \
+  --coverage-report coverage/coverage-summary.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" test \
+  --mutation-report reports/mutation.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" test \
+  --contract-report reports/contract.xml
+```
+
+Rivet can also read a JUnit property-test report with `--property-report`. A coverage percentage is execution evidence, not proof that tests detect defects.
+
 Write a machine-readable receipt only when useful:
 
 ```sh

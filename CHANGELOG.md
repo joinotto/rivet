@@ -28,6 +28,7 @@ This file records notable changes to Rivet.
 - Native skill-discovery evidence for Codex with Amazon Bedrock and Claude Code.
 - Monorepo check discovery and reverse-dependency-based test selection.
 - TRACE requirement extraction and risk-based test-family planning.
+- Test-intelligence script discovery and artifact normalization.
 
 ### Changed
 

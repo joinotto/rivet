@@ -125,13 +125,16 @@ Implemented:
 - Reverse-dependency-based test selection.
 - TRACE behavior, invariant, and failure-case extraction.
 - Risk-based test-family planning.
+- Existing coverage, mutation, property, and contract script discovery.
+- Coverage-summary normalization.
+- Mutation-report normalization with surviving-mutant evidence.
+- JUnit property and contract result normalization.
 
 Not implemented:
 
-- Coverage adapter.
-- Mutation testing adapter.
-- Property testing adapter.
-- API contract testing adapter.
+- Cross-ecosystem coverage formats.
+- Cross-tool mutation formats.
+- Authorized active API contract execution.
 - Independent review mode.
 - Flake detection.
 

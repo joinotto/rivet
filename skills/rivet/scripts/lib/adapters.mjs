@@ -64,6 +64,31 @@ export function discoverCheckAdapters(cwd) {
         kind: "repository-check",
       });
     }
+    const intelligenceScripts = [
+      ["coverage", "coverage"],
+      ["test:coverage", "coverage"],
+      ["mutation", "mutation"],
+      ["test:mutation", "mutation"],
+      ["property", "property"],
+      ["test:property", "property"],
+      ["contract", "contract"],
+      ["test:contract", "contract"],
+    ];
+    for (const [scriptId, kind] of intelligenceScripts) {
+      if (!scripts[scriptId]) continue;
+      adapters.push({
+        schema: ADAPTER_SCHEMA,
+        id: relative === "." ? scriptId : `${scriptId}:${relative}`,
+        base_id: scriptId,
+        ecosystem: "node",
+        executable: runner,
+        args: runner === "npm" ? ["run", scriptId] : [scriptId],
+        working_directory: relative,
+        source: `${relative === "." ? "package.json" : `${relative}/package.json`}#scripts.${scriptId}`,
+        kind: `${kind}-check`,
+        active_target: kind === "contract",
+      });
+    }
   }
 
   if (exists(cwd, "Cargo.toml")) {

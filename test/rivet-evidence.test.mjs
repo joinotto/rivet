@@ -235,6 +235,79 @@ const testPlan = JSON.parse(plannedTests.stdout);
 assert.strictEqual(testPlan.record.invariants.length, 1);
 assert.ok(testPlan.test_families.some((item) => item.id === "recorded-failures"));
 assert.deepStrictEqual(testPlan.missing_inputs, []);
+
+const intelligence = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-test-intelligence-"));
+fs.writeFileSync(
+  path.join(intelligence, "package.json"),
+  JSON.stringify({
+    scripts: {
+      "test:coverage": "jest --coverage",
+      "test:mutation": "stryker run",
+      "test:property": "vitest run property",
+      "test:contract": "schemathesis run",
+    },
+  }),
+);
+const intelligenceInspection = invoke(intelligence, ["inspect", "--json"]);
+assert.strictEqual(intelligenceInspection.status, 0, intelligenceInspection.stderr);
+assert.deepStrictEqual(
+  JSON.parse(intelligenceInspection.stdout).project.checks.map((item) => item.kind),
+  ["coverage-check", "mutation-check", "property-check", "contract-check"],
+);
+
+fs.writeFileSync(
+  path.join(intelligence, "coverage-summary.json"),
+  JSON.stringify({
+    total: {
+      lines: { total: 10, covered: 8, skipped: 0, pct: 80 },
+      branches: { total: 4, covered: 2, skipped: 0, pct: 50 },
+    },
+  }),
+);
+const coverageEvidence = invoke(intelligence, [
+  "test",
+  "--coverage-report",
+  "coverage-summary.json",
+]);
+assert.strictEqual(coverageEvidence.status, 0, coverageEvidence.stderr);
+const coverageReport = JSON.parse(coverageEvidence.stdout);
+assert.strictEqual(coverageReport.metrics.lines.percent, 80);
+assert.match(coverageReport.limitations[0], /does not prove/);
+
+fs.writeFileSync(
+  path.join(intelligence, "mutation.json"),
+  JSON.stringify({
+    files: {
+      "src/value.js": {
+        mutants: [
+          { id: "1", status: "Killed", mutatorName: "ArithmeticOperator" },
+          { id: "2", status: "Survived", mutatorName: "ConditionalExpression" },
+        ],
+      },
+    },
+  }),
+);
+const mutationEvidence = invoke(intelligence, [
+  "test",
+  "--mutation-report",
+  "mutation.json",
+]);
+assert.strictEqual(mutationEvidence.status, 2, mutationEvidence.stderr);
+const mutationReport = JSON.parse(mutationEvidence.stdout);
+assert.strictEqual(mutationReport.mutation_score, 50);
+assert.strictEqual(mutationReport.surviving_mutants.length, 1);
+
+fs.writeFileSync(
+  path.join(intelligence, "contract.xml"),
+  '<testsuite tests="3" failures="1" errors="0" skipped="0"></testsuite>',
+);
+const contractEvidence = invoke(intelligence, [
+  "test",
+  "--contract-report",
+  "contract.xml",
+]);
+assert.strictEqual(contractEvidence.status, 2, contractEvidence.stderr);
+assert.strictEqual(JSON.parse(contractEvidence.stdout).decision, "fail");
 const nestedVerification = invoke(topology, [
   "verify",
   "--checks",

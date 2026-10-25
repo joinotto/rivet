@@ -37,6 +37,7 @@ working_directory: .
 
 - `network`: The command can use the network.
 - `optional_subcommand`: The base executable can exist without the required subcommand.
+- `active_target`: The adapter can send requests to a running target and requires target authorization.
 
 ## Safety rules
 
@@ -47,4 +48,5 @@ working_directory: .
 - Redact command output before persistence.
 - Record the adapter schema and command digest.
 - Require explicit invocation for network and active security adapters.
+- Do not run an active contract adapter until the user authorizes its target.
 
