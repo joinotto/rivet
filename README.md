@@ -229,6 +229,7 @@ The product must not present an inferred result as an observed result.
 - [Initial blind evaluation](docs/BLIND-EVALUATION-2026-10-25.md)
 - [Phase 2 conformance](docs/PHASE-2-CONFORMANCE.md)
 - [Phase 4 conformance](docs/PHASE-4-CONFORMANCE.md)
+- [Phase 5 conformance](docs/PHASE-5-CONFORMANCE.md)
 - [Seeded reference systems](fixtures/reference-systems/README.md)
 
 ## Honest assessment

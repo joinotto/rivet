@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Phase 5 conformance record for workload-bound performance, release evidence
+  gaps, and approval-required incident writes.
 - Phase 4 conformance record for distributed failure cases, migration resume,
   and alert-to-harm requirements.
 - Executable migration interruption and cursor-based resume evidence with
