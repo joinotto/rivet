@@ -293,6 +293,15 @@ The report must bind the engine, target, source revision, command, runtime,
 execution count, sanitizer, and crash artifacts. A campaign that observed no
 crash is not proof of safety.
 
+### `chaos`
+
+Purpose: Initialize and validate a bounded chaos experiment, then normalize its
+saved result.
+
+Rivet requires an exact environment, target count, steady-state hypothesis,
+probes, blast radius, stop conditions, rollback verification, user-harm
+signal, and approval owner. It does not inject faults.
+
 ### `hooks`
 
 Purpose: Configure low-cost automatic checks for changed backend files.
@@ -305,7 +314,6 @@ Add only after Version 1 has evidence that users need them:
 
 - `mutation`
 - `load`
-- `chaos`
 - `formalize`
 - `privacy`
 - `compliance-map`

@@ -76,6 +76,11 @@ import {
   validateStatefulModel,
 } from "./lib/stateful.mjs";
 import { normalizeFuzzCampaign } from "./lib/fuzz.mjs";
+import {
+  chaosTemplate,
+  normalizeChaosResult,
+  validateChaosExperiment,
+} from "./lib/chaos.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -686,6 +691,51 @@ function fuzzEvidence() {
     process.stdout.write(`${JSON.stringify(evidence, null, 2)}\n`);
     if (evidence.decision === "invalid-evidence") process.exitCode = 1;
     if (evidence.decision === "crash-observed") process.exitCode = 2;
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}
+
+function chaosWorkflow() {
+  const action = argv[1];
+  try {
+    if (action === "init") {
+      const output = value("--output");
+      if (!output) throw new Error("Chaos initialization requires --output <file>.");
+      const absolute = outputPath(output);
+      if (fs.existsSync(absolute) && !has("--force")) {
+        throw new Error(`Refusing to overwrite existing file: ${output}`);
+      }
+      const experiment = chaosTemplate(
+        value("--system"),
+        value("--revision") || gitInfo().revision,
+        value("--created-at") || new Date().toISOString().slice(0, 10),
+      );
+      fs.mkdirSync(path.dirname(absolute), { recursive: true });
+      fs.writeFileSync(absolute, `${JSON.stringify(experiment, null, 2)}\n`, {
+        mode: 0o600,
+      });
+      console.log(`Chaos experiment template: ${output}`);
+      console.log("Status: incomplete");
+      return;
+    }
+    const artifact = evidenceArtifact("--file");
+    if (!artifact) throw new Error(`Chaos ${action} requires --file <file>.`);
+    const document = readJson(artifact);
+    if (!document) throw new Error("The chaos file must contain valid JSON.");
+    const report = action === "validate"
+      ? validateChaosExperiment(document)
+      : action === "result"
+        ? normalizeChaosResult(document)
+        : null;
+    if (!report) throw new Error("Use chaos init, chaos validate, or chaos result.");
+    report.artifact = path.relative(cwd, artifact);
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    if (["incomplete", "invalid-evidence"].includes(report.decision)) {
+      process.exitCode = 1;
+    }
+    if (report.decision === "weakness-observed") process.exitCode = 2;
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
@@ -2431,6 +2481,8 @@ if (command === "init") {
   statefulWorkflow();
 } else if (command === "fuzz") {
   fuzzEvidence();
+} else if (command === "chaos") {
+  chaosWorkflow();
 } else if (command === "review") {
   prepareReview();
 } else if (command === "security") {
@@ -2462,7 +2514,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | stateful (init | validate) | fuzz --report file | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value [--validate-schema] [--signature embedded|sigstore|cosign-key] | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
+    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | stateful (init | validate) | fuzz --report file | chaos (init | validate | result) | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value [--validate-schema] [--signature embedded|sigstore|cosign-key] | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
   );
   process.exitCode = 1;
 }

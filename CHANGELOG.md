@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Bounded chaos-experiment planning and result evidence with mandatory stop,
+  rollback, user-harm, and approval controls.
 - Coverage-guided fuzz campaign evidence with reproducibility and crash
   triage fields.
 - Stateful property-test model initialization and validation with command-path

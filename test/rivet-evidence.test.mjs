@@ -7,6 +7,10 @@ import { fileURLToPath } from "url";
 import { normalizeDependencyResult } from "../skills/rivet/scripts/lib/dependencies.mjs";
 import { validateStatefulModel } from "../skills/rivet/scripts/lib/stateful.mjs";
 import { normalizeFuzzCampaign } from "../skills/rivet/scripts/lib/fuzz.mjs";
+import {
+  normalizeChaosResult,
+  validateChaosExperiment,
+} from "../skills/rivet/scripts/lib/chaos.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repository = path.resolve(here, "..");
@@ -155,6 +159,74 @@ assert.strictEqual(
     }],
   }).decision,
   "crash-observed",
+);
+const chaosExperiment = {
+  schema: 1,
+  kind: "chaos-experiment",
+  system: "checkout",
+  revision: "fixture-revision",
+  created_at: "2026-10-25",
+  environment: "staging",
+  target: {
+    selector: "service=payments,instance=canary",
+    expected_count: 1,
+    excluded: ["production", "database-primary"],
+  },
+  steady_state: {
+    hypothesis: "Checkout success remains above the project threshold.",
+    probes: [{
+      id: "checkout-success",
+      measure: "successful checkouts divided by checkout attempts",
+      tolerance: "greater than or equal to 99 percent",
+      source: "staging checkout telemetry",
+    }],
+  },
+  method: {
+    fault: "Add 200 milliseconds of latency to the payment canary.",
+    duration_seconds: 60,
+    blast_radius: "One staging payment instance.",
+  },
+  stop_conditions: [{
+    id: "user-harm",
+    signal: "checkout success",
+    threshold: "less than 95 percent for one minute",
+    action: "Stop fault injection and start rollback.",
+  }],
+  rollback: {
+    actions: ["Remove the latency rule."],
+    verification: ["Confirm the canary latency returns to baseline."],
+  },
+  observation: {
+    metrics: ["checkout success", "payment latency"],
+    user_harm_signal: "checkout failure rate",
+  },
+  approval: {
+    required: true,
+    owner: "reliability-team",
+    reference: "change-123",
+  },
+};
+assert.strictEqual(
+  validateChaosExperiment(chaosExperiment).decision,
+  "ready-for-approval",
+);
+assert.strictEqual(
+  normalizeChaosResult({
+    schema: 1,
+    kind: "chaos-experiment-result",
+    experiment_digest: "sha256:experiment",
+    revision: "fixture-revision",
+    environment: "staging",
+    started_at: "2026-10-25T10:00:00Z",
+    finished_at: "2026-10-25T10:01:00Z",
+    tool: "fixture",
+    tool_version: "1",
+    hypothesis: "held",
+    execution: "completed",
+    rollback: { attempted: true, result: "verified" },
+    observations: [{ probe_id: "checkout-success", result: "within-tolerance" }],
+  }).decision,
+  "hypothesis-held",
 );
 
 fs.writeFileSync(

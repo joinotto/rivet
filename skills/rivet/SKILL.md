@@ -221,6 +221,24 @@ crash input and its digest outside the report if it contains sensitive data.
 Record whether the crash reproduces. A `no-crash-observed` decision describes
 only the recorded campaign. It does not prove memory safety or input safety.
 
+Prepare a bounded chaos experiment before any fault injection:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" chaos init \
+  --system checkout \
+  --output .rivet/chaos-checkout.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" chaos validate \
+  --file .rivet/chaos-checkout.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" chaos result \
+  --file reports/chaos-checkout-result.json
+```
+
+Define the exact environment and target count. State the steady-state
+hypothesis, probes, fault, duration, blast radius, stop conditions, rollback,
+rollback verification, user-harm signal, and approval owner. Observe stop
+conditions outside the fault-injection process. Rivet validates plans and
+normalizes saved results. It does not inject faults.
+
 Coverage normalization accepts Istanbul summary JSON, Cobertura XML, JaCoCo
 XML, LCOV, and Go cover profiles. Rivet reports only aggregate metrics that the
 source artifact contains.
