@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Record native Cosign v3 signed-artifact conformance for an offline,
+  self-managed key fixture.
+
 This file records notable changes to Rivet.
 
 ## Unreleased
