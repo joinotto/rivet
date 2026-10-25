@@ -23,6 +23,7 @@ This file records notable changes to Rivet.
 - Normalized dependency advisory findings and tool failures.
 - Read-only PostgreSQL migration and query-plan inspection.
 - Cross-package inspection, verification, and redaction conformance fixtures.
+- Read-only `doctor` diagnostics for context, configuration, and tools.
 
 ### Changed
 

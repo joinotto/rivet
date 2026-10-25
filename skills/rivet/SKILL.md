@@ -125,6 +125,14 @@ Run selected detected checks:
 node "<skill-dir>/scripts/rivet-evidence.mjs" verify --checks test,lint,typecheck
 ```
 
+Diagnose context, configuration, and declared-tool readiness:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" doctor
+```
+
+`doctor` does not install tools or test credentials and remote access.
+
 Write a machine-readable receipt only when useful:
 
 ```sh

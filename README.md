@@ -32,6 +32,7 @@ Version `0.1.0` contains:
 - Reverse dependency impact for changed workspace components.
 - Normalized npm, Cargo, Go, and Python dependency-audit results.
 - Read-only PostgreSQL migration SQL and JSON query-plan inspection.
+- Read-only context, configuration, and tool-readiness diagnosis.
 
 Run the tests:
 

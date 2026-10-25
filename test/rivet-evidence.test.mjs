@@ -51,6 +51,23 @@ assert.deepStrictEqual(
   ["test", "lint"],
 );
 
+const doctor = invoke(fixture, ["doctor", "--json"]);
+assert.strictEqual(doctor.status, 0, doctor.stderr);
+const diagnosis = JSON.parse(doctor.stdout);
+assert.match(diagnosis.decision, /^ready/);
+assert.strictEqual(
+  diagnosis.tools.find((item) => item.id === "test").available,
+  true,
+);
+assert.ok(diagnosis.limitations.some((item) => /credentials/.test(item)));
+
+fs.mkdirSync(path.join(fixture, ".rivet"), { recursive: true });
+fs.writeFileSync(path.join(fixture, ".rivet/config.json"), "{invalid");
+const invalidDoctor = invoke(fixture, ["doctor", "--json"]);
+assert.strictEqual(invalidDoctor.status, 2, invalidDoctor.stderr);
+assert.strictEqual(JSON.parse(invalidDoctor.stdout).decision, "not-ready");
+fs.rmSync(path.join(fixture, ".rivet"), { recursive: true });
+
 const dryRun = invoke(fixture, [
   "verify",
   "--dry-run",

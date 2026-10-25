@@ -424,6 +424,106 @@ function dependencyAudit() {
   runAdapters(discoverDependencyAdapters(cwd), "dependencies");
 }
 
+function findExecutable(executable) {
+  if (executable.includes(path.sep)) {
+    return fs.existsSync(executable) ? executable : null;
+  }
+  for (const directory of (process.env.PATH || "").split(path.delimiter)) {
+    if (!directory) continue;
+    const candidate = path.join(directory, executable);
+    try {
+      fs.accessSync(candidate, fs.constants.X_OK);
+      return candidate;
+    } catch {
+      // Continue to the next PATH entry.
+    }
+  }
+  return null;
+}
+
+function doctor() {
+  const project = detectProject();
+  const adapters = [...project.checks, ...project.dependency_checks];
+  const tools = adapters.map((adapter) => ({
+    id: adapter.id,
+    ecosystem: adapter.ecosystem,
+    kind: adapter.kind,
+    executable: adapter.executable,
+    available: Boolean(findExecutable(adapter.executable)),
+    network: Boolean(adapter.network),
+    evidence_class: "observed",
+  }));
+  const configFile = path.join(cwd, ".rivet", "config.json");
+  const configExists = fs.existsSync(configFile);
+  const config = configExists ? readJson(configFile) : null;
+  const issues = [];
+  if (!gitInfo().available) {
+    issues.push({
+      severity: "warning",
+      id: "git-unavailable",
+      statement: "Git revision evidence is unavailable.",
+    });
+  }
+  if (!project.context.length) {
+    issues.push({
+      severity: "warning",
+      id: "context-missing",
+      statement: "No recognized project context file was detected.",
+    });
+  }
+  if (configExists && !config) {
+    issues.push({
+      severity: "error",
+      id: "invalid-config",
+      statement: ".rivet/config.json is not valid JSON.",
+    });
+  }
+  for (const tool of tools.filter((item) => !item.available)) {
+    issues.push({
+      severity: "warning",
+      id: "tool-unavailable",
+      tool: tool.id,
+      statement: `The declared executable '${tool.executable}' is unavailable.`,
+    });
+  }
+  const report = {
+    schema: 1,
+    workflow: "doctor",
+    evidence_class: "observed",
+    target: cwd,
+    runtime: {
+      node: process.version,
+      platform: process.platform,
+      architecture: process.arch,
+    },
+    context_files: project.context,
+    config: configExists ? (config ? "valid" : "invalid") : "absent",
+    tools,
+    issues,
+    decision: issues.some((item) => item.severity === "error")
+      ? "not-ready"
+      : issues.length
+        ? "ready-with-limitations"
+        : "ready",
+    limitations: [
+      "Executable discovery does not prove that a tool is correctly configured.",
+      "Network, credentials, database access, and host approval behavior were not tested.",
+    ],
+  };
+  if (has("--json")) {
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+  } else {
+    console.log(`Rivet doctor: ${report.decision}`);
+    console.log(`Config: ${report.config}`);
+    for (const tool of tools) {
+      console.log(`- ${tool.id}: ${tool.available ? "available" : "unavailable"}`);
+    }
+    for (const issue of issues) console.log(`- ${issue.severity}: ${issue.statement}`);
+    for (const limitation of report.limitations) console.log(`- ${limitation}`);
+  }
+  if (report.decision === "not-ready") process.exitCode = 2;
+}
+
 function databaseEvidence() {
   const migration = value("--migration");
   const plan = value("--plan");
@@ -897,12 +997,14 @@ if (command === "init") {
   dependencyAudit();
 } else if (command === "database") {
   databaseEvidence();
+} else if (command === "doctor") {
+  doctor();
 } else if (command === "verify") {
   verify();
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | verify [--dry-run] [--checks list] [--receipt path] [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | verify [--dry-run] [--checks list] [--receipt path] [--json] | doctor [--json]",
   );
   process.exitCode = 1;
 }

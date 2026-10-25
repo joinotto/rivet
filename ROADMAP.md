@@ -62,6 +62,7 @@ Implemented:
 - Normalized dependency advisory results with seeded fixtures.
 - Read-only PostgreSQL migration and JSON plan inspection.
 - Cross-package conformance fixtures for all initial host distributions.
+- Read-only environment and adapter readiness diagnosis.
 
 Not implemented:
 
