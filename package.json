@@ -14,6 +14,7 @@
     "test:host-workspace": "node scripts/run-workspace-conformance.mjs",
     "test:fixtures": "node fixtures/reference-systems/test-seeds.mjs",
     "test:generated": "node fixtures/reference-systems/run-generated-tests.mjs fixtures/reference-systems/generated-test-evidence.json",
+    "test:migration": "node fixtures/migration-resume/run-evidence.mjs fixtures/migration-resume/evidence.json",
     "test:hosts": "node scripts/test-host-packages.mjs",
     "check:ste": "node skills/rivet/scripts/rivet-ste.mjs skills/rivet",
     "validate:skill": "python3 /Users/apple/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/rivet",

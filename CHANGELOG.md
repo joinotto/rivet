@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Executable migration interruption and cursor-based resume evidence with
+  duplicate-application and reconciliation checks.
 - Phase 2 conformance record that binds each exit criterion to executable
   evidence and documented limitations.
 - Reproducible generated-test evidence that removes temporary workspace paths

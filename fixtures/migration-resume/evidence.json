@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "kind": "migration-interruption-resume-evidence",
+  "evidence_class": "observed",
+  "revision": "migration-resume-fixture-v1",
+  "source_count": 5,
+  "migrated_count": 5,
+  "validated_count": 5,
+  "interrupted": true,
+  "interruption_cursor": 2,
+  "resumed": true,
+  "resume_batches": [
+    {
+      "processed": 2,
+      "cursor": 4,
+      "complete": false
+    },
+    {
+      "processed": 1,
+      "cursor": 5,
+      "complete": true
+    }
+  ],
+  "duplicate_applications": 0,
+  "decision": "resume-observed",
+  "limitations": [
+    "This fixture uses an in-memory durable-state model.",
+    "It does not measure database locks, replicas, or concurrent production traffic."
+  ]
+}
