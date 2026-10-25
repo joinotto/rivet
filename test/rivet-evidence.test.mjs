@@ -294,6 +294,87 @@ assert.strictEqual(
   "http://127.0.0.1:3000/",
 );
 
+const threatModelPath = path.join(intelligence, "threat-model.json");
+const initializedThreatModel = invoke(intelligence, [
+  "threat-model",
+  "init",
+  "--system",
+  "Order API",
+  "--revision",
+  "fixture-revision",
+  "--created-at",
+  "2026-10-25",
+  "--output",
+  "threat-model.json",
+]);
+assert.strictEqual(initializedThreatModel.status, 0, initializedThreatModel.stderr);
+const incompleteThreatModel = invoke(intelligence, [
+  "threat-model",
+  "validate",
+  "--file",
+  "threat-model.json",
+]);
+assert.strictEqual(incompleteThreatModel.status, 1);
+assert.strictEqual(
+  JSON.parse(incompleteThreatModel.stdout).decision,
+  "incomplete",
+);
+const threatModel = JSON.parse(fs.readFileSync(threatModelPath, "utf8"));
+threatModel.assets = [{ id: "orders", description: "Customer orders." }];
+threatModel.actors = [{ id: "customer", description: "Authenticated customer." }];
+threatModel.entry_points = [{ id: "order-api", description: "Order HTTP API." }];
+threatModel.trust_boundaries = [
+  { id: "internet-api", description: "Internet to API boundary." },
+];
+threatModel.data_flows = [
+  { id: "read-order", description: "Customer requests an order." },
+];
+threatModel.abuse_cases = [
+  { id: "cross-account", description: "Read another customer's order." },
+];
+threatModel.threats = [
+  {
+    id: "broken-object-authorization",
+    description: "A customer reads another customer's order.",
+    asset_ids: ["orders"],
+    actor_ids: ["customer"],
+    entry_point_ids: ["order-api"],
+    trust_boundary_ids: ["internet-api"],
+    data_flow_ids: ["read-order"],
+    abuse_case_ids: ["cross-account"],
+    impact: "Confidential order data is disclosed.",
+    likelihood_basis: "The object identifier is controlled by the caller.",
+    control: "Authorize the order against the authenticated customer.",
+    verification: "Run positive, negative, and cross-customer authorization tests.",
+    verification_evidence: ["reports/authorization.xml"],
+    standard_mappings: ["CWE-639"],
+    owner: "orders-team",
+    status: "mitigated",
+  },
+];
+threatModel.residual_risks = [
+  {
+    description: "Application defects can bypass the policy.",
+    owner: "orders-team",
+  },
+];
+threatModel.review = {
+  owner: "security-reviewer",
+  reviewed_at: "2026-10-25",
+  evidence: ["reviews/threat-model.md"],
+};
+fs.writeFileSync(threatModelPath, JSON.stringify(threatModel));
+const validThreatModel = invoke(intelligence, [
+  "threat-model",
+  "validate",
+  "--file",
+  "threat-model.json",
+]);
+assert.strictEqual(validThreatModel.status, 0, validThreatModel.stderr);
+const validThreatModelReport = JSON.parse(validThreatModel.stdout);
+assert.strictEqual(validThreatModelReport.decision, "ready-for-review");
+assert.deepStrictEqual(validThreatModelReport.faults, []);
+
 const securityDryRun = invoke(intelligence, [
   "security",
   "--run",

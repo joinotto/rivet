@@ -186,6 +186,7 @@ Implemented:
 - Revision-bound reachability records with fail-safe unknown handling.
 - Sigstore/Cosign keyless signing and identity-constrained verification adapter.
 - Repository-declared SAST command discovery and gated execution.
+- Structured threat-model initialization and validation with control evidence.
 
 Not implemented:
 

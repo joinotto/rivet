@@ -55,6 +55,10 @@ import {
 } from "./lib/postmortem.mjs";
 import { actionTemplate, validateAction } from "./lib/action.mjs";
 import { evaluateFindings } from "./lib/evaluate.mjs";
+import {
+  threatModelTemplate,
+  validateThreatModel,
+} from "./lib/threat-model.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -557,6 +561,51 @@ function contractEvidence() {
       target: parsed.toString(),
       env: { RIVET_AUTHORIZED_TARGET: parsed.toString() },
     });
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}
+
+function threatModelWorkflow() {
+  const action = argv[1];
+  try {
+    if (action === "init") {
+      const output = value("--output");
+      if (!output) {
+        throw new Error("Threat-model initialization requires --output <file>.");
+      }
+      const absolute = outputPath(output);
+      if (fs.existsSync(absolute) && !has("--force")) {
+        throw new Error(`Refusing to overwrite existing file: ${output}`);
+      }
+      const model = threatModelTemplate(
+        value("--system"),
+        value("--revision") || gitInfo().revision,
+        value("--created-at") || new Date().toISOString().slice(0, 10),
+      );
+      fs.mkdirSync(path.dirname(absolute), { recursive: true });
+      fs.writeFileSync(absolute, `${JSON.stringify(model, null, 2)}\n`, {
+        mode: 0o600,
+      });
+      console.log(`Threat-model template: ${output}`);
+      console.log("Status: incomplete");
+      return;
+    }
+    if (action === "validate") {
+      const artifact = evidenceArtifact("--file");
+      if (!artifact) {
+        throw new Error("Threat-model validation requires --file <file>.");
+      }
+      const model = readJson(artifact);
+      if (!model) throw new Error("The threat-model file must contain valid JSON.");
+      const report = validateThreatModel(model);
+      report.artifact = path.relative(cwd, artifact);
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+      if (report.decision === "incomplete") process.exitCode = 1;
+      return;
+    }
+    throw new Error("Use threat-model init or threat-model validate.");
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
@@ -1889,6 +1938,8 @@ if (command === "init") {
   testSelection();
 } else if (command === "contract") {
   contractEvidence();
+} else if (command === "threat-model") {
+  threatModelWorkflow();
 } else if (command === "review") {
   prepareReview();
 } else if (command === "security") {
@@ -1920,7 +1971,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
+    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review --record file [--files list] [--output file] [--json] | threat-model (init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
   );
   process.exitCode = 1;
 }

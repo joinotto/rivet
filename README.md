@@ -120,6 +120,16 @@ node skills/rivet/scripts/rivet-evidence.mjs contract --dry-run
 Execution requires `--target` and `--allow-network`. A non-local target also
 requires `--allow-nonlocal-target`.
 
+Create a threat-model record:
+
+```sh
+node skills/rivet/scripts/rivet-evidence.mjs threat-model init \
+  --system "Order API" \
+  --output .rivet/threat-model.json
+```
+
+Validate it with `threat-model validate --file .rivet/threat-model.json`.
+
 Generate host packages:
 
 ```sh

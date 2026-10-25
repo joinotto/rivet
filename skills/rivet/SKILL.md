@@ -101,6 +101,21 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" shape \
 
 The older `change` and `record` names are compatibility aliases.
 
+Create and validate a structured threat model:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" threat-model init \
+  --system "Order API" \
+  --output .rivet/threat-model.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" threat-model validate \
+  --file .rivet/threat-model.json
+```
+
+Start with system decomposition. Record assets, actors, entry points, trust
+boundaries, data flows, and abuse cases. Connect each threat to concrete
+controls and verification evidence. Use STRIDE only as one prompt method.
+Do not claim compliance from a standard mapping or a valid schema.
+
 Scan for common secret patterns:
 
 ```sh
