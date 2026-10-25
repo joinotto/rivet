@@ -160,6 +160,7 @@ The product must not present an inferred result as an observed result.
 - [Technical writing rules](TECHNICAL-WRITING.md)
 - [ASD-STE100 for agent skills](docs/ASD-STE100-FOR-SKILLS.md)
 - [Host integration contract](docs/HOST-INTEGRATIONS.md)
+- [Native host conformance](docs/HOST-CONFORMANCE.md)
 
 ## Honest assessment
 

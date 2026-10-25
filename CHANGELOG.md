@@ -25,6 +25,7 @@ This file records notable changes to Rivet.
 - Cross-package inspection, verification, and redaction conformance fixtures.
 - Read-only `doctor` diagnostics for context, configuration, and tools.
 - Reproducibility metadata, Markdown summaries, and GitHub Actions output.
+- Native skill-discovery evidence for Codex with Amazon Bedrock and Claude Code.
 
 ### Changed
 

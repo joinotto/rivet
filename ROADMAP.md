@@ -66,10 +66,13 @@ Implemented:
 - Reproducibility metadata with tool, command, and configuration identity.
 - Markdown verification summaries.
 - GitHub Actions annotations.
+- Native skill discovery in Codex with Amazon Bedrock.
+- Native skill discovery in Claude Code.
 
 Not implemented:
 
-- Native Codex, Claude Code, and Cursor runtime conformance.
+- Native Cursor skill discovery.
+- Native approval, sandbox, hook, session, and tool-execution conformance.
 
 Commands:
 

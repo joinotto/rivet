@@ -111,6 +111,8 @@ npm run test:hosts
 
 This test generates every package and runs the same inspection, verification, and redaction fixture through each packaged runner. It does not test native host approvals, sandboxes, hooks, or session behavior.
 
+Read [Host conformance](HOST-CONFORMANCE.md) for observed native host checks and their limits.
+
 ## Distribution
 
 The first distribution target is a repository-local installation.
