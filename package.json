@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node test/rivet-evidence.test.mjs",
+    "test:evaluation": "node skills/rivet/scripts/rivet-evidence.mjs evaluate --fixtures fixtures/reference-systems --findings fixtures/reference-systems/expected-findings.json",
     "test:fixtures": "node fixtures/reference-systems/test-seeds.mjs",
     "test:hosts": "node scripts/test-host-packages.mjs",
     "check:ste": "node skills/rivet/scripts/rivet-ste.mjs skills/rivet",

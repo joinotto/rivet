@@ -340,6 +340,20 @@ Publish every seed and expected result.
 
 ## 3. Evaluation program
 
+Implemented:
+
+- Machine-readable seed records.
+- Deterministic precision, recall, miss, and unexpected-finding scoring.
+- Published expected-finding baseline.
+
+Not implemented:
+
+- Blind agent-without-Rivet runs.
+- Blind prose-only Rivet runs.
+- Blind tool-backed Rivet runs.
+- Experienced human baseline.
+- Reviewer-agreement measurement.
+
 Compare:
 
 - Agent without the product.

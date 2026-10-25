@@ -1483,4 +1483,17 @@ const unsafePackageResult = spawnSync(
 assert.strictEqual(unsafePackageResult.status, 1);
 assert.match(unsafePackageResult.stderr, /inside the Rivet repository/);
 
+const referenceEvaluation = invoke(repository, [
+  "evaluate",
+  "--fixtures",
+  "fixtures/reference-systems",
+  "--findings",
+  "fixtures/reference-systems/expected-findings.json",
+]);
+assert.strictEqual(referenceEvaluation.status, 0, referenceEvaluation.stderr);
+const evaluationReport = JSON.parse(referenceEvaluation.stdout);
+assert.strictEqual(evaluationReport.seed_count, 7);
+assert.strictEqual(evaluationReport.metrics.recall, 1);
+assert.strictEqual(evaluationReport.metrics.precision, 1);
+
 console.log("rivet-evidence tests passed");

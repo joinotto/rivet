@@ -12,6 +12,14 @@ npm run test:fixtures
 
 The checks confirm that each named defect is present. They are evaluation baselines, not successful product tests.
 
+Score the published expected findings:
+
+```sh
+npm run test:evaluation
+```
+
+For an agent evaluation, replace `expected-findings.json` with the agent's findings artifact. Do not give the expected file to the evaluated agent.
+
 Each fixture contains:
 
 - A small executable system or migration.

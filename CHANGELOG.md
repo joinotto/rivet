@@ -47,6 +47,7 @@ This file records notable changes to Rivet.
 - Blameless postmortem drafts from validated timelines.
 - Repeated-sample performance statistics and adequacy reporting.
 - Preventive-action ownership, due dates, and follow-up verification.
+- Seeded-defect precision, recall, miss, and unexpected-finding evaluation.
 
 ### Changed
 

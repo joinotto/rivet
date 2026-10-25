@@ -1,0 +1,39 @@
+{
+  "findings": [
+    {
+      "seed_id": "broken-object-authorization",
+      "fixture": "broken-authorization",
+      "class": "authorization"
+    },
+    {
+      "seed_id": "cross-tenant-data-access",
+      "fixture": "cross-tenant-data",
+      "class": "multi-tenant-isolation"
+    },
+    {
+      "seed_id": "duplicate-payment-side-effect",
+      "fixture": "duplicate-side-effect",
+      "class": "idempotency"
+    },
+    {
+      "seed_id": "high-cardinality-metric-label",
+      "fixture": "high-cardinality-telemetry",
+      "class": "observability"
+    },
+    {
+      "seed_id": "CVE-2021-44228",
+      "fixture": "kev-dependency",
+      "class": "known-exploited-vulnerability"
+    },
+    {
+      "seed_id": "multiplicative-retries",
+      "fixture": "retry-amplification",
+      "class": "resilience"
+    },
+    {
+      "seed_id": "unsafe-contract-migration",
+      "fixture": "unsafe-migration",
+      "class": "migration"
+    }
+  ]
+}
