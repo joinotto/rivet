@@ -36,6 +36,27 @@ Exit criteria:
 
 Duration: 8 to 10 weeks
 
+Status: In progress.
+
+Implemented:
+
+- Repository and context discovery.
+- Existing check discovery.
+- Selected check execution.
+- JSON evidence receipt.
+- Changed-file risk classification.
+- TRACE change-record generation.
+- ASD-STE100-aligned skill checker.
+
+Not implemented:
+
+- Context-file generation.
+- Content and topology-aware risk classification.
+- Secret scanning.
+- Dependency advisory scanning.
+- Four-ecosystem verification fixtures.
+- Stable adapter interface.
+
 Commands:
 
 - `init`

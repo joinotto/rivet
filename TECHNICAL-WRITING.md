@@ -11,6 +11,8 @@ Sources:
 - [ASD-STE100 official site](https://asd-ste100.org/)
 - [ASD Simplified Technical English](https://www.asd-europe.org/standards-specifications/simplified-technical-english/)
 
+The Rivet application profile is in [docs/ASD-STE100-FOR-SKILLS.md](docs/ASD-STE100-FOR-SKILLS.md).
+
 ## 2. Compliance statement
 
 Do not state that project text complies with ASD-STE100 unless:

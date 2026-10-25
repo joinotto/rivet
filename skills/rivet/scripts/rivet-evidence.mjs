@@ -162,6 +162,194 @@ function digest(input) {
   return crypto.createHash("sha256").update(input).digest("hex");
 }
 
+function changedFiles() {
+  const explicit = (value("--files") || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (explicit.length) return explicit;
+
+  const result = run("git", ["status", "--short"]);
+  if (result.status !== 0) return [];
+
+  return result.stdout
+    .split("\n")
+    .map((line) => line.slice(3).trim())
+    .filter(Boolean)
+    .map((file) => file.includes(" -> ") ? file.split(" -> ").pop() : file);
+}
+
+function classifyRisk(files) {
+  const rules = [
+    {
+      mode: "critical",
+      pattern:
+        /(^|\/)(auth|security|crypto|payment|permission|policy|secrets?|migrations?)(\/|[._-])/i,
+      reason: "The path can affect privileged, destructive, payment, cryptographic, or security behavior.",
+    },
+    {
+      mode: "distributed",
+      pattern:
+        /(^|\/)(queue|worker|event|kafka|retry|outbox|saga|terraform|k8s|deploy|infra)(\/|[._-])/i,
+      reason: "The path can affect distributed execution or deployment behavior.",
+    },
+    {
+      mode: "service",
+      pattern:
+        /(^|\/)(api|route|controller|schema|database|sql|service|repository)(\/|[._-])/i,
+      reason: "The path can affect a service contract, persistent data, or integration boundary.",
+    },
+  ];
+
+  const rank = { local: 0, service: 1, distributed: 2, critical: 3 };
+  let mode = "local";
+  const signals = [];
+
+  for (const file of files) {
+    for (const rule of rules) {
+      if (rule.pattern.test(file)) {
+        signals.push({ file, mode: rule.mode, reason: rule.reason });
+        if (rank[rule.mode] > rank[mode]) mode = rule.mode;
+      }
+    }
+  }
+
+  return { mode, signals };
+}
+
+function changeAnalysis() {
+  const files = changedFiles();
+  const risk = classifyRisk(files);
+  const report = {
+    schema: 1,
+    evidence_class: "derived",
+    files,
+    risk_mode: risk.mode,
+    signals: risk.signals,
+    required_review:
+      risk.mode === "critical"
+        ? [
+            "Define explicit invariants.",
+            "Perform a threat and failure review.",
+            "Use independent human review.",
+            "Define staged rollout and recovery evidence.",
+          ]
+        : risk.mode === "distributed"
+          ? [
+              "Test duplicate, delayed, partial, and recovery behavior.",
+              "Review compatibility, timeouts, and retries.",
+            ]
+          : risk.mode === "service"
+            ? [
+                "Review contracts, data integrity, integration tests, and observability.",
+              ]
+            : ["Run focused tests and static checks."],
+    limitations: [
+      "Risk classification uses changed file paths.",
+      "The classification does not inspect business impact or runtime topology.",
+      "A user or reviewer must increase the risk mode when project context requires it.",
+    ],
+  };
+
+  if (has("--json")) {
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    return;
+  }
+
+  console.log(`Risk mode: ${report.risk_mode}`);
+  console.log(`Changed files: ${files.length}`);
+  for (const signal of report.signals) {
+    console.log(`- ${signal.file}: ${signal.mode} — ${signal.reason}`);
+  }
+  console.log("Required review:");
+  for (const item of report.required_review) console.log(`- ${item}`);
+  console.log("Limitations:");
+  for (const item of report.limitations) console.log(`- ${item}`);
+}
+
+function changeRecord() {
+  const files = changedFiles();
+  const risk = classifyRisk(files);
+  const title = value("--title") || "Backend change";
+  const body = `# ${title}
+
+> This record uses an ASD-STE100-aligned writing style. It is not a certified ASD-STE100 document.
+
+## Target
+
+Current behavior:
+
+Required behavior:
+
+Success measure:
+
+Out of scope:
+
+## Facts
+
+- Add observed facts.
+
+## Assumptions
+
+- Add assumptions that need confirmation.
+
+## Unknowns
+
+- Add unknowns that can change the design or risk.
+
+## Invariants
+
+- Add conditions that must remain true.
+
+## Change impact
+
+Risk mode: ${risk.mode}
+
+Changed files:
+${files.length ? files.map((file) => `- \`${file}\``).join("\n") : "- No changed files were detected."}
+
+## Threats and failure cases
+
+- Add applicable threats and failure cases.
+
+## Alternatives
+
+- Add material alternatives and the selection reason.
+
+## Verification
+
+- Add each check and its expected result.
+
+## Rollout and recovery
+
+- Add rollout, stop, rollback, and recovery steps.
+
+## Evidence
+
+- Add observed evidence.
+
+## Open risks
+
+- Add unresolved risks and owners.
+`;
+
+  const output = value("--output");
+  if (!output) {
+    process.stdout.write(body);
+    return;
+  }
+
+  const absolute = path.resolve(cwd, output);
+  fs.mkdirSync(path.dirname(absolute), { recursive: true });
+  if (fs.existsSync(absolute) && !has("--force")) {
+    console.error(`Refusing to overwrite existing file: ${output}`);
+    process.exitCode = 1;
+    return;
+  }
+  fs.writeFileSync(absolute, body, { mode: 0o600 });
+  console.log(`Change record: ${output}`);
+}
+
 function inspect() {
   const report = {
     schema: 1,
@@ -316,12 +504,16 @@ function verify() {
 
 if (command === "inspect") {
   inspect();
+} else if (command === "change") {
+  changeAnalysis();
+} else if (command === "record") {
+  changeRecord();
 } else if (command === "verify") {
   verify();
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: inspect [--json] | verify [--dry-run] [--checks list] [--receipt path] [--json]",
+    "Use: inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | verify [--dry-run] [--checks list] [--receipt path] [--json]",
   );
   process.exitCode = 1;
 }

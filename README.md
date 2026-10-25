@@ -17,6 +17,9 @@ Version `0.1.0` contains:
 - Initial Rust, Go, and Python test discovery.
 - Dry-run verification.
 - Selected check execution.
+- Changed-file risk classification.
+- TRACE change-record generation.
+- ASD-STE100-aligned Markdown checks.
 - JSON evidence receipts.
 - Distinct pass, fail, incomplete, and insufficient-evidence results.
 
@@ -37,6 +40,26 @@ Preview its detected checks:
 
 ```sh
 node skills/rivet/scripts/rivet-evidence.mjs verify --dry-run
+```
+
+Classify a change:
+
+```sh
+node skills/rivet/scripts/rivet-evidence.mjs change
+```
+
+Create a TRACE change record:
+
+```sh
+node skills/rivet/scripts/rivet-evidence.mjs record \
+  --title "Order authorization" \
+  --output .rivet/changes/order-authorization.md
+```
+
+Check skill documentation:
+
+```sh
+npm run check:ste
 ```
 
 ## Decision
@@ -94,6 +117,7 @@ The product must not present an inferred result as an observed result.
 - [Roadmap](ROADMAP.md)
 - [Open-source foundation](OPEN-SOURCE-FOUNDATION.md)
 - [Technical writing rules](TECHNICAL-WRITING.md)
+- [ASD-STE100 for agent skills](docs/ASD-STE100-FOR-SKILLS.md)
 
 ## Honest assessment
 

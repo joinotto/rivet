@@ -39,6 +39,7 @@ Do not request or publish private chain-of-thought. Show concise decisions, assu
 - For test design or verification, read [references/testing.md](references/testing.md).
 - For security, authorization, secrets, dependencies, or vulnerabilities, read [references/security.md](references/security.md).
 - For APIs, queues, retries, concurrency, reliability, or architecture, read [references/systems.md](references/systems.md).
+- For procedures, warnings, findings, runbooks, or evidence reports, read [references/writing.md](references/writing.md).
 
 Load only the references that apply.
 
@@ -53,7 +54,13 @@ Before a material edit, identify:
 - Rollout and recovery.
 - Verification.
 
-Stop for user direction when two valid designs have different product effects, a destructive action has no verified recovery, the target is not authorized, production access is required, or required evidence cannot run.
+Stop and ask for user direction in these conditions:
+
+- Two valid designs have different product effects.
+- A destructive action has no verified recovery.
+- The target has no test authorization.
+- The change needs production access.
+- Required evidence cannot run.
 
 ## Implementation
 
@@ -96,8 +103,16 @@ Report:
 - Checks that passed.
 - Checks that failed.
 - Checks that were unavailable.
-- Evidence that was not collected.
+- Missing evidence.
 - Open risks.
 - Rollback or recovery status.
 
 Never state that the system is secure, has no vulnerabilities, covers all edge cases, or is fully compliant.
+
+Check changed Rivet documentation with:
+
+```sh
+node "<skill-dir>/scripts/rivet-ste.mjs" <file-or-directory>
+```
+
+This check is not ASD-STE100 certification.
