@@ -11,6 +11,10 @@ import {
   normalizeChaosResult,
   validateChaosExperiment,
 } from "../skills/rivet/scripts/lib/chaos.mjs";
+import {
+  normalizeModelCheckResult,
+  validateFormalModel,
+} from "../skills/rivet/scripts/lib/formalize.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repository = path.resolve(here, "..");
@@ -227,6 +231,60 @@ assert.strictEqual(
     observations: [{ probe_id: "checkout-success", result: "within-tolerance" }],
   }).decision,
   "hypothesis-held",
+);
+const formalModel = {
+  schema: 1,
+  kind: "formal-model",
+  system: "payment-worker",
+  revision: "fixture-revision",
+  created_at: "2026-10-25",
+  language: "TLA+",
+  module: "PaymentWorker.tla",
+  config: "PaymentWorker.cfg",
+  abstraction: {
+    scope: ["one queue and two workers"],
+    assumptions: ["message identifiers are unique"],
+    omitted_behavior: ["network partitions longer than the visibility timeout"],
+    implementation_mapping: ["Process maps to src/worker.js processMessage"],
+  },
+  checks: {
+    invariants: ["AtMostOnceEffect"],
+    temporal_properties: ["EventuallyCompleted"],
+    deadlock: true,
+  },
+  bounds: {
+    constants: { Workers: 2, Messages: 3 },
+    constraints: ["Queue length is at most three."],
+  },
+  review: {
+    owner: "reliability-team",
+    reviewed_at: "2026-10-25",
+    evidence: ["review-123"],
+  },
+};
+assert.strictEqual(
+  validateFormalModel(formalModel).decision,
+  "ready-for-model-checking",
+);
+assert.strictEqual(
+  normalizeModelCheckResult({
+    schema: 1,
+    kind: "model-check-result",
+    language: "TLA+",
+    checker: "TLC",
+    checker_version: "fixture",
+    model_digest: "sha256:model",
+    config_digest: "sha256:config",
+    revision: "fixture-revision",
+    started_at: "2026-10-25T10:00:00Z",
+    finished_at: "2026-10-25T10:01:00Z",
+    command_digest: "sha256:command",
+    outcome: "completed",
+    states_generated: 100,
+    distinct_states: 60,
+    violations: [],
+  }).decision,
+  "no-violation-observed",
 );
 
 fs.writeFileSync(

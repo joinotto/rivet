@@ -321,10 +321,13 @@ Implemented:
 - Bounded chaos-experiment planning and observed-result normalization.
 - Required steady-state probes, target limits, stop conditions, rollback
   verification, user-harm signals, and explicit approval.
+- TLA+ abstraction-contract validation and bounded model-check result
+  normalization.
+- Explicit assumptions, omissions, implementation mappings, finite bounds,
+  counterexample preservation, and human-review evidence.
 
 Candidates:
 
-- TLA+ model generation and model checking.
 - Privacy analysis.
 - Cost and capacity planning.
 

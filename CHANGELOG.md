@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- TLA+ abstraction-contract and model-check evidence with explicit bounds,
+  omissions, implementation mappings, and counterexample handling.
 - Bounded chaos-experiment planning and result evidence with mandatory stop,
   rollback, user-harm, and approval controls.
 - Coverage-guided fuzz campaign evidence with reproducibility and crash

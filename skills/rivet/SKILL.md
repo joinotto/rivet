@@ -239,6 +239,24 @@ rollback verification, user-harm signal, and approval owner. Observe stop
 conditions outside the fault-injection process. Rivet validates plans and
 normalizes saved results. It does not inject faults.
 
+Define the abstraction contract before you create or check a TLA+ model:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" formalize init \
+  --system payment-worker \
+  --output .rivet/payment-worker-model.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" formalize validate \
+  --file .rivet/payment-worker-model.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" formalize result \
+  --file reports/payment-worker-tlc.json
+```
+
+Bind the manifest to the implementation revision, TLA+ module, configuration,
+scope, assumptions, omitted behavior, implementation mapping, invariants,
+temporal properties, and finite bounds. Preserve counterexamples and tool
+inputs. Rivet validates the contract and normalizes model-check results. It
+does not claim that the implementation conforms to the model.
+
 Coverage normalization accepts Istanbul summary JSON, Cobertura XML, JaCoCo
 XML, LCOV, and Go cover profiles. Rivet reports only aggregate metrics that the
 source artifact contains.

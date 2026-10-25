@@ -302,6 +302,15 @@ Rivet requires an exact environment, target count, steady-state hypothesis,
 probes, blast radius, stop conditions, rollback verification, user-harm
 signal, and approval owner. It does not inject faults.
 
+### `formalize`
+
+Purpose: Define and validate a TLA+ abstraction contract, then normalize a
+saved model-check result.
+
+The contract must bind assumptions, omitted behavior, implementation mappings,
+properties, and finite bounds to a source revision. Rivet does not infer that
+the implementation conforms to a checked model.
+
 ### `hooks`
 
 Purpose: Configure low-cost automatic checks for changed backend files.
@@ -314,7 +323,6 @@ Add only after Version 1 has evidence that users need them:
 
 - `mutation`
 - `load`
-- `formalize`
 - `privacy`
 - `compliance-map`
 - `capacity`
