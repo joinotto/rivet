@@ -961,6 +961,104 @@ assert.strictEqual(
   JSON.parse(readyRelease.stdout).decision,
   "ready-for-human-approval",
 );
+
+const incidentInit = invoke(intelligence, [
+  "incident",
+  "init",
+  "--id",
+  "INC-2026-001",
+  "--at",
+  "2026-10-25T10:00:00Z",
+  "--output",
+  "incident.json",
+]);
+assert.strictEqual(incidentInit.status, 0, incidentInit.stderr);
+const incidentRead = invoke(intelligence, [
+  "incident",
+  "add",
+  "--file",
+  "incident.json",
+  "--at",
+  "2026-10-25T10:01:00Z",
+  "--actor",
+  "incident-commander",
+  "--type",
+  "observation",
+  "--statement",
+  "The error rate increased.",
+  "--evidence",
+  "dashboard-snapshot-1",
+]);
+assert.strictEqual(incidentRead.status, 0, incidentRead.stderr);
+assert.match(incidentRead.stdout, /Mode: read/);
+const rejectedIncidentWrite = invoke(intelligence, [
+  "incident",
+  "add",
+  "--file",
+  "incident.json",
+  "--at",
+  "2026-10-25T10:02:00Z",
+  "--actor",
+  "operator",
+  "--type",
+  "change",
+  "--mode",
+  "write",
+  "--statement",
+  "Rollback production.",
+]);
+assert.strictEqual(rejectedIncidentWrite.status, 1);
+assert.match(rejectedIncidentWrite.stderr, /requires --approval/);
+const approvedIncidentWrite = invoke(intelligence, [
+  "incident",
+  "add",
+  "--file",
+  "incident.json",
+  "--at",
+  "2026-10-25T10:02:00Z",
+  "--actor",
+  "operator",
+  "--type",
+  "change",
+  "--mode",
+  "write",
+  "--statement",
+  "Rollback production.",
+  "--approval",
+  "APPROVAL-123",
+]);
+assert.strictEqual(approvedIncidentWrite.status, 0, approvedIncidentWrite.stderr);
+const incidentValidation = invoke(intelligence, [
+  "incident",
+  "validate",
+  "--file",
+  "incident.json",
+]);
+assert.strictEqual(incidentValidation.status, 0, incidentValidation.stderr);
+assert.strictEqual(
+  JSON.parse(incidentValidation.stdout).event_count,
+  2,
+);
+const tamperedIncident = JSON.parse(
+  fs.readFileSync(path.join(intelligence, "incident.json"), "utf8"),
+);
+tamperedIncident.events[0].statement = "Changed after recording.";
+fs.writeFileSync(
+  path.join(intelligence, "incident.json"),
+  JSON.stringify(tamperedIncident),
+);
+const invalidIncident = invoke(intelligence, [
+  "incident",
+  "validate",
+  "--file",
+  "incident.json",
+]);
+assert.strictEqual(invalidIncident.status, 2, invalidIncident.stderr);
+assert.ok(
+  JSON.parse(invalidIncident.stdout).faults.some((item) =>
+    item.includes("invalid digest"),
+  ),
+);
 assert.ok(
   telemetryReport.findings.some(
     (item) => item.id === "unbounded-metric-dimension",

@@ -278,11 +278,12 @@ Implemented:
 - Invalid comparison detection for changed workloads.
 - Project-defined performance threshold evaluation.
 - Staged rollout, monitoring, abort, rollback, compatibility, risk, and evidence-gap validation.
+- Read-only incident mode with approval-required write records.
+- Hash-chained, time-ordered incident action timeline.
 
 Not implemented:
 
 - Statistical sample analysis.
-- Incident read-only mode.
 - Postmortem timeline generation.
 
 Commands:

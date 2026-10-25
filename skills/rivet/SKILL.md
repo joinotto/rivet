@@ -299,6 +299,23 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" release \
 
 Require increasing rollout stages that end at 100 percent. Record success evidence, a monitoring window, abort conditions, rollback steps, owners, compatibility, and open risks. `ready-for-human-approval` does not deploy or authorize a release.
 
+Create and maintain a read-only incident action timeline:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" incident init \
+  --id incident-id \
+  --at ISO-8601 \
+  --output .rivet/incidents/incident.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" incident add \
+  --file .rivet/incidents/incident.json \
+  --at ISO-8601 \
+  --actor owner \
+  --type observation \
+  --statement "Observed fact."
+```
+
+Events default to `read` mode and form a local hash chain. A recorded write requires `--mode write --approval approval-reference`. Rivet records the action but does not execute it.
+
 Write a machine-readable receipt only when useful:
 
 ```sh

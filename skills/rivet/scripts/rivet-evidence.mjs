@@ -41,6 +41,11 @@ import {
 import { analyzeTelemetry } from "./lib/observe.mjs";
 import { comparePerformance } from "./lib/performance.mjs";
 import { evaluateRelease } from "./lib/release.mjs";
+import {
+  appendIncidentEvent,
+  incidentReport,
+  incidentTemplate,
+} from "./lib/incident.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -1405,6 +1410,70 @@ function releaseEvidence() {
   }
 }
 
+function incidentWorkflow() {
+  const action = argv[1];
+  try {
+    if (action === "init") {
+      const output = value("--output");
+      const id = value("--id");
+      const declaredAt = value("--at");
+      if (!output || !id || !declaredAt) {
+        throw new Error("Incident initialization requires --id, --at, and --output.");
+      }
+      const absolute = outputPath(output);
+      if (fs.existsSync(absolute) && !has("--force")) {
+        throw new Error(`Refusing to overwrite existing file: ${output}`);
+      }
+      fs.mkdirSync(path.dirname(absolute), { recursive: true });
+      fs.writeFileSync(
+        absolute,
+        `${JSON.stringify(incidentTemplate(id, declaredAt), null, 2)}\n`,
+        { mode: 0o600 },
+      );
+      console.log(`Incident timeline: ${output}`);
+      return;
+    }
+    const artifact = evidenceArtifact("--file");
+    if (!artifact) throw new Error("Incident action requires --file <file>.");
+    if (action === "validate") {
+      const report = incidentReport(artifact);
+      report.artifact = path.relative(cwd, artifact);
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+      if (report.decision !== "valid") process.exitCode = 2;
+      return;
+    }
+    if (action === "add") {
+      for (const flag of ["--at", "--actor", "--type", "--statement"]) {
+        if (!value(flag)) throw new Error(`Incident add requires ${flag}.`);
+      }
+      const document = JSON.parse(fs.readFileSync(artifact, "utf8"));
+      const updated = appendIncidentEvent(document, {
+        at: value("--at"),
+        actor: value("--actor"),
+        type: value("--type"),
+        statement: value("--statement"),
+        mode: value("--mode") || "read",
+        target: value("--target"),
+        approval: value("--approval"),
+        evidence: (value("--evidence") || "")
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+      });
+      fs.writeFileSync(artifact, `${JSON.stringify(updated, null, 2)}\n`, {
+        mode: 0o600,
+      });
+      console.log(`Incident event: ${updated.events.length}`);
+      console.log(`Mode: ${updated.events.at(-1).mode}`);
+      return;
+    }
+    throw new Error("Use incident init, incident add, or incident validate.");
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}
+
 function markdownSummary(receipt) {
   const lines = [
     "# Rivet verification",
@@ -1651,10 +1720,12 @@ if (command === "init") {
   performanceEvidence();
 } else if (command === "release") {
   releaseEvidence();
+} else if (command === "incident") {
+  incidentWorkflow();
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance --baseline file --candidate file | release --plan file [--performance comparison.json] | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance --baseline file --candidate file | release --plan file [--performance comparison.json] | incident (init | add | validate) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

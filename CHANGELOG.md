@@ -43,6 +43,7 @@ This file records notable changes to Rivet.
 - OpenTelemetry semantic, cardinality, sensitive-data, and alert review.
 - Workload-bound performance evidence comparison.
 - Project-threshold and staged-rollout release decisions.
+- Read-only, approval-aware incident action timelines.
 
 ### Changed
 
