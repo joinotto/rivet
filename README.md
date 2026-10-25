@@ -92,6 +92,14 @@ npm run package:hosts
 
 This command creates packages for Codex, Claude Code, Cursor, and portable skill hosts from the canonical `skills/rivet/` source.
 
+Run package conformance:
+
+```sh
+npm run test:hosts
+```
+
+This test does not claim native host-runtime conformance.
+
 ## Decision
 
 Build it.

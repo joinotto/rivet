@@ -103,6 +103,14 @@ Every supported host must pass the same fixtures:
 
 Host-specific tests can add approval, sandbox, hook, and session cases.
 
+Run package-level conformance:
+
+```sh
+npm run test:hosts
+```
+
+This test generates every package and runs the same inspection, verification, and redaction fixture through each packaged runner. It does not test native host approvals, sandboxes, hooks, or session behavior.
+
 ## Distribution
 
 The first distribution target is a repository-local installation.

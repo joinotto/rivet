@@ -61,10 +61,11 @@ Implemented:
 - Topology-aware component and reverse-dependency impact mapping.
 - Normalized dependency advisory results with seeded fixtures.
 - Read-only PostgreSQL migration and JSON plan inspection.
+- Cross-package conformance fixtures for all initial host distributions.
 
 Not implemented:
 
-- Cross-host conformance fixtures.
+- Native Codex, Claude Code, and Cursor runtime conformance.
 
 Commands:
 
@@ -103,7 +104,7 @@ Exit criteria:
 - A failed tool cannot produce a pass.
 - Results are reproducible from the receipt.
 - Index recommendations identify the target query and measured baseline.
-- Codex, Claude Code, and Cursor pass the common conformance suite.
+- Codex, Claude Code, and Cursor pass package and native-runtime conformance suites.
 
 ## Phase 2: Test intelligence
 
