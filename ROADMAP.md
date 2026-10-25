@@ -190,10 +190,7 @@ Implemented:
 - Structured threat-model initialization and validation with control evidence.
 - Pinned GitHub CodeQL fixture with native SARIF production and expected-rule verification.
 - Tool-backed CycloneDX and SPDX schema validation with embedded RSA or identity-constrained Sigstore verification.
-
-Not implemented:
-
-- Native signed-artifact fixture because Cosign is unavailable in the current environment.
+- Pinned native Cosign signed-artifact fixture with ephemeral-key verification.
 
 Commands:
 

@@ -1578,8 +1578,27 @@ function sbomEvidence() {
           issuer,
           artifact,
         ];
+      } else if (signatureMode === "cosign-key") {
+        const bundle = evidenceArtifact("--bundle");
+        const key = evidenceArtifact("--key-file");
+        if (!bundle || !key) {
+          throw new Error(
+            "Cosign key verification requires --bundle and --key-file.",
+          );
+        }
+        executable = findExecutable("cosign");
+        args = [
+          "verify-blob",
+          "--key",
+          key,
+          "--bundle",
+          bundle,
+          artifact,
+        ];
       } else {
-        throw new Error("Use --signature embedded or --signature sigstore.");
+        throw new Error(
+          "Use --signature embedded, --signature sigstore, or --signature cosign-key.",
+        );
       }
       if (!executable) {
         report.signature_validation = {
@@ -2371,7 +2390,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value [--validate-schema] [--signature embedded|sigstore] | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
+    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value [--validate-schema] [--signature embedded|sigstore|cosign-key] | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
   );
   process.exitCode = 1;
 }

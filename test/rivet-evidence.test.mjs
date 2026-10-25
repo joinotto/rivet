@@ -35,6 +35,20 @@ assert.doesNotMatch(
   nativeSastWorkflow,
   /uses:\s+[^@\n]+@(main|master|v\d+)\s*$/m,
 );
+const nativeSignatureWorkflow = fs.readFileSync(
+  path.join(repository, ".github/workflows/native-signature.yml"),
+  "utf8",
+);
+assert.match(
+  nativeSignatureWorkflow,
+  /sigstore\/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6/,
+);
+assert.match(nativeSignatureWorkflow, /cosign-release: v3[.]1[.]4/);
+assert.match(nativeSignatureWorkflow, /--signature cosign-key/);
+assert.doesNotMatch(
+  nativeSignatureWorkflow,
+  /uses:\s+[^@\n]+@(main|master|v\d+)\s*$/m,
+);
 
 function invoke(cwd, args, options = {}) {
   return spawnSync(process.execPath, [script, ...args], {
@@ -762,6 +776,17 @@ if (process.argv.includes("--version")) {
 `,
   { mode: 0o755 },
 );
+fs.writeFileSync(
+  path.join(mockSbomBin, "cosign"),
+  `#!/usr/bin/env node
+if (process.argv.includes("--version")) {
+  process.stdout.write("cosign version v3.1.4\\n");
+} else {
+  process.stdout.write("Verified OK\\n");
+}
+`,
+  { mode: 0o755 },
+);
 fs.writeFileSync(path.join(intelligence, "public.pem"), "fixture public key");
 const verifiedCycloneDx = invoke(
   intelligence,
@@ -811,6 +836,32 @@ assert.strictEqual(validatedSpdx.status, 0, validatedSpdx.stderr);
 assert.strictEqual(
   JSON.parse(validatedSpdx.stdout).schema_validation.tool,
   "pyspdxtools",
+);
+
+fs.writeFileSync(path.join(intelligence, "bom.bundle.json"), "{}");
+const verifiedCosignKey = invoke(
+  intelligence,
+  [
+    "sbom",
+    "--file",
+    "bom.json",
+    "--revision",
+    "fixture-revision",
+    "--signature",
+    "cosign-key",
+    "--bundle",
+    "bom.bundle.json",
+    "--key-file",
+    "public.pem",
+  ],
+  { env: { PATH: `${mockSbomBin}${path.delimiter}${process.env.PATH}` } },
+);
+assert.strictEqual(verifiedCosignKey.status, 0, verifiedCosignKey.stderr);
+const verifiedCosignKeyReport = JSON.parse(verifiedCosignKey.stdout);
+assert.strictEqual(verifiedCosignKeyReport.decision, "verified");
+assert.strictEqual(
+  verifiedCosignKeyReport.signature_validation.mode,
+  "cosign-key",
 );
 
 fs.writeFileSync(
