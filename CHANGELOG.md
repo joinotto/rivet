@@ -19,6 +19,7 @@ This file records notable changes to Rivet.
 - Stable tool-adapter and host-integration contracts.
 - Four-ecosystem discovery fixtures.
 - Host package generator for Codex, Claude Code, Cursor, and portable hosts.
+- Repository topology discovery and reverse dependency impact.
 
 ### Changed
 

@@ -58,10 +58,10 @@ Implemented:
 - Stable tool adapter interface.
 - Host integration contract.
 - Host package generator.
+- Topology-aware component and reverse-dependency impact mapping.
 
 Not implemented:
 
-- Topology-aware risk classification.
 - Dependency advisory fixture execution.
 - Database migration and plan adapter.
 - Cross-host conformance fixtures.

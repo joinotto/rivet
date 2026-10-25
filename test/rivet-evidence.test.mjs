@@ -95,6 +95,50 @@ const criticalRisk = invoke(fixture, [
 assert.strictEqual(criticalRisk.status, 0, criticalRisk.stderr);
 assert.strictEqual(JSON.parse(criticalRisk.stdout).risk_mode, "critical");
 
+const topology = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-topology-"));
+fs.mkdirSync(path.join(topology, "packages/core"), { recursive: true });
+fs.mkdirSync(path.join(topology, "apps/api"), { recursive: true });
+fs.writeFileSync(
+  path.join(topology, "packages/core/package.json"),
+  JSON.stringify({ name: "@fixture/core" }),
+);
+fs.writeFileSync(
+  path.join(topology, "apps/api/package.json"),
+  JSON.stringify({
+    name: "@fixture/api",
+    dependencies: {
+      "@fixture/core": "workspace:*",
+      "@aws-sdk/client-sqs": "1.0.0",
+    },
+  }),
+);
+fs.mkdirSync(path.join(topology, "prisma"), { recursive: true });
+fs.writeFileSync(path.join(topology, "prisma/schema.prisma"), "model User {}\n");
+const systemMap = invoke(topology, ["map", "--json"]);
+assert.strictEqual(systemMap.status, 0, systemMap.stderr);
+const mapped = JSON.parse(systemMap.stdout);
+assert.strictEqual(mapped.topology.components.length, 2);
+assert.deepStrictEqual(mapped.topology.edges[0], {
+  from: "@fixture/api",
+  to: "@fixture/core",
+  relation: "declared-dependency",
+  source: "apps/api/package.json",
+  evidence_class: "observed",
+});
+assert.strictEqual(mapped.topology.data_stores.length, 1);
+assert.strictEqual(mapped.topology.messaging[0].technology, "sqs");
+const topologyChange = invoke(topology, [
+  "change",
+  "--files",
+  "packages/core/src/value.js",
+  "--json",
+]);
+assert.strictEqual(topologyChange.status, 0, topologyChange.stderr);
+assert.deepStrictEqual(
+  JSON.parse(topologyChange.stdout).topology_impact.affected_components,
+  ["@fixture/api", "@fixture/core"],
+);
+
 const recordPath = path.join(fixture, "change.md");
 const record = invoke(fixture, [
   "record",

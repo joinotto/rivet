@@ -9,6 +9,7 @@ import {
   discoverDependencyAdapters,
 } from "./lib/adapters.mjs";
 import { fingerprint, redact } from "./lib/redact.mjs";
+import { discoverTopology, topologyImpact } from "./lib/topology.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -189,6 +190,7 @@ ${project.manifests.length ? project.manifests.map((item) => `- \`${item}\``).jo
 
 function mapProject() {
   const project = detectProject();
+  const topology = discoverTopology(cwd);
   const map = {
     schema: 1,
     evidence_class: "observed",
@@ -205,6 +207,7 @@ function mapProject() {
       ecosystem: item.ecosystem,
       source: item.source,
     })),
+    topology,
     unknowns: [
       "Runtime topology was not observed.",
       "Data ownership and trust boundaries require project context.",
@@ -223,6 +226,18 @@ function mapProject() {
   );
   console.log(
     `Dependency checks: ${map.dependency_checks.map((item) => item.id).join(", ") || "none"}`,
+  );
+  console.log(
+    `Components: ${map.topology.components.map((item) => item.id).join(", ") || "none"}`,
+  );
+  console.log(
+    `Internal edges: ${map.topology.edges.map((item) => `${item.from} -> ${item.to}`).join(", ") || "none"}`,
+  );
+  console.log(
+    `Data-store evidence: ${map.topology.data_stores.map((item) => item.id).join(", ") || "none"}`,
+  );
+  console.log(
+    `Messaging evidence: ${map.topology.messaging.map((item) => `${item.component}:${item.technology}`).join(", ") || "none"}`,
   );
   console.log("Unknowns:");
   for (const item of map.unknowns) console.log(`- ${item}`);
@@ -522,12 +537,14 @@ function classifyRisk(files) {
 function changeAnalysis() {
   const files = changedFiles();
   const risk = classifyRisk(files);
+  const impact = topologyImpact(discoverTopology(cwd), files);
   const report = {
     schema: 1,
     evidence_class: "derived",
     files,
     risk_mode: risk.mode,
     signals: risk.signals,
+    topology_impact: impact,
     required_review:
       risk.mode === "critical"
         ? [
@@ -547,8 +564,8 @@ function changeAnalysis() {
               ]
             : ["Run focused tests and static checks."],
     limitations: [
-      "Risk classification uses changed file paths.",
-      "The classification does not inspect business impact or runtime topology.",
+      "Risk classification uses paths, changed content, configuration, and declared component dependencies.",
+      "Declared dependencies do not prove runtime behavior or business impact.",
       "A user or reviewer must increase the risk mode when project context requires it.",
     ],
   };
@@ -565,6 +582,9 @@ function changeAnalysis() {
   }
   console.log("Required review:");
   for (const item of report.required_review) console.log(`- ${item}`);
+  console.log(
+    `Affected components: ${report.topology_impact.affected_components.join(", ") || "none observed"}`,
+  );
   console.log("Limitations:");
   for (const item of report.limitations) console.log(`- ${item}`);
 }
