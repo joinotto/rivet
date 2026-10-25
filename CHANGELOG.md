@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Phase 4 conformance record for distributed failure cases, migration resume,
+  and alert-to-harm requirements.
 - Executable migration interruption and cursor-based resume evidence with
   duplicate-application and reconciliation checks.
 - Phase 2 conformance record that binds each exit criterion to executable

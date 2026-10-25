@@ -238,7 +238,7 @@ Exit criteria:
 
 Duration: 10 weeks
 
-Status: In progress.
+Status: Complete for the published Phase 4 scope.
 
 Implemented:
 
