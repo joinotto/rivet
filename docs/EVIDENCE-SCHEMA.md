@@ -30,7 +30,9 @@ A receipt must include:
 - Revision when available.
 - Start and finish time.
 - Adapter identity.
+- Tool version when the tool reports one.
 - Command digest.
+- Configuration digest when the adapter has a configuration source.
 - Exit status.
 - Result class.
 - Redacted output.
@@ -38,4 +40,10 @@ A receipt must include:
 - Decision.
 
 Receipts must not contain credentials or unnecessary personal data.
+
+## Human and CI output
+
+The human summary must be derived from the same in-memory receipt as the JSON artifact. It must not recalculate the decision.
+
+CI annotations must contain check identity and result. They must not contain raw tool output, credentials, or untrusted multiline text.
 

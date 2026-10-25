@@ -141,6 +141,16 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" verify \
   --receipt .rivet/evidence.json
 ```
 
+Write a human summary or GitHub Actions annotations when applicable:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" verify \
+  --summary .rivet/verification.md \
+  --format github
+```
+
+The JSON receipt and human summary use the same verification decision.
+
 Add risk-specific evidence from the references. A successful generic test command does not prove database recovery, authorization, migration safety, or vulnerability remediation.
 
 Report:

@@ -122,6 +122,28 @@ function outputPath(relative) {
   return absolute;
 }
 
+function configurationDigest(source) {
+  const file = String(source || "").split("#")[0];
+  const absolute = path.resolve(cwd, file);
+  if (
+    !absolute.startsWith(`${canonicalCwd}${path.sep}`) &&
+    absolute !== canonicalCwd
+  ) {
+    return null;
+  }
+  try {
+    return digest(fs.readFileSync(absolute));
+  } catch {
+    return null;
+  }
+}
+
+function toolVersion(executable) {
+  const result = run(executable, ["--version"], { timeout: 10000 });
+  if (result.status !== 0) return null;
+  return redact(combinedOutput(result)).split("\n")[0].slice(0, 300) || null;
+}
+
 function writeNewFile(relative, body) {
   const absolute = outputPath(relative);
   if (fs.existsSync(absolute) && !has("--force")) {
@@ -861,6 +883,60 @@ function inspect() {
   }
 }
 
+function markdownSummary(receipt) {
+  const lines = [
+    "# Rivet verification",
+    "",
+    `Decision: **${receipt.decision}**`,
+    "",
+    `Revision: \`${receipt.revision || "unavailable"}\``,
+    "",
+    "## Checks",
+    "",
+    "| Check | Ecosystem | Result | Exit | Duration |",
+    "|---|---|---|---:|---:|",
+  ];
+  if (!receipt.results.length) {
+    lines.push("| None | — | insufficient evidence | — | — |");
+  }
+  for (const result of receipt.results) {
+    lines.push(
+      `| ${result.id} | ${result.ecosystem || "—"} | ${result.result} | ${result.exit_code ?? "—"} | ${result.duration_ms ?? "—"} ms |`,
+    );
+  }
+  lines.push("", "## Limitations", "");
+  for (const limitation of receipt.limitations) lines.push(`- ${limitation}`);
+  return `${lines.join("\n")}\n`;
+}
+
+function githubEscape(value) {
+  return String(value)
+    .replaceAll("%", "%25")
+    .replaceAll("\r", "%0D")
+    .replaceAll("\n", "%0A");
+}
+
+function githubOutput(receipt) {
+  for (const result of receipt.results) {
+    if (result.result === "pass") {
+      console.log(
+        `::notice title=Rivet ${githubEscape(result.id)}::Check passed`,
+      );
+    } else if (result.result === "unavailable") {
+      console.log(
+        `::warning title=Rivet ${githubEscape(result.id)}::Check unavailable`,
+      );
+    } else {
+      console.log(
+        `::error title=Rivet ${githubEscape(result.id)}::Check ${githubEscape(result.result)}`,
+      );
+    }
+  }
+  console.log(
+    `::${receipt.decision === "pass" ? "notice" : receipt.decision === "fail" ? "error" : "warning"} title=Rivet verification::Decision ${githubEscape(receipt.decision)}`,
+  );
+}
+
 function verify() {
   const project = detectProject();
   const requested = (value("--checks") || "")
@@ -899,9 +975,11 @@ function verify() {
       id: check.id,
       ecosystem: check.ecosystem,
       command: [check.executable, ...check.args],
+      tool_version: toolVersion(check.executable),
       command_digest: digest(
         JSON.stringify([check.executable, ...check.args]),
       ),
+      configuration_digest: configurationDigest(check.source),
       source: check.source,
       result:
         result.error && result.error.code === "ENOENT"
@@ -922,6 +1000,9 @@ function verify() {
     results.push({
       id,
       result: "unavailable",
+      tool_version: null,
+      command_digest: null,
+      configuration_digest: null,
       reason: "No detected repository check has this identifier.",
     });
   }
@@ -932,6 +1013,11 @@ function verify() {
     evidence_class: "observed",
     target: cwd,
     revision: gitInfo().revision,
+    environment: {
+      platform: process.platform,
+      architecture: process.arch,
+      node: process.version,
+    },
     started_at: startedAt,
     finished_at: new Date().toISOString(),
     results,
@@ -951,14 +1037,24 @@ function verify() {
 
   const receiptPath = value("--receipt");
   if (receiptPath) {
-    const absolute = path.resolve(cwd, receiptPath);
+    const absolute = outputPath(receiptPath);
     fs.mkdirSync(path.dirname(absolute), { recursive: true });
     fs.writeFileSync(absolute, `${JSON.stringify(receipt, null, 2)}\n`, {
       mode: 0o600,
     });
   }
 
-  if (has("--json")) {
+  const summaryPath = value("--summary");
+  if (summaryPath) {
+    const absolute = outputPath(summaryPath);
+    fs.mkdirSync(path.dirname(absolute), { recursive: true });
+    fs.writeFileSync(absolute, markdownSummary(receipt), { mode: 0o600 });
+  }
+
+  const format = value("--format");
+  if (format === "github") {
+    githubOutput(receipt);
+  } else if (has("--json") || format === "json") {
     process.stdout.write(`${JSON.stringify(receipt, null, 2)}\n`);
   } else {
     console.log(`Verification decision: ${receipt.decision}`);
@@ -968,6 +1064,7 @@ function verify() {
       console.log(`- ${result.id}: ${result.result}${duration}`);
     }
     if (receiptPath) console.log(`Receipt: ${receiptPath}`);
+    if (summaryPath) console.log(`Summary: ${summaryPath}`);
     console.log("Limitations:");
     for (const limitation of receipt.limitations) console.log(`- ${limitation}`);
   }
@@ -1004,7 +1101,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | verify [--dry-run] [--checks list] [--receipt path] [--json] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

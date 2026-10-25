@@ -80,11 +80,32 @@ assert.match(dryRun.stdout, /Unavailable: typecheck/);
 
 const pass = invoke(fixture, ["verify", "--checks", "test", "--json"]);
 assert.strictEqual(pass.status, 0, pass.stderr);
-assert.strictEqual(JSON.parse(pass.stdout).decision, "pass");
+const passReceipt = JSON.parse(pass.stdout);
+assert.strictEqual(passReceipt.decision, "pass");
+assert.ok(passReceipt.results[0].tool_version);
+assert.match(passReceipt.results[0].command_digest, /^[a-f0-9]{64}$/);
+assert.match(passReceipt.results[0].configuration_digest, /^[a-f0-9]{64}$/);
+assert.strictEqual(passReceipt.environment.node, process.version);
 
 const fail = invoke(fixture, ["verify", "--checks", "lint", "--json"]);
 assert.strictEqual(fail.status, 2, fail.stderr);
 assert.strictEqual(JSON.parse(fail.stdout).decision, "fail");
+
+const summaryFile = path.join(fixture, ".rivet/summary.md");
+const githubVerification = invoke(fixture, [
+  "verify",
+  "--checks",
+  "lint",
+  "--format",
+  "github",
+  "--summary",
+  ".rivet/summary.md",
+]);
+assert.strictEqual(githubVerification.status, 2, githubVerification.stderr);
+assert.match(githubVerification.stdout, /::error title=Rivet lint/);
+assert.match(githubVerification.stdout, /Decision fail/);
+assert.match(fs.readFileSync(summaryFile, "utf8"), /# Rivet verification/);
+assert.match(fs.readFileSync(summaryFile, "utf8"), /\| lint \| node \| fail \|/);
 
 const incomplete = invoke(fixture, [
   "verify",

@@ -33,6 +33,8 @@ Version `0.1.0` contains:
 - Normalized npm, Cargo, Go, and Python dependency-audit results.
 - Read-only PostgreSQL migration SQL and JSON query-plan inspection.
 - Read-only context, configuration, and tool-readiness diagnosis.
+- Tool versions and configuration digests in verification receipts.
+- Markdown human summaries and GitHub Actions annotations.
 
 Run the tests:
 

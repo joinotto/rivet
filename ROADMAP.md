@@ -63,6 +63,9 @@ Implemented:
 - Read-only PostgreSQL migration and JSON plan inspection.
 - Cross-package conformance fixtures for all initial host distributions.
 - Read-only environment and adapter readiness diagnosis.
+- Reproducibility metadata with tool, command, and configuration identity.
+- Markdown verification summaries.
+- GitHub Actions annotations.
 
 Not implemented:
 
