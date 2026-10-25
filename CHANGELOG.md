@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Native Codex read-only sandbox and Claude Code tool-allowlist conformance
+  probes with observed read, command, and prohibited-write evidence.
 - Seed-excluding native blind-evaluation runner and initial Codex comparison
   artifacts for no-Rivet, prose-only, and tool-backed conditions.
 - Blinded evaluation-campaign scoring with per-condition metrics and pairwise

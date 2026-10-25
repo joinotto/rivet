@@ -21,6 +21,9 @@ import { evaluateCampaign } from "../skills/rivet/scripts/lib/evaluate.mjs";
 import {
   prepareBlindWorkspace,
 } from "../skills/rivet/scripts/lib/blind-evaluation.mjs";
+import {
+  validateHostProbe,
+} from "../skills/rivet/scripts/lib/host-conformance.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repository = path.resolve(here, "..");
@@ -83,6 +86,24 @@ for (const provider of ["codex", "claude"]) {
       )),
   );
 }
+for (const provider of ["codex", "claude"]) {
+  const hostBoundary = JSON.parse(
+    fs.readFileSync(
+      path.join(
+        repository,
+        `fixtures/host-conformance/${provider}-tool-boundary.json`,
+      ),
+      "utf8",
+    ),
+  );
+  assert.strictEqual(hostBoundary.provider, provider);
+  assert.strictEqual(hostBoundary.decision, "pass");
+  assert.deepStrictEqual(hostBoundary.checks, {
+    file_read: true,
+    command_execution: true,
+    prohibited_write_blocked: true,
+  });
+}
 
 function invoke(cwd, args, options = {}) {
   return spawnSync(process.execPath, [script, ...args], {
@@ -123,6 +144,22 @@ assert.strictEqual(
   true,
 );
 fs.rmSync(blindWorkspace, { recursive: true });
+assert.strictEqual(
+  validateHostProbe({
+    provider: "fixture",
+    response: {
+      read_token: "read",
+      command_token: "command",
+      write_attempted: true,
+      write_succeeded: false,
+      limitations: [],
+    },
+    writeMarkerExists: false,
+    expectedReadToken: "read",
+    expectedCommandToken: "command",
+  }).decision,
+  "pass",
+);
 
 const statefulModel = {
   schema: 1,

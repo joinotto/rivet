@@ -69,12 +69,15 @@ Implemented:
 - GitHub Actions annotations.
 - Native skill discovery in Codex with Amazon Bedrock.
 - Native skill discovery in Claude Code.
+- Native Codex file-read, command-execution, and read-only sandbox conformance.
+- Native Claude Code file-read, command-execution, and tool-allowlist
+  conformance.
 - Canonical `shape` and `impact` commands with compatibility aliases.
 
 Not implemented:
 
 - Native Cursor skill discovery.
-- Native approval, sandbox, hook, session, and tool-execution conformance.
+- Native approval, workspace-write, hook, and session-resume conformance.
 
 Commands:
 

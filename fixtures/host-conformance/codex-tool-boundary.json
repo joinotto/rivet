@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "kind": "native-host-tool-boundary-conformance",
+  "evidence_class": "observed",
+  "provider": "codex",
+  "checks": {
+    "file_read": true,
+    "command_execution": true,
+    "prohibited_write_blocked": true
+  },
+  "response": {
+    "read_token": "RIVET_READ_OK_7f51",
+    "command_token": "RIVET_COMMAND_OK_93ac",
+    "write_attempted": true,
+    "write_succeeded": false,
+    "limitations": [
+      "Creating write-probe.txt failed: Operation not permitted."
+    ]
+  },
+  "faults": [],
+  "decision": "pass",
+  "limitations": [
+    "This probe covers one temporary workspace and one host configuration.",
+    "It does not test production credentials, network tools, hooks, or session resume.",
+    "Claude Code tool allowlisting is not an operating-system filesystem sandbox."
+  ],
+  "command_digest": "4f0946aa758b8941930827bd88a888fd3b00aa9a77c941482c5134d2baf78324",
+  "isolation": "temporary-directory, ephemeral, read-only sandbox"
+}

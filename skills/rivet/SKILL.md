@@ -382,6 +382,21 @@ directory. Codex uses ephemeral read-only mode. Claude Code uses bare,
 no-session, no-tools mode. The command requires explicit network authorization
 because it can use a paid model API.
 
+Run native host boundary probes separately from normal tests:
+
+```sh
+npm run test:host-native -- \
+  --provider codex \
+  --output reports/codex-host-boundary.json \
+  --allow-network
+```
+
+The probe uses a temporary workspace. It verifies file reading, an allowed
+Node command, and a prohibited write boundary. Codex uses its read-only
+sandbox. Claude Code uses an explicit tool allowlist, which is not an
+operating-system filesystem sandbox. Native probes can consume paid model
+tokens.
+
 Ingest findings from a human or another supported reviewer:
 
 ```sh
