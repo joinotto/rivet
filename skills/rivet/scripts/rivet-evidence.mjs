@@ -22,6 +22,7 @@ import {
   normalizeJunit,
   normalizeMutation,
 } from "./lib/test-evidence.mjs";
+import { reviewMarkdown, reviewPacket } from "./lib/review.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -1029,6 +1030,56 @@ function testSelection() {
   for (const limitation of report.limitations) console.log(`- ${limitation}`);
 }
 
+function prepareReview() {
+  const recordPath = value("--record");
+  if (!recordPath) {
+    console.error("Independent review requires --record <file>.");
+    process.exitCode = 1;
+    return;
+  }
+  const absoluteRecord = path.resolve(cwd, recordPath);
+  if (
+    !absoluteRecord.startsWith(`${cwd}${path.sep}`) ||
+    !fs.existsSync(absoluteRecord)
+  ) {
+    console.error("The change record must be an existing file inside the project.");
+    process.exitCode = 1;
+    return;
+  }
+  const files = changedFiles();
+  const topology = discoverTopology(cwd);
+  const impact = topologyImpact(topology, files);
+  const risk = classifyRisk(files);
+  const diffResult = files.length
+    ? run("git", ["diff", "--no-ext-diff", "--unified=3", "--", ...files])
+    : { status: 0, stdout: "", stderr: "" };
+  const packet = reviewPacket({
+    record: extractChangeRecord(absoluteRecord),
+    files,
+    affectedComponents: impact.affected_components,
+    risk,
+    diff: redact(diffResult.stdout || "").slice(0, 200000),
+    revision: gitInfo().revision,
+  });
+  const output = value("--output");
+  if (output) {
+    const absolute = outputPath(output);
+    fs.mkdirSync(path.dirname(absolute), { recursive: true });
+    const body = output.endsWith(".json")
+      ? `${JSON.stringify(packet, null, 2)}\n`
+      : reviewMarkdown(packet);
+    fs.writeFileSync(absolute, body, { mode: 0o600 });
+    console.log(`Independent review packet: ${output}`);
+    console.log("Status: prepared-not-reviewed");
+    return;
+  }
+  if (has("--json")) {
+    process.stdout.write(`${JSON.stringify(packet, null, 2)}\n`);
+  } else {
+    process.stdout.write(reviewMarkdown(packet));
+  }
+}
+
 function markdownSummary(receipt) {
   const lines = [
     "# Rivet verification",
@@ -1255,10 +1306,12 @@ if (command === "init") {
   verify();
 } else if (command === "test") {
   testSelection();
+} else if (command === "review") {
+  prepareReview();
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

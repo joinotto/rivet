@@ -39,6 +39,7 @@ Version `0.1.0` contains:
 - TRACE requirement extraction and risk-based test-family planning.
 - Coverage, mutation, property, and contract-test artifact normalization.
 - Flake and inconsistent test-selection detection from repeated JUnit runs.
+- Requirements-first, redacted independent-review packet generation.
 
 Run the tests:
 

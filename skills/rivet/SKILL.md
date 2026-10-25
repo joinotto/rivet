@@ -173,6 +173,16 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" test \
 
 Preserve test seed, order, environment, and retry evidence when available. A finite passing sample does not prove determinism.
 
+Prepare an independent-review packet from requirements before another agent or reviewer sees the implementation rationale:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" review \
+  --record .rivet/changes/change.md \
+  --output .rivet/reviews/change.md
+```
+
+Packet generation is not an independent review. Report its status as `prepared-not-reviewed` until a separate reviewer returns findings.
+
 Write a machine-readable receipt only when useful:
 
 ```sh

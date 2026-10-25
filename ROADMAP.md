@@ -130,13 +130,14 @@ Implemented:
 - Mutation-report normalization with surviving-mutant evidence.
 - JUnit property and contract result normalization.
 - Repeated-JUnit flake and test-presence analysis.
+- Redacted, requirements-first independent-review packets.
 
 Not implemented:
 
 - Cross-ecosystem coverage formats.
 - Cross-tool mutation formats.
 - Authorized active API contract execution.
-- Independent review mode.
+- Native independent reviewer execution and finding ingestion.
 
 Commands:
 

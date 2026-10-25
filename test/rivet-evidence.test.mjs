@@ -358,6 +358,24 @@ const record = invoke(fixture, [
 assert.strictEqual(record.status, 0, record.stderr);
 assert.match(fs.readFileSync(recordPath, "utf8"), /Risk mode: critical/);
 
+const reviewPacketPath = path.join(fixture, ".rivet/review.md");
+const preparedReview = invoke(fixture, [
+  "review",
+  "--record",
+  "change.md",
+  "--files",
+  "src/auth/policy.js",
+  "--output",
+  ".rivet/review.md",
+]);
+assert.strictEqual(preparedReview.status, 0, preparedReview.stderr);
+assert.match(preparedReview.stdout, /prepared-not-reviewed/);
+const reviewBody = fs.readFileSync(reviewPacketPath, "utf8");
+assert.match(reviewBody, /# Independent review packet/);
+assert.match(reviewBody, /Do not accept the implementation explanation as evidence/);
+assert.match(reviewBody, /## Invariants\n\n- None recorded/);
+assert.doesNotMatch(reviewBody, /## Alternatives/);
+
 const cleanDoc = path.join(fixture, "clean.md");
 fs.writeFileSync(cleanDoc, "# Procedure\n\nRun the test.\n");
 const cleanSte = invokeSte(fixture, [cleanDoc, "--json"]);

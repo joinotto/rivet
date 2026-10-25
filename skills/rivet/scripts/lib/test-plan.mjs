@@ -12,7 +12,8 @@ function cleanLines(lines) {
   return lines
     .map((line) => line.replace(/^\s*[-*]\s+/, "").trim())
     .filter(Boolean)
-    .filter((line) => !/^(current behavior|required behavior|success measure|out of scope):$/i.test(line));
+    .filter((line) => !/^(current behavior|required behavior|success measure|out of scope):$/i.test(line))
+    .filter((line) => !/^add\b.+[.]$/i.test(line));
 }
 
 export function extractChangeRecord(file) {
