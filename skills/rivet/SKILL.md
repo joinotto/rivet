@@ -330,6 +330,11 @@ Mutation normalization accepts Stryker JSON, PIT XML, and cargo-mutants lab
 outcome JSON. Rivet preserves tool-specific statuses and reports execution
 errors separately from surviving mutants.
 
+Do not use full line coverage as a substitute for boundary and invariant
+tests. A surviving non-equivalent mutant is direct evidence that the current
+suite accepts at least one changed behavior. Add the smallest meaningful test
+that distinguishes the required behavior, then rerun the same mutant.
+
 Preview repository-declared active contract checks:
 
 ```sh

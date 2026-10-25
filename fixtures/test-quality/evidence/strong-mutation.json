@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1",
+  "thresholds": {
+    "high": 80,
+    "low": 60,
+    "break": null
+  },
+  "files": {
+    "source.mjs": {
+      "language": "javascript",
+      "mutants": [
+        {
+          "id": "boundary-1",
+          "mutatorName": "EqualityOperator",
+          "replacement": "age > 18",
+          "status": "Killed",
+          "location": {
+            "start": {
+              "line": 2,
+              "column": 10
+            },
+            "end": {
+              "line": 2,
+              "column": 19
+            }
+          }
+        }
+      ]
+    }
+  }
+}

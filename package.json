@@ -6,6 +6,7 @@
   "scripts": {
     "test": "node test/rivet-evidence.test.mjs",
     "test:evaluation": "node skills/rivet/scripts/rivet-evidence.mjs evaluate --fixtures fixtures/reference-systems --findings fixtures/reference-systems/expected-findings.json",
+    "test:quality": "node fixtures/test-quality/run-evidence.mjs fixtures/test-quality/evidence",
     "evaluate:blind": "node scripts/run-blind-evaluation.mjs",
     "evaluate:campaign": "node scripts/build-evaluation-campaign.mjs",
     "test:host-native": "node scripts/run-host-conformance.mjs",

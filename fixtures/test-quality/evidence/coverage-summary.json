@@ -1,0 +1,14 @@
+{
+  "total": {
+    "lines": {
+      "total": 2,
+      "covered": 2,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "source": {
+    "tool": "node-test-coverage",
+    "command": "node --test --experimental-test-coverage weak.test.mjs"
+  }
+}

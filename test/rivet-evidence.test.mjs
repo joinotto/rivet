@@ -68,6 +68,36 @@ assert.doesNotMatch(
   nativeSignatureWorkflow,
   /uses:\s+[^@\n]+@(main|master|v\d+)\s*$/m,
 );
+const weakCoverageEvidence = JSON.parse(
+  fs.readFileSync(
+    path.join(
+      repository,
+      "fixtures/test-quality/evidence/coverage-summary.json",
+    ),
+    "utf8",
+  ),
+);
+const weakMutationEvidence = JSON.parse(
+  fs.readFileSync(
+    path.join(repository, "fixtures/test-quality/evidence/weak-mutation.json"),
+    "utf8",
+  ),
+);
+const strongMutationEvidence = JSON.parse(
+  fs.readFileSync(
+    path.join(repository, "fixtures/test-quality/evidence/strong-mutation.json"),
+    "utf8",
+  ),
+);
+assert.strictEqual(weakCoverageEvidence.total.lines.pct, 100);
+assert.strictEqual(
+  weakMutationEvidence.files["source.mjs"].mutants[0].status,
+  "Survived",
+);
+assert.strictEqual(
+  strongMutationEvidence.files["source.mjs"].mutants[0].status,
+  "Killed",
+);
 for (const provider of ["codex", "claude"]) {
   const nativeReview = JSON.parse(
     fs.readFileSync(

@@ -147,6 +147,8 @@ Implemented:
 - Isolated Codex and Claude Code review adapters with schema-validated finding ingestion.
 - Observed native end-to-end Codex and Claude Code reviews against a seeded
   authorization defect.
+- Executable test-quality fixture where 100 percent line coverage misses a
+  surviving boundary mutant and boundary tests kill it.
 
 Commands:
 
