@@ -16,28 +16,51 @@ function readJson(cwd, file) {
 }
 
 function nodeRunner(cwd) {
-  if (exists(cwd, "pnpm-lock.yaml")) return "pnpm";
-  if (exists(cwd, "yarn.lock")) return "yarn";
-  if (exists(cwd, "bun.lock") || exists(cwd, "bun.lockb")) return "bun";
+  let directory = cwd;
+  while (true) {
+    if (exists(directory, "pnpm-lock.yaml")) return "pnpm";
+    if (exists(directory, "yarn.lock")) return "yarn";
+    if (exists(directory, "bun.lock") || exists(directory, "bun.lockb")) return "bun";
+    const parent = path.dirname(directory);
+    if (parent === directory) break;
+    directory = parent;
+  }
   return "npm";
+}
+
+function packageFiles(root, directory = root, depth = 0, output = []) {
+  if (depth > 4) return output;
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    if ([".git", "node_modules", "vendor", "target", "dist", "build"].includes(entry.name)) {
+      continue;
+    }
+    const absolute = path.join(directory, entry.name);
+    if (entry.isFile() && entry.name === "package.json") output.push(absolute);
+    if (entry.isDirectory()) packageFiles(root, absolute, depth + 1, output);
+  }
+  return output;
 }
 
 export function discoverCheckAdapters(cwd) {
   const adapters = [];
-  const packageJson = readJson(cwd, "package.json");
-
-  if (packageJson) {
-    const runner = nodeRunner(cwd);
+  for (const packageFile of packageFiles(cwd)) {
+    const directory = path.dirname(packageFile);
+    const packageJson = readJson(directory, "package.json");
+    if (!packageJson) continue;
+    const relative = path.relative(cwd, directory) || ".";
+    const runner = nodeRunner(directory);
     const scripts = packageJson.scripts || {};
-    for (const id of ["test", "lint", "typecheck", "build"]) {
-      if (!scripts[id]) continue;
+    for (const baseId of ["test", "lint", "typecheck", "build"]) {
+      if (!scripts[baseId]) continue;
       adapters.push({
         schema: ADAPTER_SCHEMA,
-        id,
+        id: relative === "." ? baseId : `${baseId}:${relative}`,
+        base_id: baseId,
         ecosystem: "node",
         executable: runner,
-        args: runner === "npm" ? ["run", id] : [id],
-        source: `package.json#scripts.${id}`,
+        args: runner === "npm" ? ["run", baseId] : [baseId],
+        working_directory: relative,
+        source: `${relative === "." ? "package.json" : `${relative}/package.json`}#scripts.${baseId}`,
         kind: "repository-check",
       });
     }
@@ -47,6 +70,7 @@ export function discoverCheckAdapters(cwd) {
     adapters.push({
       schema: ADAPTER_SCHEMA,
       id: "test",
+      base_id: "test",
       ecosystem: "rust",
       executable: "cargo",
       args: ["test"],
@@ -56,6 +80,7 @@ export function discoverCheckAdapters(cwd) {
     adapters.push({
       schema: ADAPTER_SCHEMA,
       id: "check",
+      base_id: "check",
       ecosystem: "rust",
       executable: "cargo",
       args: ["check"],
@@ -68,6 +93,7 @@ export function discoverCheckAdapters(cwd) {
     adapters.push({
       schema: ADAPTER_SCHEMA,
       id: "test",
+      base_id: "test",
       ecosystem: "go",
       executable: "go",
       args: ["test", "./..."],
@@ -84,6 +110,7 @@ export function discoverCheckAdapters(cwd) {
     adapters.push({
       schema: ADAPTER_SCHEMA,
       id: "test",
+      base_id: "test",
       ecosystem: "python",
       executable: "python3",
       args: ["-m", "pytest"],

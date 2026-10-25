@@ -19,6 +19,7 @@ args:
 source: package.json#scripts.test
 kind: repository-check
 network: false
+working_directory: .
 ```
 
 ## Required fields
@@ -30,6 +31,7 @@ network: false
 - `args`: Argument array. Do not use shell parsing.
 - `source`: Repository evidence that enabled the adapter.
 - `kind`: Check class.
+- `working_directory`: Project-relative directory in which the command runs.
 
 ## Optional fields
 

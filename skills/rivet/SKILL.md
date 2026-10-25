@@ -133,6 +133,14 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" doctor
 
 `doctor` does not install tools or test credentials and remote access.
 
+Select repository checks for changed components and their dependents:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" test --json
+```
+
+Review the limitations and add tests for runtime or external dependencies that repository topology cannot observe.
+
 Write a machine-readable receipt only when useful:
 
 ```sh

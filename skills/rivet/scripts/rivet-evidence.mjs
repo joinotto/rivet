@@ -32,7 +32,7 @@ function value(flag) {
 
 function run(executable, args, options = {}) {
   return spawnSync(executable, args, {
-    cwd,
+    cwd: options.cwd || cwd,
     encoding: "utf8",
     timeout: options.timeout || 120000,
     maxBuffer: 8 * 1024 * 1024,
@@ -381,7 +381,9 @@ function runAdapters(adapters, workflow) {
   const results = [];
   for (const adapter of adapters) {
     const started = Date.now();
-    const result = run(adapter.executable, adapter.args);
+    const result = run(adapter.executable, adapter.args, {
+      cwd: path.resolve(cwd, adapter.working_directory || "."),
+    });
     const normalized =
       workflow === "dependencies"
         ? normalizeDependencyResult(adapter, result)
@@ -401,6 +403,7 @@ function runAdapters(adapters, workflow) {
       id: adapter.id,
       ecosystem: adapter.ecosystem,
       source: adapter.source,
+      working_directory: adapter.working_directory || ".",
       result: normalized.result,
       finding_count: normalized.finding_count,
       findings: normalized.findings,
@@ -883,6 +886,50 @@ function inspect() {
   }
 }
 
+function testSelection() {
+  const files = changedFiles();
+  const project = detectProject();
+  const impact = topologyImpact(discoverTopology(cwd), files);
+  const componentPaths = new Set(
+    discoverTopology(cwd).components
+      .filter((item) => impact.affected_components.includes(item.id))
+      .map((item) => item.path),
+  );
+  const selected = project.checks.filter((check) => {
+    if ((check.working_directory || ".") === ".") return true;
+    return componentPaths.has(check.working_directory);
+  });
+  const report = {
+    schema: 1,
+    workflow: "test-selection",
+    evidence_class: "derived",
+    files,
+    affected_components: impact.affected_components,
+    selected_checks: selected.map((check) => ({
+      id: check.id,
+      ecosystem: check.ecosystem,
+      working_directory: check.working_directory || ".",
+      source: check.source,
+    })),
+    risks: classifyRisk(files),
+    limitations: [
+      "Selection uses declared package dependencies and changed paths.",
+      "Runtime calls, dynamic imports, generated code, and external consumers can require additional tests.",
+      "A selected check is not evidence until it runs.",
+    ],
+  };
+  if (has("--json")) {
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    return;
+  }
+  console.log("Rivet test selection");
+  console.log(`Affected components: ${report.affected_components.join(", ") || "none observed"}`);
+  for (const check of report.selected_checks) {
+    console.log(`- ${check.id} (${check.working_directory})`);
+  }
+  for (const limitation of report.limitations) console.log(`- ${limitation}`);
+}
+
 function markdownSummary(receipt) {
   const lines = [
     "# Rivet verification",
@@ -945,11 +992,18 @@ function verify() {
     .filter(Boolean);
 
   const selected = requested.length
-    ? project.checks.filter((check) => requested.includes(check.id))
+    ? project.checks.filter(
+        (check) =>
+          requested.includes(check.id) ||
+          requested.includes(check.base_id),
+      )
     : project.checks;
 
   const unavailable = requested.filter(
-    (id) => !project.checks.some((check) => check.id === id),
+    (id) =>
+      !project.checks.some(
+        (check) => check.id === id || check.base_id === id,
+      ),
   );
 
   if (has("--dry-run")) {
@@ -969,11 +1023,13 @@ function verify() {
 
   for (const check of selected) {
     const started = Date.now();
-    const result = run(check.executable, check.args);
+    const workingDirectory = path.resolve(cwd, check.working_directory || ".");
+    const result = run(check.executable, check.args, { cwd: workingDirectory });
     results.push({
       adapter_schema: check.schema,
       id: check.id,
       ecosystem: check.ecosystem,
+      working_directory: check.working_directory || ".",
       command: [check.executable, ...check.args],
       tool_version: toolVersion(check.executable),
       command_digest: digest(
@@ -1098,10 +1154,12 @@ if (command === "init") {
   doctor();
 } else if (command === "verify") {
   verify();
+} else if (command === "test") {
+  testSelection();
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--json] | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

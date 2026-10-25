@@ -139,7 +139,10 @@ fs.mkdirSync(path.join(topology, "packages/core"), { recursive: true });
 fs.mkdirSync(path.join(topology, "apps/api"), { recursive: true });
 fs.writeFileSync(
   path.join(topology, "packages/core/package.json"),
-  JSON.stringify({ name: "@fixture/core" }),
+  JSON.stringify({
+    name: "@fixture/core",
+    scripts: { test: "node -e \"process.exit(0)\"" },
+  }),
 );
 fs.writeFileSync(
   path.join(topology, "apps/api/package.json"),
@@ -149,6 +152,7 @@ fs.writeFileSync(
       "@fixture/core": "workspace:*",
       "@aws-sdk/client-sqs": "1.0.0",
     },
+    scripts: { test: "node -e \"process.exit(0)\"" },
   }),
 );
 fs.mkdirSync(path.join(topology, "prisma"), { recursive: true });
@@ -176,6 +180,28 @@ assert.strictEqual(topologyChange.status, 0, topologyChange.stderr);
 assert.deepStrictEqual(
   JSON.parse(topologyChange.stdout).topology_impact.affected_components,
   ["@fixture/api", "@fixture/core"],
+);
+const selectedTests = invoke(topology, [
+  "test",
+  "--files",
+  "packages/core/src/value.js",
+  "--json",
+]);
+assert.strictEqual(selectedTests.status, 0, selectedTests.stderr);
+assert.deepStrictEqual(
+  JSON.parse(selectedTests.stdout).selected_checks.map((item) => item.id),
+  ["test:apps/api", "test:packages/core"],
+);
+const nestedVerification = invoke(topology, [
+  "verify",
+  "--checks",
+  "test:packages/core",
+  "--json",
+]);
+assert.strictEqual(nestedVerification.status, 0, nestedVerification.stderr);
+assert.strictEqual(
+  JSON.parse(nestedVerification.stdout).results[0].working_directory,
+  "packages/core",
 );
 
 const recordPath = path.join(fixture, "change.md");

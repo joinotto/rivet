@@ -35,6 +35,7 @@ Version `0.1.0` contains:
 - Read-only context, configuration, and tool-readiness diagnosis.
 - Tool versions and configuration digests in verification receipts.
 - Markdown human summaries and GitHub Actions annotations.
+- Monorepo package-local check execution and dependency-aware test selection.
 
 Run the tests:
 

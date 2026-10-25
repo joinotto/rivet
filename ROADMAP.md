@@ -117,6 +117,23 @@ Exit criteria:
 
 Duration: 8 weeks
 
+Status: In progress.
+
+Implemented:
+
+- Package-local check discovery with preserved working directories.
+- Reverse-dependency-based test selection.
+
+Not implemented:
+
+- Coverage adapter.
+- Mutation testing adapter.
+- Property testing adapter.
+- API contract testing adapter.
+- Behavior and invariant extraction.
+- Independent review mode.
+- Flake detection.
+
 Commands:
 
 - `test`
