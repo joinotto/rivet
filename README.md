@@ -111,6 +111,15 @@ Preview dependency-audit adapters:
 node skills/rivet/scripts/rivet-evidence.mjs dependencies --dry-run
 ```
 
+Preview active API contract checks:
+
+```sh
+node skills/rivet/scripts/rivet-evidence.mjs contract --dry-run
+```
+
+Execution requires `--target` and `--allow-network`. A non-local target also
+requires `--allow-nonlocal-target`.
+
 Generate host packages:
 
 ```sh

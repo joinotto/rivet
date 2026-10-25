@@ -245,7 +245,8 @@ fs.writeFileSync(
       "test:coverage": "jest --coverage",
       "test:mutation": "stryker run",
       "test:property": "vitest run property",
-      "test:contract": "schemathesis run",
+      "test:contract":
+        "node -e \"process.exit(process.env.RIVET_AUTHORIZED_TARGET === 'http://127.0.0.1:3000/' ? 0 : 1)\"",
       "security:scan": "node -e \"process.exit(0)\"",
     },
   }),
@@ -259,6 +260,38 @@ assert.deepStrictEqual(
 assert.strictEqual(
   JSON.parse(intelligenceInspection.stdout).project.security_checks[0].kind,
   "sast-check",
+);
+
+const contractDryRun = invoke(intelligence, ["contract", "--dry-run"]);
+assert.strictEqual(contractDryRun.status, 0, contractDryRun.stderr);
+assert.match(contractDryRun.stdout, /test:contract/);
+const contractWithoutAuthorization = invoke(intelligence, [
+  "contract",
+  "--target",
+  "http://127.0.0.1:3000",
+]);
+assert.strictEqual(contractWithoutAuthorization.status, 1);
+assert.match(contractWithoutAuthorization.stderr, /explicit --allow-network/);
+const nonlocalContract = invoke(intelligence, [
+  "contract",
+  "--target",
+  "https://api.example.test",
+  "--allow-network",
+]);
+assert.strictEqual(nonlocalContract.status, 1);
+assert.match(nonlocalContract.stderr, /explicit --allow-nonlocal-target/);
+const contractRun = invoke(intelligence, [
+  "contract",
+  "--target",
+  "http://127.0.0.1:3000",
+  "--allow-network",
+]);
+assert.strictEqual(contractRun.status, 0, contractRun.stderr);
+const contractRunReport = JSON.parse(contractRun.stdout);
+assert.strictEqual(contractRunReport.decision, "pass");
+assert.strictEqual(
+  contractRunReport.authorized_target,
+  "http://127.0.0.1:3000/",
 );
 
 const securityDryRun = invoke(intelligence, [
@@ -332,8 +365,8 @@ fs.writeFileSync(
   '<testsuite tests="3" failures="1" errors="0" skipped="0"></testsuite>',
 );
 const contractEvidence = invoke(intelligence, [
-  "test",
-  "--contract-report",
+  "contract",
+  "--report",
   "contract.xml",
 ]);
 assert.strictEqual(contractEvidence.status, 2, contractEvidence.stderr);

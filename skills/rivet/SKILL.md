@@ -169,11 +169,29 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" test \
   --coverage-report coverage/coverage-summary.json
 node "<skill-dir>/scripts/rivet-evidence.mjs" test \
   --mutation-report reports/mutation.json
-node "<skill-dir>/scripts/rivet-evidence.mjs" test \
-  --contract-report reports/contract.xml
+node "<skill-dir>/scripts/rivet-evidence.mjs" contract \
+  --report reports/contract.xml
 ```
 
 Rivet can also read a JUnit property-test report with `--property-report`. A coverage percentage is execution evidence, not proof that tests detect defects.
+
+Preview repository-declared active contract checks:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" contract --dry-run
+```
+
+Run them only against an authorized target:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" contract \
+  --target http://127.0.0.1:3000 \
+  --allow-network
+```
+
+Rivet passes the normalized target to the declared check as
+`RIVET_AUTHORIZED_TARGET`. A non-local target also requires
+`--allow-nonlocal-target`. Do not put credentials in the target URL.
 
 Compare repeated JUnit runs for observed pass/fail changes:
 

@@ -73,6 +73,7 @@ function value(flag) {
 function run(executable, args, options = {}) {
   return spawnSync(executable, args, {
     cwd: options.cwd || cwd,
+    env: options.env ? { ...process.env, ...options.env } : process.env,
     encoding: "utf8",
     timeout: options.timeout || 120000,
     maxBuffer: 8 * 1024 * 1024,
@@ -415,7 +416,7 @@ function secretScan() {
   if (findings.length) process.exitCode = 2;
 }
 
-function runAdapters(adapters, workflow) {
+function runAdapters(adapters, workflow, options = {}) {
   if (has("--dry-run")) {
     console.log(`${workflow} adapters:`);
     if (!adapters.length) console.log("- none");
@@ -432,6 +433,7 @@ function runAdapters(adapters, workflow) {
     const started = Date.now();
     const result = run(adapter.executable, adapter.args, {
       cwd: path.resolve(cwd, adapter.working_directory || "."),
+      env: options.env,
     });
     const normalized =
       workflow === "dependencies"
@@ -468,6 +470,7 @@ function runAdapters(adapters, workflow) {
     schema: 1,
     workflow,
     evidence_class: "observed",
+    ...(options.target ? { authorized_target: options.target } : {}),
     results,
     decision:
       !results.length
@@ -503,6 +506,61 @@ function runAdapters(adapters, workflow) {
 
 function dependencyAudit() {
   runAdapters(discoverDependencyAdapters(cwd), "dependencies");
+}
+
+function contractEvidence() {
+  try {
+    const reportPath = value("--report");
+    if (reportPath) {
+      const artifact = evidenceArtifact("--report");
+      const report = normalizeJunit(artifact, "contract");
+      report.artifact = path.relative(cwd, artifact);
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+      if (report.decision === "fail") process.exitCode = 2;
+      if (report.decision === "insufficient-evidence") process.exitCode = 1;
+      return;
+    }
+
+    const adapters = discoverCheckAdapters(cwd).filter(
+      (adapter) => adapter.kind === "contract-check",
+    );
+    if (has("--dry-run")) {
+      runAdapters(adapters, "contract");
+      return;
+    }
+    const target = value("--target");
+    if (!target) {
+      throw new Error("Contract execution requires --target <http-or-https-url>.");
+    }
+    let parsed;
+    try {
+      parsed = new URL(target);
+    } catch {
+      throw new Error("The contract target must be a valid HTTP or HTTPS URL.");
+    }
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      throw new Error("The contract target must use HTTP or HTTPS.");
+    }
+    if (parsed.username || parsed.password) {
+      throw new Error("Do not put credentials in the contract target URL.");
+    }
+    if (!has("--allow-network")) {
+      throw new Error("Contract execution requires explicit --allow-network.");
+    }
+    const localHosts = new Set(["localhost", "127.0.0.1", "::1"]);
+    if (!localHosts.has(parsed.hostname) && !has("--allow-nonlocal-target")) {
+      throw new Error(
+        "A non-local contract target requires explicit --allow-nonlocal-target.",
+      );
+    }
+    runAdapters(adapters, "contract", {
+      target: parsed.toString(),
+      env: { RIVET_AUTHORIZED_TARGET: parsed.toString() },
+    });
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
 }
 
 function findExecutable(executable) {
@@ -1829,6 +1887,8 @@ if (command === "init") {
   verify();
 } else if (command === "test") {
   testSelection();
+} else if (command === "contract") {
+  contractEvidence();
 } else if (command === "review") {
   prepareReview();
 } else if (command === "security") {
@@ -1860,7 +1920,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
+    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
   );
   process.exitCode = 1;
 }

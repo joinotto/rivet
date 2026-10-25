@@ -133,12 +133,12 @@ Implemented:
 - JUnit property and contract result normalization.
 - Repeated-JUnit flake and test-presence analysis.
 - Redacted, requirements-first independent-review packets.
+- Authorization-gated active API contract execution for repository-declared checks.
 
 Not implemented:
 
 - Cross-ecosystem coverage formats.
 - Cross-tool mutation formats.
-- Authorized active API contract execution.
 - Native independent reviewer execution and finding ingestion.
 
 Commands:
