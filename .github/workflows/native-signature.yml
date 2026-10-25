@@ -31,11 +31,17 @@ jobs:
         run: |
           mkdir -p .rivet/ci
           cosign generate-key-pair --output-key-prefix .rivet/ci/cosign
+          cosign signing-config create \
+            --no-default-fulcio \
+            --no-default-oidc \
+            --no-default-rekor \
+            --no-default-tsa \
+            --out .rivet/ci/offline-signing-config.json
           cosign sign-blob \
             --yes \
             --key .rivet/ci/cosign.key \
             --bundle .rivet/ci/bom.bundle.json \
-            --tlog-upload=false \
+            --signing-config .rivet/ci/offline-signing-config.json \
             fixtures/native-signature/bom.json
 
       - name: Verify signed SBOM through Rivet
