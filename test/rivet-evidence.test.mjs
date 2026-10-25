@@ -478,6 +478,53 @@ assert.strictEqual(
 );
 assert.strictEqual(enrichedReport.vulnerabilities[1].epss, null);
 assert.match(enrichedReport.limitations[1], /not severity/);
+
+const waiverInit = invoke(intelligence, [
+  "waiver",
+  "init",
+  "--finding",
+  "CVE-2021-44228",
+  "--created-at",
+  "2026-10-25",
+  "--output",
+  "waiver.json",
+]);
+assert.strictEqual(waiverInit.status, 0, waiverInit.stderr);
+const waiverFile = path.join(intelligence, "waiver.json");
+const waiver = JSON.parse(fs.readFileSync(waiverFile, "utf8"));
+Object.assign(waiver, {
+  technical_reason: "The supported upgrade requires a compatibility release.",
+  business_reason: "The service must complete an active migration window.",
+  compensating_control: "Disable the affected feature and block untrusted input.",
+  owner: "security-owner",
+  approval: "SEC-123",
+  expires_at: "2026-11-15",
+  review_trigger: "Upgrade release or new exploitation evidence.",
+  evidence: ["control-test-1"],
+});
+fs.writeFileSync(waiverFile, JSON.stringify(waiver));
+const validWaiver = invoke(intelligence, [
+  "waiver",
+  "validate",
+  "--file",
+  "waiver.json",
+  "--as-of",
+  "2026-10-25",
+]);
+assert.strictEqual(validWaiver.status, 0, validWaiver.stderr);
+assert.strictEqual(JSON.parse(validWaiver.stdout).decision, "valid");
+const expiredWaiver = invoke(intelligence, [
+  "waiver",
+  "validate",
+  "--file",
+  "waiver.json",
+  "--as-of",
+  "2026-12-01",
+]);
+assert.strictEqual(expiredWaiver.status, 2, expiredWaiver.stderr);
+assert.ok(
+  JSON.parse(expiredWaiver.stdout).faults.includes("the waiver is expired"),
+);
 const nestedVerification = invoke(topology, [
   "verify",
   "--checks",

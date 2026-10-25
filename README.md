@@ -42,6 +42,7 @@ Version `0.1.0` contains:
 - Requirements-first, redacted independent-review packet generation.
 - SARIF, Trivy, CycloneDX, and SPDX security evidence normalization.
 - Reproducible CISA KEV and FIRST EPSS snapshot enrichment.
+- Expiring security waiver templates and structural validation.
 
 Run the tests:
 

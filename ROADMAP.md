@@ -181,13 +181,13 @@ Implemented:
 - Explicit SBOM source-revision binding.
 - Dated CISA KEV and FIRST EPSS snapshot enrichment.
 - Explicit unknown priority factors for reachability and business context.
+- Expiring, owned, evidence-linked waiver templates and validation.
 
 Not implemented:
 
 - Active SAST adapter execution.
 - Full SBOM schema and signature validation.
 - Reachability evidence.
-- Waiver workflow.
 - Signed evidence artifacts.
 
 Commands:

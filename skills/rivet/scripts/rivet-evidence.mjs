@@ -29,6 +29,7 @@ import {
   normalizeSbom,
   normalizeTrivy,
 } from "./lib/security-evidence.mjs";
+import { validateWaiver, waiverTemplate } from "./lib/waiver.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -1154,6 +1155,44 @@ function sbomEvidence() {
   }
 }
 
+function waiverWorkflow() {
+  const action = argv[1];
+  try {
+    if (action === "init") {
+      const output = value("--output");
+      if (!output) throw new Error("Waiver initialization requires --output <file>.");
+      const createdAt = value("--created-at") || new Date().toISOString().slice(0, 10);
+      const absolute = outputPath(output);
+      if (fs.existsSync(absolute) && !has("--force")) {
+        throw new Error(`Refusing to overwrite existing file: ${output}`);
+      }
+      fs.mkdirSync(path.dirname(absolute), { recursive: true });
+      fs.writeFileSync(
+        absolute,
+        `${JSON.stringify(waiverTemplate(value("--finding"), createdAt), null, 2)}\n`,
+        { mode: 0o600 },
+      );
+      console.log(`Waiver template: ${output}`);
+      console.log("Status: incomplete");
+      return;
+    }
+    if (action === "validate") {
+      const artifact = evidenceArtifact("--file");
+      if (!artifact) throw new Error("Waiver validation requires --file <file>.");
+      const asOf = value("--as-of") || new Date().toISOString().slice(0, 10);
+      const report = validateWaiver(artifact, asOf);
+      report.artifact = path.relative(cwd, artifact);
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+      if (report.decision !== "valid") process.exitCode = 2;
+      return;
+    }
+    throw new Error("Use waiver init or waiver validate.");
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}
+
 function markdownSummary(receipt) {
   const lines = [
     "# Rivet verification",
@@ -1386,10 +1425,12 @@ if (command === "init") {
   securityEvidence();
 } else if (command === "sbom") {
   sbomEvidence();
+} else if (command === "waiver") {
+  waiverWorkflow();
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date) | sbom --file file --revision value | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date) | sbom --file file --revision value | waiver (init | validate) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

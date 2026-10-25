@@ -207,6 +207,18 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" security \
 
 Treat EPSS as exploitation probability, not severity. Keep reachability, exposure, asset criticality, mitigations, fix availability, and fix risk unknown until evidence supplies them.
 
+Create and validate an expiring risk waiver:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" waiver init \
+  --finding finding-or-control-id \
+  --output .rivet/waivers/finding.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" waiver validate \
+  --file .rivet/waivers/finding.json
+```
+
+A valid structure does not prove that an approval or compensating control is adequate. Organizational policy can reject a valid waiver.
+
 Write a machine-readable receipt only when useful:
 
 ```sh
