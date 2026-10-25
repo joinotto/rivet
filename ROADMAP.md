@@ -129,6 +129,7 @@ Implemented:
 - Coverage-summary normalization.
 - Mutation-report normalization with surviving-mutant evidence.
 - JUnit property and contract result normalization.
+- Repeated-JUnit flake and test-presence analysis.
 
 Not implemented:
 
@@ -136,7 +137,6 @@ Not implemented:
 - Cross-tool mutation formats.
 - Authorized active API contract execution.
 - Independent review mode.
-- Flake detection.
 
 Commands:
 

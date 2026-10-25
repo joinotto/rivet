@@ -164,6 +164,15 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" test \
 
 Rivet can also read a JUnit property-test report with `--property-report`. A coverage percentage is execution evidence, not proof that tests detect defects.
 
+Compare repeated JUnit runs for observed pass/fail changes:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" test \
+  --flake-reports reports/run-1.xml,reports/run-2.xml
+```
+
+Preserve test seed, order, environment, and retry evidence when available. A finite passing sample does not prove determinism.
+
 Write a machine-readable receipt only when useful:
 
 ```sh

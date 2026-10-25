@@ -98,3 +98,65 @@ export function normalizeJunit(file, kind) {
     ],
   };
 }
+
+function testCases(xml) {
+  const cases = [];
+  const pattern = /<testcase\b([^>]*?)(?:\/>|>([\s\S]*?)<\/testcase>)/g;
+  for (const match of xml.matchAll(pattern)) {
+    const attributes = match[1];
+    const body = match[2] || "";
+    const name = attributes.match(/\bname=["']([^"']+)["']/)?.[1];
+    const className = attributes.match(/\bclassname=["']([^"']+)["']/)?.[1];
+    if (!name) continue;
+    const status = /<(failure|error)\b/.test(body)
+      ? "fail"
+      : /<skipped\b/.test(body)
+        ? "skip"
+        : "pass";
+    cases.push({
+      id: className ? `${className}::${name}` : name,
+      status,
+    });
+  }
+  return cases;
+}
+
+export function detectFlakes(files) {
+  const history = new Map();
+  files.forEach((file, run) => {
+    const xml = fs.readFileSync(file, "utf8");
+    if (!/<testsuites?\b/.test(xml)) throw new Error(`${file} is not JUnit XML.`);
+    for (const item of testCases(xml)) {
+      if (!history.has(item.id)) history.set(item.id, []);
+      history.get(item.id).push({ run: run + 1, status: item.status });
+    }
+  });
+  const flaky = [];
+  const inconsistentPresence = [];
+  for (const [id, observations] of history) {
+    const statuses = new Set(observations.map((item) => item.status));
+    if (statuses.has("pass") && statuses.has("fail")) {
+      flaky.push({ id, observations });
+    }
+    if (observations.length !== files.length) {
+      inconsistentPresence.push({
+        id,
+        observed_runs: observations.map((item) => item.run),
+      });
+    }
+  }
+  return {
+    schema: 1,
+    kind: "flake-detection",
+    evidence_class: "derived",
+    runs: files.length,
+    flaky,
+    inconsistent_presence: inconsistentPresence,
+    decision: flaky.length ? "flakes-observed" : files.length > 1 ? "no-flakes-observed" : "insufficient-evidence",
+    limitations: [
+      "A finite set of passing runs cannot prove that a test is deterministic.",
+      "Environment, order, seed, timing, and retry metadata must be preserved to diagnose a flake.",
+      "A missing test can indicate selection drift and is reported separately.",
+    ],
+  };
+}

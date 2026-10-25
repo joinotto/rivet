@@ -38,6 +38,7 @@ Version `0.1.0` contains:
 - Monorepo package-local check execution and dependency-aware test selection.
 - TRACE requirement extraction and risk-based test-family planning.
 - Coverage, mutation, property, and contract-test artifact normalization.
+- Flake and inconsistent test-selection detection from repeated JUnit runs.
 
 Run the tests:
 

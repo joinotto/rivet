@@ -308,6 +308,31 @@ const contractEvidence = invoke(intelligence, [
 ]);
 assert.strictEqual(contractEvidence.status, 2, contractEvidence.stderr);
 assert.strictEqual(JSON.parse(contractEvidence.stdout).decision, "fail");
+
+fs.writeFileSync(
+  path.join(intelligence, "run-1.xml"),
+  '<testsuite tests="2"><testcase classname="orders" name="creates one order"></testcase><testcase classname="orders" name="lists orders"></testcase></testsuite>',
+);
+fs.writeFileSync(
+  path.join(intelligence, "run-2.xml"),
+  '<testsuite tests="2" failures="1"><testcase classname="orders" name="creates one order"><failure/></testcase><testcase classname="orders" name="lists orders"></testcase></testsuite>',
+);
+fs.writeFileSync(
+  path.join(intelligence, "run-3.xml"),
+  '<testsuite tests="1"><testcase classname="orders" name="creates one order"></testcase></testsuite>',
+);
+const flakeEvidence = invoke(intelligence, [
+  "test",
+  "--flake-reports",
+  "run-1.xml,run-2.xml,run-3.xml",
+]);
+assert.strictEqual(flakeEvidence.status, 2, flakeEvidence.stderr);
+const flakeReport = JSON.parse(flakeEvidence.stdout);
+assert.strictEqual(flakeReport.flaky[0].id, "orders::creates one order");
+assert.strictEqual(
+  flakeReport.inconsistent_presence[0].id,
+  "orders::lists orders",
+);
 const nestedVerification = invoke(topology, [
   "verify",
   "--checks",

@@ -29,6 +29,7 @@ This file records notable changes to Rivet.
 - Monorepo check discovery and reverse-dependency-based test selection.
 - TRACE requirement extraction and risk-based test-family planning.
 - Test-intelligence script discovery and artifact normalization.
+- Repeated-JUnit flake and test-presence analysis.
 
 ### Changed
 
