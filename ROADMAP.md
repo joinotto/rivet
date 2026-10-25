@@ -149,6 +149,8 @@ Implemented:
   authorization defect.
 - Executable test-quality fixture where 100 percent line coverage misses a
   surviving boundary mutant and boundary tests kill it.
+- Deterministically generated expected-behavior checks detect all eight seeded
+  defects across eleven failure cases.
 
 Commands:
 

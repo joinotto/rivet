@@ -98,6 +98,22 @@ assert.strictEqual(
   strongMutationEvidence.files["source.mjs"].mutants[0].status,
   "Killed",
 );
+const generatedTestEvidence = JSON.parse(
+  fs.readFileSync(
+    path.join(
+      repository,
+      "fixtures/reference-systems/generated-test-evidence.json",
+    ),
+    "utf8",
+  ),
+);
+assert.strictEqual(
+  generatedTestEvidence.decision,
+  "all-seeded-defects-detected",
+);
+assert.strictEqual(generatedTestEvidence.seed_count, 8);
+assert.strictEqual(generatedTestEvidence.case_count, 11);
+assert.strictEqual(generatedTestEvidence.missed.length, 0);
 for (const provider of ["codex", "claude"]) {
   const nativeReview = JSON.parse(
     fs.readFileSync(

@@ -335,6 +335,11 @@ tests. A surviving non-equivalent mutant is direct evidence that the current
 suite accepts at least one changed behavior. Add the smallest meaningful test
 that distinguishes the required behavior, then rerun the same mutant.
 
+Generate tests from explicit requirements and invariants, not from the current
+implementation. A generated test has value only when its expected behavior is
+independent of the code under test. Keep the generation input and test digest
+so another reviewer can reproduce the result.
+
 Preview repository-declared active contract checks:
 
 ```sh

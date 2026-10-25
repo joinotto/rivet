@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "kind": "generated-test-seed-evidence",
+  "evidence_class": "observed",
+  "generated_from": "published seed contracts",
+  "case_count": 11,
+  "seed_count": 8,
+  "results": [
+    {
+      "seed_id": "broken-object-authorization",
+      "fixture": "broken-authorization",
+      "name": "cross-tenant invoice access fails closed",
+      "generated_test_digest": "409950353879868c31ca7f0e7f52e98e43616dff9f4585bed947f181b6466f93",
+      "exit_code": 1,
+      "detected_seeded_defect": true,
+      "output_digest": "45d37ccf11ba199d168a3c4b219ebaa77bdc543a96a2d46a761d298007ba0d98"
+    },
+    {
+      "seed_id": "cross-tenant-data-access",
+      "fixture": "cross-tenant-data",
+      "name": "document listing preserves tenant isolation",
+      "generated_test_digest": "95c44356af5a7c13b82fca30e4e5981f4373351fc5c911934f9a4ce1aab423c6",
+      "exit_code": 1,
+      "detected_seeded_defect": true,
+      "output_digest": "61fd0cd1f09620e77228c3981208725dc85bb1566a22ad7d38bb272a083701ef"
+    },
+    {
+      "seed_id": "duplicate-payment-side-effect",
+      "fixture": "duplicate-side-effect",
+      "name": "duplicate delivery creates one charge",
+      "generated_test_digest": "deb775cc0a11bddf497fece18272740db1891a0999065c7ae29d6cac01867c6b",
+      "exit_code": 1,
+      "detected_seeded_defect": true,
+      "output_digest": "ce8edb4eccd18d9a060f6d9b881fea90a766e387ca3e33df09de57ed894df198"
+    },
+    {
+      "seed_id": "multiplicative-retries",
+      "fixture": "retry-amplification",
+      "name": "one call uses one bounded retry budget",
+      "generated_test_digest": "c1bac8d7db047d94f90bf8f55c4d0314c66e7062e0573ce3c5f94f17f77412f7",
+      "exit_code": 1,
+      "detected_seeded_defect": true,
+      "output_digest": "7dd7c8b48a120491a66e0c47fdeb65ae221d025d4ce21bac9a6b65f34c8ce68b"
+    },
+    {
+      "seed_id": "high-cardinality-metric-label",
+      "fixture": "high-cardinality-telemetry",
+      "name": "metric attributes exclude user identifiers",
+      "generated_test_digest": "bb28ce058c6d1db97a2d6603b3ea78858a29f5c67d002ae7cb3d589e327faf70",
+      "exit_code": 1,
+      "detected_seeded_defect": true,
+      "output_digest": "14854d6f88e1d46c27d7b329919e08d6ebcdf44f4fd30293431821ee65ec02f7"
+    },
+    {
+      "seed_id": "unsafe-contract-migration",
+      "fixture": "unsafe-migration",
+      "name": "compatibility window keeps the old column",
+      "generated_test_digest": "51ba63dd0b5c0f0cc7a1cb4f76de4ceac679b6427b430cdea542f097b8df7e4b",
+      "exit_code": 1,
+      "detected_seeded_defect": true,
+      "output_digest": "62a4b8d65c738a05b4325ea2b7d5f904509c9131c2c952775f74aa339a6aa391"
+    },
+    {
+      "seed_id": "CVE-2021-44228",
+      "fixture": "kev-dependency",
+      "name": "known-exploited dependency is not pinned",
+      "generated_test_digest": "d8407aa635e5f811ddb858e4a1a86195ef643a2c48e9ba80eedd1c59fd02c4d1",
+      "exit_code": 1,
+      "detected_seeded_defect": true,
+      "output_digest": "72768d91fbe40772ebd00310b8aa9e1f3b80c487197c76af3e60423d906225a5"
+    },
+    {
+      "seed_id": "distributed-failure-recovery-gaps",
+      "fixture": "distributed-failure-recovery",
+      "name": "duplicate order delivery has one durable effect",
+      "generated_test_digest": "600e14d1b7e085275367e43ac60da9d9208c430435a1c79106c1b6767a6593b2",
+      "exit_code": 1,
+      "detected_seeded_defect": true,
+      "output_digest": "6f456b36925ddf060f91dcaf721ef9b0fc0b6daaf23fe27fd87969eac5bf4613"
+    },
+    {
+      "seed_id": "distributed-failure-recovery-gaps",
+      "fixture": "distributed-failure-recovery",
+      "name": "delayed event cannot replace newer state",
+      "generated_test_digest": "d322741c2705377950ead13f895fda339181cd6d951b2c2f07f22828f47c06ef",
+      "exit_code": 1,
+      "detected_seeded_defect": true,
+      "output_digest": "d6412e589b2e3e5fac626ff221f00c6fbb4ab95227385608613449c5fdd4e01d"
+    },
+    {
+      "seed_id": "distributed-failure-recovery-gaps",
+      "fixture": "distributed-failure-recovery",
+      "name": "partial completion resumes without repeating reservation",
+      "generated_test_digest": "1d071e5ac314a2f06f8a3ce55e5e8761869ace7e0e22a2776f47b6734b2c9758",
+      "exit_code": 1,
+      "detected_seeded_defect": true,
+      "output_digest": "c9e5918cc4a9ab5669e4ccbd658042cd1cc34919cae5920a707ece4af45e807b"
+    },
+    {
+      "seed_id": "distributed-failure-recovery-gaps",
+      "fixture": "distributed-failure-recovery",
+      "name": "lost response recovers the completed outcome",
+      "generated_test_digest": "d2dc936b9e7001182edbfd6c71a3cc274380723633367518d85da788816eaec8",
+      "exit_code": 1,
+      "detected_seeded_defect": true,
+      "output_digest": "461d780e3b7032dc955c9ab54aafec1b15f15ba5ce57b1e869271b55a69bd4c0"
+    }
+  ],
+  "missed": [],
+  "decision": "all-seeded-defects-detected",
+  "limitations": [
+    "The generator contains fixture-class adapters and is not a general test generator.",
+    "A failing expected-behavior check detects a contract violation but does not identify the complete fix.",
+    "Published seed contracts can make this fixture easier than an unknown production defect."
+  ]
+}

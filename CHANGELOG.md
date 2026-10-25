@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Deterministic expected-behavior test generation that detects all eight
+  published seeds across eleven reference failure cases.
 - Executable test-quality evidence where complete line coverage misses a
   boundary mutant and focused boundary tests kill it.
 - Native workspace-write boundary probes, including a passing Codex result and

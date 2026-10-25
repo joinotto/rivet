@@ -12,6 +12,17 @@ npm run test:fixtures
 
 The checks confirm that each named defect is present. They are evaluation baselines, not successful product tests.
 
+Generate expected-behavior checks from the published seed contracts and run
+them against the defective systems:
+
+```sh
+npm run test:generated
+```
+
+This command creates tests in a temporary directory. All generated checks must
+fail against the seeded implementations. The evidence records test and output
+digests without persisting generated source files.
+
 Score the published expected findings:
 
 ```sh
