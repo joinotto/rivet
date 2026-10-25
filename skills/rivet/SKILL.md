@@ -250,6 +250,15 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" attest plan \
 
 Keyless signing requires explicit `attest sign --allow-network`. Verification requires the expected certificate identity and issuer. The plan does not sign the artifact.
 
+Analyze a declared timeout, retry, and idempotency call graph:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" resilience \
+  --file .rivet/resilience.json
+```
+
+Record hidden client, proxy, queue, and platform retries when known. Treat `idempotent: true` as an assertion until tests or runtime evidence verify it.
+
 Write a machine-readable receipt only when useful:
 
 ```sh

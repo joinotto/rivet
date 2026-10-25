@@ -661,6 +661,52 @@ const unconstrainedVerify = invoke(intelligence, [
 ]);
 assert.strictEqual(unconstrainedVerify.status, 1);
 assert.match(unconstrainedVerify.stderr, /requires --identity and --issuer/);
+
+fs.writeFileSync(
+  path.join(intelligence, "resilience.json"),
+  JSON.stringify({
+    calls: [
+      {
+        id: "api-to-service",
+        from: "api",
+        to: "service",
+        timeout_ms: 1000,
+        retries: 2,
+        jitter: true,
+        idempotent: true,
+      },
+      {
+        id: "service-to-provider",
+        from: "service",
+        to: "provider",
+        timeout_ms: 1500,
+        retries: 2,
+        jitter: false,
+        idempotent: false,
+      },
+    ],
+  }),
+);
+const resilienceEvidence = invoke(intelligence, [
+  "resilience",
+  "--file",
+  "resilience.json",
+]);
+assert.strictEqual(resilienceEvidence.status, 2, resilienceEvidence.stderr);
+const resilienceReport = JSON.parse(resilienceEvidence.stdout);
+assert.ok(
+  resilienceReport.findings.some(
+    (item) => item.id === "retry-amplification" && item.worst_case_attempts === 9,
+  ),
+);
+assert.ok(
+  resilienceReport.findings.some(
+    (item) => item.id === "timeout-budget-inversion",
+  ),
+);
+assert.ok(
+  resilienceReport.findings.some((item) => item.id === "unsafe-retry"),
+);
 const nestedVerification = invoke(topology, [
   "verify",
   "--checks",

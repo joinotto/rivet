@@ -38,6 +38,7 @@ This file records notable changes to Rivet.
 - Revision-bound vulnerability reachability evidence.
 - Sigstore/Cosign keyless evidence-signing adapter.
 - Gated execution of repository-declared SAST commands.
+- Timeout, retry amplification, idempotency, and deadline-budget analysis.
 
 ### Changed
 

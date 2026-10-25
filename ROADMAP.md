@@ -227,6 +227,22 @@ Exit criteria:
 
 Duration: 10 weeks
 
+Status: In progress.
+
+Implemented:
+
+- Declared timeout and retry call graph analysis.
+- Adjacent-layer retry amplification detection.
+- Timeout budget inversion detection.
+- Retry and idempotency consistency review.
+
+Not implemented:
+
+- Expand-and-contract planner.
+- Migration dry-run evidence.
+- Runtime retry discovery.
+- OpenTelemetry semantic review.
+
 Commands:
 
 - `migrate`
