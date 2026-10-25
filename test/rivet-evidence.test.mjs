@@ -587,6 +587,51 @@ assert.strictEqual(
   JSON.parse(invalidReachability.stdout).vulnerabilities[0].reachability,
   "unknown",
 );
+
+const attestPlan = invoke(intelligence, [
+  "attest",
+  "plan",
+  "--artifact",
+  "findings.json",
+  "--bundle",
+  "findings.sigstore.json",
+  "--identity",
+  "release@example.com",
+  "--issuer",
+  "https://issuer.example.test",
+]);
+assert.strictEqual(attestPlan.status, 0, attestPlan.stderr);
+const signingPlan = JSON.parse(attestPlan.stdout);
+assert.strictEqual(signingPlan.sign.executable, "cosign");
+assert.deepStrictEqual(signingPlan.sign.args.slice(0, 3), [
+  "sign-blob",
+  "--yes",
+  "--bundle",
+]);
+assert.ok(signingPlan.verify.args.includes("release@example.com"));
+assert.match(signingPlan.limitations[0], /not a signature/);
+
+const unauthorizedSign = invoke(intelligence, [
+  "attest",
+  "sign",
+  "--artifact",
+  "findings.json",
+  "--bundle",
+  "findings.sigstore.json",
+]);
+assert.strictEqual(unauthorizedSign.status, 1);
+assert.match(unauthorizedSign.stderr, /explicit --allow-network/);
+
+const unconstrainedVerify = invoke(intelligence, [
+  "attest",
+  "verify",
+  "--artifact",
+  "findings.json",
+  "--bundle",
+  "findings.sigstore.json",
+]);
+assert.strictEqual(unconstrainedVerify.status, 1);
+assert.match(unconstrainedVerify.stderr, /requires --identity and --issuer/);
 const nestedVerification = invoke(topology, [
   "verify",
   "--checks",

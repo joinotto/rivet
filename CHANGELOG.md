@@ -36,6 +36,7 @@ This file records notable changes to Rivet.
 - Dated CISA KEV and FIRST EPSS vulnerability enrichment.
 - Expiring, owned security waiver templates and validation.
 - Revision-bound vulnerability reachability evidence.
+- Sigstore/Cosign keyless evidence-signing adapter.
 
 ### Changed
 

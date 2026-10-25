@@ -183,12 +183,13 @@ Implemented:
 - Explicit unknown priority factors for reachability and business context.
 - Expiring, owned, evidence-linked waiver templates and validation.
 - Revision-bound reachability records with fail-safe unknown handling.
+- Sigstore/Cosign keyless signing and identity-constrained verification adapter.
 
 Not implemented:
 
 - Active SAST adapter execution.
 - Full SBOM schema and signature validation.
-- Signed evidence artifacts.
+- Native signed-artifact fixture because Cosign is unavailable in the current environment.
 
 Commands:
 

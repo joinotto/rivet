@@ -31,6 +31,7 @@ import {
   normalizeTrivy,
 } from "./lib/security-evidence.mjs";
 import { validateWaiver, waiverTemplate } from "./lib/waiver.mjs";
+import { cosignPlan, cosignResult } from "./lib/attest.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -1209,6 +1210,69 @@ function waiverWorkflow() {
   }
 }
 
+function attestWorkflow() {
+  const action = argv[1] || "plan";
+  try {
+    const artifact = evidenceArtifact("--artifact");
+    const bundleValue = value("--bundle");
+    if (!artifact || !bundleValue) {
+      throw new Error("Attestation requires --artifact <file> and --bundle <file>.");
+    }
+    const bundle = path.resolve(cwd, bundleValue);
+    if (!bundle.startsWith(`${cwd}${path.sep}`)) {
+      throw new Error("The attestation bundle must be inside the project.");
+    }
+    const plan = cosignPlan({
+      artifact: path.relative(cwd, artifact),
+      bundle: path.relative(cwd, bundle),
+      identity: value("--identity"),
+      issuer: value("--issuer"),
+    });
+    plan.cosign_available = Boolean(findExecutable("cosign"));
+    if (action === "plan") {
+      process.stdout.write(`${JSON.stringify(plan, null, 2)}\n`);
+      return;
+    }
+    if (action === "sign" && !has("--allow-network")) {
+      throw new Error("Keyless signing requires explicit --allow-network.");
+    }
+    if (action === "verify" && (!value("--identity") || !value("--issuer"))) {
+      throw new Error("Verification requires --identity and --issuer.");
+    }
+    if (!["sign", "verify"].includes(action)) {
+      throw new Error("Use attest plan, attest sign, or attest verify.");
+    }
+    const adapter = action === "sign" ? plan.sign : plan.verify;
+    const args = adapter.args.map((item) => {
+      if (item === plan.artifact) return artifact;
+      if (item === plan.bundle) return bundle;
+      return item;
+    });
+    const result = run(adapter.executable, args);
+    const normalized = cosignResult(action, result);
+    const report = {
+      schema: 1,
+      workflow: `attest-${action}`,
+      evidence_class: "observed",
+      artifact: plan.artifact,
+      bundle: plan.bundle,
+      identity: value("--identity") || null,
+      issuer: value("--issuer") || null,
+      command_digest: digest(JSON.stringify([adapter.executable, ...args])),
+      ...normalized,
+      output: redact(combinedOutput(result)).slice(-12000),
+      limitations: plan.limitations,
+    };
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    if (!["signed", "verified"].includes(report.result)) {
+      process.exitCode = report.result === "fail" ? 2 : 1;
+    }
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}
+
 function markdownSummary(receipt) {
   const lines = [
     "# Rivet verification",
@@ -1443,10 +1507,12 @@ if (command === "init") {
   sbomEvidence();
 } else if (command === "waiver") {
   waiverWorkflow();
+} else if (command === "attest") {
+  attestWorkflow();
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

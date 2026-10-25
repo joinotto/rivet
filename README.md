@@ -44,6 +44,7 @@ Version `0.1.0` contains:
 - Reproducible CISA KEV and FIRST EPSS snapshot enrichment.
 - Expiring security waiver templates and structural validation.
 - Revision-bound vulnerability reachability evidence.
+- Sigstore/Cosign evidence-signing and identity-constrained verification plans.
 
 Run the tests:
 

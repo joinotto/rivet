@@ -229,6 +229,18 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" security \
 
 A `not-reachable` record requires a named method and evidence artifacts. Rivet downgrades unsupported claims to `unknown`. Unknown reachability must not suppress a vulnerability.
 
+Plan Sigstore/Cosign signing and identity-constrained verification:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" attest plan \
+  --artifact .rivet/evidence.json \
+  --bundle .rivet/evidence.sigstore.json \
+  --identity expected-identity \
+  --issuer expected-oidc-issuer
+```
+
+Keyless signing requires explicit `attest sign --allow-network`. Verification requires the expected certificate identity and issuer. The plan does not sign the artifact.
+
 Write a machine-readable receipt only when useful:
 
 ```sh
