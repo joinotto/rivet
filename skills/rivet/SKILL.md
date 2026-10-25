@@ -338,6 +338,18 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" resilience \
 
 Record hidden client, proxy, queue, and platform retries when known. Treat `idempotent: true` as an assertion until tests or runtime evidence verify it.
 
+Analyze captured OTLP JSON spans for runtime retry signals:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" resilience \
+  --trace reports/trace.json
+```
+
+Rivet reports `http.request.resend_count` as an explicit resend signal. It
+reports repeated sibling client spans as possible retries, redirects, fan-out,
+or duplicates. Nested repetition is a retry-amplification review finding.
+Sampling and missing spans can hide attempts.
+
 Validate an expand–migrate–validate–contract plan or a recorded dry run:
 
 ```sh

@@ -243,10 +243,7 @@ Implemented:
 - Interruption and resume evidence validation.
 - OpenTelemetry service identity, deployment attribute, metric cardinality, and sensitive-data review.
 - Alert harm, urgency, ownership, and first-action validation.
-
-Not implemented:
-
-- Runtime retry discovery.
+- OTLP runtime HTTP resend and repeated client-operation discovery with nested repetition analysis.
 
 Commands:
 

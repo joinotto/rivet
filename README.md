@@ -50,6 +50,7 @@ Version `0.1.0` contains:
 - Explicitly authorized execution of repository-declared SAST commands.
 - A pinned GitHub CodeQL fixture that produces and normalizes native SARIF.
 - Timeout, retry-amplification, idempotency, and deadline-budget analysis.
+- OTLP runtime resend, repeated-client-operation, and nested-retry analysis.
 - Expand-and-contract migration plan and dry-run evidence validation.
 - OpenTelemetry semantic, cardinality, sensitive-data, and alert review.
 - Workload-bound performance baseline and candidate comparison.

@@ -982,6 +982,90 @@ assert.ok(
 );
 
 fs.writeFileSync(
+  path.join(intelligence, "runtime-trace.json"),
+  JSON.stringify({
+    resourceSpans: [
+      {
+        scopeSpans: [
+          {
+            spans: [
+              {
+                traceId: "trace-1",
+                spanId: "root",
+                name: "POST /checkout",
+                kind: "SPAN_KIND_SERVER",
+              },
+              {
+                traceId: "trace-1",
+                spanId: "payment-1",
+                parentSpanId: "root",
+                name: "Charge",
+                kind: "SPAN_KIND_CLIENT",
+                attributes: [
+                  { key: "rpc.system.name", value: { stringValue: "grpc" } },
+                  { key: "rpc.method", value: { stringValue: "Charge" } },
+                  { key: "error.type", value: { stringValue: "UNAVAILABLE" } },
+                ],
+              },
+              {
+                traceId: "trace-1",
+                spanId: "payment-2",
+                parentSpanId: "root",
+                name: "Charge",
+                kind: "SPAN_KIND_CLIENT",
+                attributes: [
+                  { key: "rpc.system.name", value: { stringValue: "grpc" } },
+                  { key: "rpc.method", value: { stringValue: "Charge" } },
+                ],
+              },
+              {
+                traceId: "trace-1",
+                spanId: "ledger-1",
+                parentSpanId: "payment-1",
+                name: "POST",
+                kind: 3,
+                attributes: [
+                  { key: "http.request.method", value: { stringValue: "POST" } },
+                  { key: "server.address", value: { stringValue: "ledger" } },
+                  { key: "http.request.resend_count", value: { intValue: "1" } },
+                ],
+              },
+              {
+                traceId: "trace-1",
+                spanId: "ledger-2",
+                parentSpanId: "payment-1",
+                name: "POST",
+                kind: 3,
+                attributes: [
+                  { key: "http.request.method", value: { stringValue: "POST" } },
+                  { key: "server.address", value: { stringValue: "ledger" } },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  }),
+);
+const runtimeRetryEvidence = invoke(intelligence, [
+  "resilience",
+  "--trace",
+  "runtime-trace.json",
+]);
+assert.strictEqual(runtimeRetryEvidence.status, 2, runtimeRetryEvidence.stderr);
+const runtimeRetryReport = JSON.parse(runtimeRetryEvidence.stdout);
+assert.strictEqual(runtimeRetryReport.trace_format, "otlp-json");
+assert.strictEqual(runtimeRetryReport.explicit_http_resends[0].request_attempts, 2);
+assert.strictEqual(runtimeRetryReport.repeated_client_groups.length, 2);
+assert.strictEqual(runtimeRetryReport.nested_repetition.length, 1);
+assert.ok(
+  runtimeRetryReport.findings.some(
+    (item) => item.id === "runtime-retry-amplification",
+  ),
+);
+
+fs.writeFileSync(
   path.join(intelligence, "migration-plan.json"),
   JSON.stringify({
     engine: "postgresql",
