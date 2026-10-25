@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rivet"
+  short_description: "Design and verify safe backend changes"
+  default_prompt: "Use $rivet to plan, implement, and verify this backend change."

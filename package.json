@@ -1,0 +1,15 @@
+{
+  "name": "rivet",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node test/rivet-evidence.test.mjs",
+    "validate:skill": "python3 /Users/apple/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/rivet"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "license": "Apache-2.0"
+}
+
