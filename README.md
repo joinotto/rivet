@@ -43,6 +43,7 @@ Version `0.1.0` contains:
 - Flake and inconsistent test-selection detection from repeated JUnit runs.
 - Requirements-first, redacted independent-review packet generation.
 - SARIF, Trivy, CycloneDX, and SPDX security evidence normalization.
+- Official CycloneDX and SPDX schema validation with embedded or Sigstore signature verification.
 - Reproducible CISA KEV and FIRST EPSS snapshot enrichment.
 - Expiring security waiver templates and structural validation.
 - Revision-bound vulnerability reachability evidence.

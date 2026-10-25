@@ -724,6 +724,95 @@ assert.strictEqual(sbomReport.format, "CycloneDX");
 assert.strictEqual(sbomReport.component_count, 1);
 assert.strictEqual(sbomReport.subject_revision, "fixture-revision");
 
+const unavailableSbomValidator = invoke(intelligence, [
+  "sbom",
+  "--file",
+  "bom.json",
+  "--revision",
+  "fixture-revision",
+  "--validate-schema",
+]);
+assert.strictEqual(unavailableSbomValidator.status, 1);
+assert.strictEqual(
+  JSON.parse(unavailableSbomValidator.stdout).schema_validation.result,
+  "unavailable",
+);
+
+const mockSbomBin = path.join(intelligence, "mock-sbom-bin");
+fs.mkdirSync(mockSbomBin);
+fs.writeFileSync(
+  path.join(mockSbomBin, "cyclonedx"),
+  `#!/usr/bin/env node
+if (process.argv.includes("--version")) {
+  process.stdout.write("0.33.1\\n");
+} else {
+  process.stdout.write("Valid BOM or signature\\n");
+}
+`,
+  { mode: 0o755 },
+);
+fs.writeFileSync(
+  path.join(mockSbomBin, "pyspdxtools"),
+  `#!/usr/bin/env node
+if (process.argv.includes("--version")) {
+  process.stdout.write("0.8.3\\n");
+} else {
+  process.stdout.write("This SPDX document is valid.\\n");
+}
+`,
+  { mode: 0o755 },
+);
+fs.writeFileSync(path.join(intelligence, "public.pem"), "fixture public key");
+const verifiedCycloneDx = invoke(
+  intelligence,
+  [
+    "sbom",
+    "--file",
+    "bom.json",
+    "--revision",
+    "fixture-revision",
+    "--validate-schema",
+    "--signature",
+    "embedded",
+    "--key-file",
+    "public.pem",
+  ],
+  { env: { PATH: `${mockSbomBin}${path.delimiter}${process.env.PATH}` } },
+);
+assert.strictEqual(verifiedCycloneDx.status, 0, verifiedCycloneDx.stderr);
+const verifiedCycloneDxReport = JSON.parse(verifiedCycloneDx.stdout);
+assert.strictEqual(verifiedCycloneDxReport.decision, "verified");
+assert.strictEqual(verifiedCycloneDxReport.schema_validation.result, "valid");
+assert.strictEqual(verifiedCycloneDxReport.signature_validation.result, "valid");
+
+fs.writeFileSync(
+  path.join(intelligence, "bom.spdx.json"),
+  JSON.stringify({
+    spdxVersion: "SPDX-2.3",
+    SPDXID: "SPDXRef-DOCUMENT",
+    name: "fixture",
+    dataLicense: "CC0-1.0",
+    packages: [{ SPDXID: "SPDXRef-Package", name: "fixture" }],
+  }),
+);
+const validatedSpdx = invoke(
+  intelligence,
+  [
+    "sbom",
+    "--file",
+    "bom.spdx.json",
+    "--revision",
+    "fixture-revision",
+    "--validate-schema",
+  ],
+  { env: { PATH: `${mockSbomBin}${path.delimiter}${process.env.PATH}` } },
+);
+assert.strictEqual(validatedSpdx.status, 0, validatedSpdx.stderr);
+assert.strictEqual(
+  JSON.parse(validatedSpdx.stdout).schema_validation.tool,
+  "pyspdxtools",
+);
+
 fs.writeFileSync(
   path.join(intelligence, "findings.json"),
   JSON.stringify({

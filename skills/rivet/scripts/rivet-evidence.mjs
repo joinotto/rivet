@@ -1497,8 +1497,137 @@ function sbomEvidence() {
     }
     const report = normalizeSbom(artifact, revision);
     report.artifact = path.relative(cwd, artifact);
+    if (has("--validate-schema")) {
+      let validator;
+      let args;
+      if (report.format === "CycloneDX") {
+        validator = findExecutable("cyclonedx") || findExecutable("cyclonedx-cli");
+        const version = String(report.format_version || "").replace(".", "_");
+        args = [
+          "validate",
+          "--input-file",
+          artifact,
+          "--input-version",
+          `v${version}`,
+          "--fail-on-errors",
+        ];
+      } else if (["SPDX-2.2", "SPDX-2.3"].includes(report.format_version)) {
+        validator = findExecutable("pyspdxtools");
+        args = ["-i", artifact];
+      } else {
+        report.schema_validation = {
+          result: "unsupported",
+          tool: null,
+          output: "",
+          reason: `No configured full validator supports ${report.format_version || "this version"}.`,
+        };
+      }
+      if (args) {
+        if (!validator) {
+          report.schema_validation = {
+            result: "unavailable",
+            tool: report.format === "CycloneDX" ? "cyclonedx" : "pyspdxtools",
+            output: "",
+            reason: "The required official validator is not installed.",
+          };
+        } else {
+          const result = run(validator, args);
+          report.schema_validation = {
+            result: result.status === 0 ? "valid" : "invalid",
+            tool: path.basename(validator),
+            tool_version: toolVersion(validator),
+            command_digest: digest(JSON.stringify([validator, ...args])),
+            exit_code: Number.isInteger(result.status) ? result.status : null,
+            output: redact(combinedOutput(result)).slice(-12000),
+            reason: result.status === 0 ? null : "The official validator rejected the SBOM.",
+          };
+        }
+      }
+    }
+    const signatureMode = value("--signature");
+    if (signatureMode) {
+      let executable;
+      let args;
+      if (signatureMode === "embedded") {
+        if (report.format !== "CycloneDX") {
+          throw new Error("Embedded signature verification is supported only for CycloneDX.");
+        }
+        const key = evidenceArtifact("--key-file");
+        if (!key) {
+          throw new Error("Embedded signature verification requires --key-file <file>.");
+        }
+        executable = findExecutable("cyclonedx") || findExecutable("cyclonedx-cli");
+        args = ["verify", "all", artifact, "--key-file", key];
+      } else if (signatureMode === "sigstore") {
+        const bundle = evidenceArtifact("--bundle");
+        const identity = value("--identity");
+        const issuer = value("--issuer");
+        if (!bundle || !identity || !issuer) {
+          throw new Error(
+            "Sigstore SBOM verification requires --bundle, --identity, and --issuer.",
+          );
+        }
+        executable = findExecutable("cosign");
+        args = [
+          "verify-blob",
+          "--bundle",
+          bundle,
+          "--certificate-identity",
+          identity,
+          "--certificate-oidc-issuer",
+          issuer,
+          artifact,
+        ];
+      } else {
+        throw new Error("Use --signature embedded or --signature sigstore.");
+      }
+      if (!executable) {
+        report.signature_validation = {
+          result: "unavailable",
+          tool: signatureMode === "embedded" ? "cyclonedx" : "cosign",
+          mode: signatureMode,
+          output: "",
+          reason: "The required signature verifier is not installed.",
+        };
+      } else {
+        const result = run(executable, args);
+        report.signature_validation = {
+          result: result.status === 0 ? "valid" : "invalid",
+          tool: path.basename(executable),
+          tool_version: toolVersion(executable),
+          mode: signatureMode,
+          command_digest: digest(JSON.stringify([executable, ...args])),
+          exit_code: Number.isInteger(result.status) ? result.status : null,
+          output: redact(combinedOutput(result)).slice(-12000),
+          reason: result.status === 0 ? null : "The signature verifier rejected the SBOM.",
+        };
+      }
+    }
+    const requestedChecks = [
+      has("--validate-schema") ? report.schema_validation : null,
+      signatureMode ? report.signature_validation : null,
+    ].filter(Boolean);
+    if (requestedChecks.some((item) => ["invalid"].includes(item.result))) {
+      report.decision = "fail";
+    } else if (
+      requestedChecks.some((item) =>
+        ["unavailable", "unsupported"].includes(item.result),
+      )
+    ) {
+      report.decision = "insufficient-evidence";
+    } else if (
+      requestedChecks.length &&
+      requestedChecks.every((item) => item.result === "valid")
+    ) {
+      report.decision = "verified";
+    }
+    report.limitations.push(
+      "Structural parsing is not full schema validation unless schema_validation.result is valid.",
+      "A valid signature proves artifact integrity and signer identity under the verifier policy. It does not prove SBOM completeness.",
+    );
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
     if (report.decision === "insufficient-evidence") process.exitCode = 1;
+    if (report.decision === "fail") process.exitCode = 2;
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
@@ -2242,7 +2371,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
+    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value [--validate-schema] [--signature embedded|sigstore] | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
   );
   process.exitCode = 1;
 }

@@ -269,10 +269,30 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" security --sarif reports/sast.sari
 node "<skill-dir>/scripts/rivet-evidence.mjs" security --trivy reports/trivy.json
 node "<skill-dir>/scripts/rivet-evidence.mjs" sbom \
   --file reports/bom.json \
-  --revision source-revision
+  --revision source-revision \
+  --validate-schema
 ```
 
 Preserve source identifiers such as CWE only when the tool supplies them. Do not present a clean artifact as proof that the system is secure.
+
+Rivet uses the official CycloneDX CLI for CycloneDX schema validation and
+embedded RSA signature verification. It uses SPDX tools-python for SPDX 2.2
+and 2.3 validation:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" sbom \
+  --file reports/bom.json \
+  --revision source-revision \
+  --validate-schema \
+  --signature embedded \
+  --key-file keys/public.pem
+```
+
+Use `--signature sigstore --bundle bundle.json --identity value --issuer value`
+for identity-constrained Sigstore verification of CycloneDX or SPDX artifacts.
+An unavailable validator or verifier produces insufficient evidence. A valid
+schema does not prove completeness. A valid signature does not prove content
+quality.
 
 Preview and run a repository-declared SAST command:
 

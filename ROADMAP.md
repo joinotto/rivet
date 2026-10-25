@@ -189,10 +189,10 @@ Implemented:
 - Repository-declared SAST command discovery and gated execution.
 - Structured threat-model initialization and validation with control evidence.
 - Pinned GitHub CodeQL fixture with native SARIF production and expected-rule verification.
+- Tool-backed CycloneDX and SPDX schema validation with embedded RSA or identity-constrained Sigstore verification.
 
 Not implemented:
 
-- Full SBOM schema and signature validation.
 - Native signed-artifact fixture because Cosign is unavailable in the current environment.
 
 Commands:
