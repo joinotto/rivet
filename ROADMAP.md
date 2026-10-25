@@ -24,6 +24,8 @@ Deliver:
 - Reference test repositories.
 - TRACE reasoning protocol.
 - Database design and migration specification.
+- Host integration contract.
+- One canonical portable skill source.
 
 Exit criteria:
 
@@ -31,6 +33,7 @@ Exit criteria:
 - The runner cannot execute an undeclared command.
 - Every tool result records tool failure separately from no findings.
 - The project can receive private vulnerability reports.
+- Host wrappers do not fork Rivet engineering guidance.
 
 ## Phase 1: Safe change verification
 
@@ -47,15 +50,21 @@ Implemented:
 - Changed-file risk classification.
 - TRACE change-record generation.
 - ASD-STE100-aligned skill checker.
+- Context-file generation with user review.
+- Content-aware risk classification.
+- Secret pattern scanning.
+- Dependency advisory adapter discovery.
+- Four-ecosystem verification fixtures.
+- Stable tool adapter interface.
+- Host integration contract.
+- Host package generator.
 
 Not implemented:
 
-- Context-file generation.
-- Content and topology-aware risk classification.
-- Secret scanning.
-- Dependency advisory scanning.
-- Four-ecosystem verification fixtures.
-- Stable adapter interface.
+- Topology-aware risk classification.
+- Dependency advisory fixture execution.
+- Database migration and plan adapter.
+- Cross-host conformance fixtures.
 
 Commands:
 
@@ -85,6 +94,7 @@ Deliver:
 - Evidence receipt.
 - Human summary.
 - CI output.
+- Repository-local packages for Codex, Claude Code, and Cursor.
 
 Exit criteria:
 
@@ -93,6 +103,7 @@ Exit criteria:
 - A failed tool cannot produce a pass.
 - Results are reproducible from the receipt.
 - Index recommendations identify the target query and measured baseline.
+- Codex, Claude Code, and Cursor pass the common conformance suite.
 
 ## Phase 2: Test intelligence
 

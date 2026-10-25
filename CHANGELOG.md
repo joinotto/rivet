@@ -12,11 +12,19 @@ This file records notable changes to Rivet.
 - Changed-file risk classification.
 - TRACE change-record generation.
 - Tests for local, service, and critical workflow results.
+- Context-file initialization.
+- Content-aware risk classification.
+- Secret-pattern scanning and output redaction.
+- Dependency-audit discovery.
+- Stable tool-adapter and host-integration contracts.
+- Four-ecosystem discovery fixtures.
+- Host package generator for Codex, Claude Code, Cursor, and portable hosts.
 
 ### Changed
 
 - Made the ASD-STE100-aligned profile optional and risk-based.
 - Limited STE routing to consequential procedures and formal evidence.
+- Defined Rivet as host-independent and model-provider-independent.
 
 ## 0.1.0 — 2026-10-25
 

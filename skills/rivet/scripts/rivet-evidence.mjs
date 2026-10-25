@@ -4,10 +4,16 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import { spawnSync } from "child_process";
+import {
+  discoverCheckAdapters,
+  discoverDependencyAdapters,
+} from "./lib/adapters.mjs";
+import { fingerprint, redact } from "./lib/redact.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
 const cwd = process.cwd();
+const canonicalCwd = fs.realpathSync(cwd);
 
 function has(flag) {
   return argv.includes(flag);
@@ -63,75 +69,7 @@ function gitInfo() {
   };
 }
 
-function addCheck(checks, candidate) {
-  const duplicate = checks.some(
-    (check) =>
-      check.id === candidate.id &&
-      check.ecosystem === candidate.ecosystem,
-  );
-  if (!duplicate) checks.push(candidate);
-}
-
 function detectProject() {
-  const packageJson = readJson(path.join(cwd, "package.json"));
-  const checks = [];
-
-  if (packageJson) {
-    const scripts = packageJson.scripts || {};
-    for (const name of ["test", "lint", "typecheck", "build"]) {
-      if (scripts[name]) {
-        addCheck(checks, {
-          id: name,
-          ecosystem: "node",
-          executable: "npm",
-          args: ["run", name],
-          source: `package.json#scripts.${name}`,
-        });
-      }
-    }
-  }
-
-  if (exists("Cargo.toml")) {
-    addCheck(checks, {
-      id: "test",
-      ecosystem: "rust",
-      executable: "cargo",
-      args: ["test"],
-      source: "Cargo.toml",
-    });
-    addCheck(checks, {
-      id: "check",
-      ecosystem: "rust",
-      executable: "cargo",
-      args: ["check"],
-      source: "Cargo.toml",
-    });
-  }
-
-  if (exists("go.mod")) {
-    addCheck(checks, {
-      id: "test",
-      ecosystem: "go",
-      executable: "go",
-      args: ["test", "./..."],
-      source: "go.mod",
-    });
-  }
-
-  const python =
-    exists("pyproject.toml") ||
-    exists("requirements.txt") ||
-    exists("setup.py");
-  if (python) {
-    addCheck(checks, {
-      id: "test",
-      ecosystem: "python",
-      executable: "python3",
-      args: ["-m", "pytest"],
-      source: "Python project files",
-    });
-  }
-
   return {
     manifests: [
       "package.json",
@@ -154,12 +92,299 @@ function detectProject() {
       "DATA.md",
       "OPERATIONS.md",
     ].filter(exists),
-    checks,
+    checks: discoverCheckAdapters(cwd),
+    dependency_checks: discoverDependencyAdapters(cwd),
   };
 }
 
 function digest(input) {
   return crypto.createHash("sha256").update(input).digest("hex");
+}
+
+function outputPath(relative) {
+  const absolute = path.resolve(cwd, relative);
+  const parent = path.dirname(absolute);
+  const canonical = fs.existsSync(parent)
+    ? path.join(fs.realpathSync(parent), path.basename(absolute))
+    : absolute;
+  if (
+    canonical !== canonicalCwd &&
+    !canonical.startsWith(`${canonicalCwd}${path.sep}`)
+  ) {
+    throw new Error(`Output must be inside the project: ${relative}`);
+  }
+  return absolute;
+}
+
+function writeNewFile(relative, body) {
+  const absolute = outputPath(relative);
+  if (fs.existsSync(absolute) && !has("--force")) {
+    return { file: relative, result: "preserved" };
+  }
+  fs.mkdirSync(path.dirname(absolute), { recursive: true });
+  fs.writeFileSync(absolute, body, { mode: 0o600 });
+  return { file: relative, result: "written" };
+}
+
+function initProject() {
+  const project = detectProject();
+  const config = {
+    schema: 1,
+    riskPaths: [
+      {
+        path: "auth",
+        mode: "critical",
+        reason: "Authentication and authorization are critical.",
+      },
+      {
+        path: "migration",
+        mode: "critical",
+        reason: "Database migrations can cause irreversible data changes.",
+      },
+    ],
+  };
+  const system = `# System
+
+## Purpose
+
+- Add the system purpose.
+
+## Runtime
+
+Detected manifests:
+${project.manifests.length ? project.manifests.map((item) => `- \`${item}\``).join("\n") : "- No manifest was detected."}
+
+## Boundaries
+
+- Add services, modules, jobs, clients, and external systems.
+
+## Data
+
+- Add stores, owners, classifications, and integrity rules.
+
+## Critical paths
+
+- Add paths that need service, distributed, or critical review.
+
+## Operations
+
+- Add deployment, rollback, backup, recovery, and ownership.
+
+## Unknowns
+
+- Confirm all generated observations and add missing system facts.
+`;
+
+  const results = [
+    writeNewFile(".rivet/config.json", `${JSON.stringify(config, null, 2)}\n`),
+    writeNewFile("SYSTEM.md", system),
+  ];
+
+  console.log("Rivet initialization:");
+  for (const result of results) {
+    console.log(`- ${result.file}: ${result.result}`);
+  }
+  console.log("Review generated files. Rivet did not infer unknown architecture.");
+}
+
+function mapProject() {
+  const project = detectProject();
+  const map = {
+    schema: 1,
+    evidence_class: "observed",
+    directory: cwd,
+    manifests: project.manifests,
+    context: project.context,
+    checks: project.checks.map((item) => ({
+      id: item.id,
+      ecosystem: item.ecosystem,
+      source: item.source,
+    })),
+    dependency_checks: project.dependency_checks.map((item) => ({
+      id: item.id,
+      ecosystem: item.ecosystem,
+      source: item.source,
+    })),
+    unknowns: [
+      "Runtime topology was not observed.",
+      "Data ownership and trust boundaries require project context.",
+      "Production deployment and recovery behavior were not observed.",
+    ],
+  };
+  if (has("--json")) {
+    process.stdout.write(`${JSON.stringify(map, null, 2)}\n`);
+    return;
+  }
+  console.log("Rivet system map");
+  console.log(`Manifests: ${map.manifests.join(", ") || "none"}`);
+  console.log(`Context: ${map.context.join(", ") || "none"}`);
+  console.log(
+    `Checks: ${map.checks.map((item) => `${item.ecosystem}:${item.id}`).join(", ") || "none"}`,
+  );
+  console.log(
+    `Dependency checks: ${map.dependency_checks.map((item) => item.id).join(", ") || "none"}`,
+  );
+  console.log("Unknowns:");
+  for (const item of map.unknowns) console.log(`- ${item}`);
+}
+
+function walkFiles(root, output = []) {
+  if (!fs.existsSync(root)) return output;
+  const stat = fs.statSync(root);
+  if (stat.isFile()) {
+    output.push(root);
+    return output;
+  }
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    if (
+      [".git", "node_modules", "vendor", "target", "dist", "build"].includes(
+        entry.name,
+      )
+    ) {
+      continue;
+    }
+    walkFiles(path.join(root, entry.name), output);
+  }
+  return output;
+}
+
+function secretScan() {
+  const explicit = (value("--files") || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => path.resolve(cwd, item));
+  const files = explicit.length ? explicit : walkFiles(cwd);
+  const patterns = [
+    {
+      id: "private-key",
+      pattern: /-----BEGIN [A-Z ]*PRIVATE KEY-----/g,
+    },
+    {
+      id: "aws-access-key",
+      pattern: /\b(AKIA|ASIA)[A-Z0-9]{16}\b/g,
+    },
+    {
+      id: "assigned-secret",
+      pattern:
+        /\b(api[_-]?key|token|password|secret)\s*[:=]\s*["']([^"'\s]{12,})["']/gi,
+    },
+  ];
+  const findings = [];
+
+  for (const file of files) {
+    if (!file.startsWith(`${cwd}${path.sep}`) || !fs.existsSync(file)) continue;
+    const stat = fs.statSync(file);
+    if (!stat.isFile() || stat.size > 1024 * 1024) continue;
+    let body;
+    try {
+      body = fs.readFileSync(file, "utf8");
+    } catch {
+      continue;
+    }
+    const lines = body.split("\n");
+    lines.forEach((line, index) => {
+      for (const rule of patterns) {
+        rule.pattern.lastIndex = 0;
+        const match = rule.pattern.exec(line);
+        if (!match) continue;
+        findings.push({
+          id: rule.id,
+          file: path.relative(cwd, file),
+          line: index + 1,
+          fingerprint: fingerprint(match[0]),
+          value: "[REDACTED]",
+        });
+      }
+    });
+  }
+
+  const report = {
+    schema: 1,
+    evidence_class: "observed",
+    files_checked: files.length,
+    findings,
+    decision: findings.length ? "fail" : "pass",
+    limitations: [
+      "Pattern scanning cannot identify all secret formats.",
+      "A finding requires confirmation and credential rotation when exposed.",
+    ],
+  };
+  if (has("--json")) {
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+  } else {
+    console.log(`Secret scan: ${report.decision}`);
+    for (const item of findings) {
+      console.log(
+        `- ${item.file}:${item.line} ${item.id} ${item.fingerprint} ${item.value}`,
+      );
+    }
+    for (const item of report.limitations) console.log(`- ${item}`);
+  }
+  if (findings.length) process.exitCode = 2;
+}
+
+function runAdapters(adapters, workflow) {
+  if (has("--dry-run")) {
+    console.log(`${workflow} adapters:`);
+    if (!adapters.length) console.log("- none");
+    for (const adapter of adapters) {
+      console.log(
+        `- ${adapter.id}: ${adapter.executable} ${adapter.args.join(" ")}${adapter.network ? " [network]" : ""}`,
+      );
+    }
+    return;
+  }
+
+  const results = [];
+  for (const adapter of adapters) {
+    const started = Date.now();
+    const result = run(adapter.executable, adapter.args);
+    results.push({
+      id: adapter.id,
+      ecosystem: adapter.ecosystem,
+      source: adapter.source,
+      result:
+        result.error && result.error.code === "ENOENT"
+          ? "unavailable"
+          : result.status === 0
+            ? "pass"
+            : "findings-or-failure",
+      exit_code: Number.isInteger(result.status) ? result.status : null,
+      duration_ms: Date.now() - started,
+      output: redact(combinedOutput(result)).slice(-12000),
+      error: result.error ? redact(result.error.message) : null,
+    });
+  }
+
+  const report = {
+    schema: 1,
+    workflow,
+    evidence_class: "observed",
+    results,
+    decision:
+      !results.length
+        ? "insufficient-evidence"
+        : results.some((item) => item.result === "unavailable")
+          ? "incomplete"
+          : results.some((item) => item.result !== "pass")
+            ? "review-findings"
+            : "pass",
+    limitations: [
+      "Dependency tools report known data from their configured sources.",
+      "A clean result does not identify a new malicious package or prove runtime reachability.",
+    ],
+  };
+  process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+  if (report.decision === "incomplete" || report.decision === "insufficient-evidence") {
+    process.exitCode = 1;
+  } else if (report.decision === "review-findings") {
+    process.exitCode = 2;
+  }
+}
+
+function dependencyAudit() {
+  runAdapters(discoverDependencyAdapters(cwd), "dependencies");
 }
 
 function changedFiles() {
@@ -177,6 +402,73 @@ function changedFiles() {
     .map((line) => line.slice(3).trim())
     .filter(Boolean)
     .map((file) => file.includes(" -> ") ? file.split(" -> ").pop() : file);
+}
+
+function configRiskSignals(files) {
+  const config =
+    readJson(path.join(cwd, ".rivet", "config.json")) || {};
+  const configured = Array.isArray(config.riskPaths) ? config.riskPaths : [];
+  const signals = [];
+
+  for (const rule of configured) {
+    if (!rule || !rule.path || !rule.mode) continue;
+    for (const file of files) {
+      if (file.includes(rule.path)) {
+        signals.push({
+          file,
+          mode: rule.mode,
+          source: "project-config",
+          reason: rule.reason || `The path matches configured risk path '${rule.path}'.`,
+        });
+      }
+    }
+  }
+  return signals;
+}
+
+function contentRiskSignals(files) {
+  const patterns = [
+    {
+      mode: "critical",
+      pattern:
+        /\b(authori[sz]e|permission|password|secret|encrypt|decrypt|payment|delete\s+from|drop\s+table|alter\s+table)\b/i,
+      reason: "Changed content can affect authorization, secrets, payments, encryption, or destructive data operations.",
+    },
+    {
+      mode: "distributed",
+      pattern:
+        /\b(retry|backoff|jitter|idempoten|message\s+queue|event\s+bus|kafka|outbox|saga)\b/i,
+      reason: "Changed content can affect distributed delivery, retry, or duplicate-work behavior.",
+    },
+    {
+      mode: "service",
+      pattern:
+        /\b(route|endpoint|openapi|graphql|transaction|foreign\s+key|create\s+index|select\s+.+\s+from)\b/i,
+      reason: "Changed content can affect a service contract or persistent data.",
+    },
+  ];
+  const signals = [];
+
+  for (const file of files) {
+    const absolute = path.resolve(cwd, file);
+    if (!absolute.startsWith(`${cwd}${path.sep}`) || !fs.existsSync(absolute)) {
+      continue;
+    }
+    const stat = fs.statSync(absolute);
+    if (!stat.isFile() || stat.size > 1024 * 1024) continue;
+    const body = fs.readFileSync(absolute, "utf8");
+    for (const rule of patterns) {
+      if (rule.pattern.test(body)) {
+        signals.push({
+          file,
+          mode: rule.mode,
+          source: "content-heuristic",
+          reason: rule.reason,
+        });
+      }
+    }
+  }
+  return signals;
 }
 
 function classifyRisk(files) {
@@ -208,10 +500,20 @@ function classifyRisk(files) {
   for (const file of files) {
     for (const rule of rules) {
       if (rule.pattern.test(file)) {
-        signals.push({ file, mode: rule.mode, reason: rule.reason });
+        signals.push({
+          file,
+          mode: rule.mode,
+          source: "path-heuristic",
+          reason: rule.reason,
+        });
         if (rank[rule.mode] > rank[mode]) mode = rule.mode;
       }
     }
+  }
+
+  signals.push(...configRiskSignals(files), ...contentRiskSignals(files));
+  for (const signal of signals) {
+    if (rank[signal.mode] > rank[mode]) mode = signal.mode;
   }
 
   return { mode, signals };
@@ -339,7 +641,14 @@ ${files.length ? files.map((file) => `- \`${file}\``).join("\n") : "- No changed
     return;
   }
 
-  const absolute = path.resolve(cwd, output);
+  let absolute;
+  try {
+    absolute = outputPath(output);
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+    return;
+  }
   fs.mkdirSync(path.dirname(absolute), { recursive: true });
   if (fs.existsSync(absolute) && !has("--force")) {
     console.error(`Refusing to overwrite existing file: ${output}`);
@@ -419,6 +728,7 @@ function verify() {
     const started = Date.now();
     const result = run(check.executable, check.args);
     results.push({
+      adapter_schema: check.schema,
       id: check.id,
       ecosystem: check.ecosystem,
       command: [check.executable, ...check.args],
@@ -434,8 +744,10 @@ function verify() {
             : "fail",
       exit_code: Number.isInteger(result.status) ? result.status : null,
       duration_ms: Date.now() - started,
-      output: combinedOutput(result).slice(-12000),
-      error: result.error ? String(result.error.message || result.error) : null,
+      output: redact(combinedOutput(result)).slice(-12000),
+      error: result.error
+        ? redact(String(result.error.message || result.error))
+        : null,
     });
   }
 
@@ -502,18 +814,26 @@ function verify() {
   }
 }
 
-if (command === "inspect") {
+if (command === "init") {
+  initProject();
+} else if (command === "map") {
+  mapProject();
+} else if (command === "inspect") {
   inspect();
 } else if (command === "change") {
   changeAnalysis();
 } else if (command === "record") {
   changeRecord();
+} else if (command === "secrets") {
+  secretScan();
+} else if (command === "dependencies") {
+  dependencyAudit();
 } else if (command === "verify") {
   verify();
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | verify [--dry-run] [--checks list] [--receipt path] [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | verify [--dry-run] [--checks list] [--receipt path] [--json]",
   );
   process.exitCode = 1;
 }

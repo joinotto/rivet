@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node test/rivet-evidence.test.mjs",
     "check:ste": "node skills/rivet/scripts/rivet-ste.mjs skills/rivet",
-    "validate:skill": "python3 /Users/apple/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/rivet"
+    "validate:skill": "python3 /Users/apple/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/rivet",
+    "package:hosts": "node scripts/package-hosts.mjs"
   },
   "engines": {
     "node": ">=16"

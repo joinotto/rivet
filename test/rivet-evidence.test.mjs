@@ -6,6 +6,7 @@ import { spawnSync } from "child_process";
 import { fileURLToPath } from "url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
+const repository = path.resolve(here, "..");
 const script = path.resolve(
   here,
   "../skills/rivet/scripts/rivet-evidence.mjs",
@@ -118,5 +119,101 @@ fs.writeFileSync(faultyDoc, "# Procedure\n\nRun the test; deploy the code.\n");
 const faultySte = invokeSte(fixture, [faultyDoc, "--json"]);
 assert.strictEqual(faultySte.status, 2, faultySte.stderr);
 assert.strictEqual(JSON.parse(faultySte.stdout).faults, 1);
+
+const multi = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-multi-"));
+fs.writeFileSync(
+  path.join(multi, "package.json"),
+  JSON.stringify({ scripts: { test: "node -e \"process.exit(0)\"" } }),
+);
+fs.writeFileSync(path.join(multi, "Cargo.toml"), "[package]\nname='fixture'\n");
+fs.writeFileSync(path.join(multi, "go.mod"), "module example.test/fixture\n");
+fs.writeFileSync(path.join(multi, "pyproject.toml"), "[project]\nname='fixture'\n");
+const multiInspect = invoke(multi, ["inspect", "--json"]);
+assert.strictEqual(multiInspect.status, 0, multiInspect.stderr);
+const ecosystems = new Set(
+  JSON.parse(multiInspect.stdout).project.checks.map((item) => item.ecosystem),
+);
+assert.deepStrictEqual(
+  [...ecosystems].sort(),
+  ["go", "node", "python", "rust"],
+);
+
+const secretFile = path.join(fixture, "secrets.txt");
+fs.writeFileSync(
+  secretFile,
+  "api_key='this-is-a-secret-value-that-must-not-print'\n",
+);
+const secretScan = invoke(fixture, [
+  "secrets",
+  "--files",
+  "secrets.txt",
+  "--json",
+]);
+assert.strictEqual(secretScan.status, 2, secretScan.stderr);
+assert.strictEqual(JSON.parse(secretScan.stdout).findings.length, 1);
+assert.doesNotMatch(secretScan.stdout, /this-is-a-secret-value/);
+
+const defaultSecretScan = invoke(fixture, ["secrets", "--json"]);
+assert.strictEqual(defaultSecretScan.status, 2, defaultSecretScan.stderr);
+assert.ok(JSON.parse(defaultSecretScan.stdout).files_checked > 1);
+
+const escapedRecord = invoke(fixture, [
+  "record",
+  "--output",
+  "../escaped-record.md",
+]);
+assert.strictEqual(escapedRecord.status, 1);
+assert.match(escapedRecord.stderr, /inside the project/);
+
+const init = invoke(fixture, ["init"]);
+assert.strictEqual(init.status, 0, init.stderr);
+assert.ok(fs.existsSync(path.join(fixture, "SYSTEM.md")));
+assert.ok(fs.existsSync(path.join(fixture, ".rivet/config.json")));
+const systemBefore = fs.readFileSync(path.join(fixture, "SYSTEM.md"), "utf8");
+const secondInit = invoke(fixture, ["init"]);
+assert.strictEqual(secondInit.status, 0, secondInit.stderr);
+assert.strictEqual(
+  fs.readFileSync(path.join(fixture, "SYSTEM.md"), "utf8"),
+  systemBefore,
+);
+
+fs.writeFileSync(path.join(fixture, "package-lock.json"), "{}");
+const dependencyDryRun = invoke(fixture, ["dependencies", "--dry-run"]);
+assert.strictEqual(dependencyDryRun.status, 0, dependencyDryRun.stderr);
+assert.match(dependencyDryRun.stdout, /npm-audit/);
+
+const packages = path.join(os.tmpdir(), `rivet-hosts-${process.pid}`);
+const packageResult = spawnSync(
+  process.execPath,
+  [path.join(repository, "scripts/package-hosts.mjs"), "--output", packages],
+  { encoding: "utf8" },
+);
+assert.strictEqual(packageResult.status, 0, packageResult.stderr);
+for (const host of ["portable", "codex", "claude-code", "cursor"]) {
+  const hostSkill = path.join(packages, host, "rivet", "SKILL.md");
+  assert.ok(fs.existsSync(hostSkill), `${host} package has no SKILL.md`);
+  assert.strictEqual(
+    fs.readFileSync(hostSkill, "utf8"),
+    fs.readFileSync(path.join(repository, "skills/rivet/SKILL.md"), "utf8"),
+  );
+}
+assert.ok(fs.existsSync(path.join(packages, "codex/rivet/agents/openai.yaml")));
+assert.ok(
+  !fs.existsSync(path.join(packages, "claude-code/rivet/agents/openai.yaml")),
+);
+fs.rmSync(packages, { recursive: true });
+
+const unsafePackageResult = spawnSync(
+  process.execPath,
+  [
+    path.join(repository, "scripts/package-hosts.mjs"),
+    "--output",
+    path.parse(repository).root,
+    "--force",
+  ],
+  { encoding: "utf8" },
+);
+assert.strictEqual(unsafePackageResult.status, 1);
+assert.match(unsafePackageResult.stderr, /inside the Rivet repository/);
 
 console.log("rivet-evidence tests passed");

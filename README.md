@@ -1,7 +1,7 @@
 # Rivet
 
-Status: research and product proposal  
-Date: 2026-10-25  
+Status: active Phase 1 implementation
+Date: 2026-10-25
 Product name: Rivet
 
 ## Current implementation
@@ -22,6 +22,12 @@ Version `0.1.0` contains:
 - ASD-STE100-aligned Markdown checks.
 - JSON evidence receipts.
 - Distinct pass, fail, incomplete, and insufficient-evidence results.
+- Context-file initialization that preserves existing files.
+- Content-aware risk classification.
+- Secret-pattern scanning with redacted findings.
+- Dependency-audit adapter discovery.
+- A stable tool-adapter schema.
+- A host-integration contract for Codex, Claude Code, Cursor, and compatible tools.
 
 Run the tests:
 
@@ -34,6 +40,12 @@ Inspect a project:
 
 ```sh
 node skills/rivet/scripts/rivet-evidence.mjs inspect
+```
+
+Initialize missing project context:
+
+```sh
+node skills/rivet/scripts/rivet-evidence.mjs init
 ```
 
 Preview its detected checks:
@@ -61,6 +73,20 @@ Check skill documentation:
 ```sh
 npm run check:ste
 ```
+
+Preview dependency-audit adapters:
+
+```sh
+node skills/rivet/scripts/rivet-evidence.mjs dependencies --dry-run
+```
+
+Generate host packages:
+
+```sh
+npm run package:hosts
+```
+
+This command creates packages for Codex, Claude Code, Cursor, and portable skill hosts from the canonical `skills/rivet/` source.
 
 ## Decision
 
@@ -118,6 +144,7 @@ The product must not present an inferred result as an observed result.
 - [Open-source foundation](OPEN-SOURCE-FOUNDATION.md)
 - [Technical writing rules](TECHNICAL-WRITING.md)
 - [ASD-STE100 for agent skills](docs/ASD-STE100-FOR-SKILLS.md)
+- [Host integration contract](docs/HOST-INTEGRATIONS.md)
 
 ## Honest assessment
 
@@ -137,6 +164,6 @@ The evidence-runner behavioral tests pass on Node.js 16.13.1.
 
 The skill has no unfinished scaffold markers. Its frontmatter, folder name, references, script path, and UI metadata were inspected manually.
 
-The bundled `quick_validate.py` validator could not run in the current environment because its `yaml` Python module is not installed. This condition is an unavailable validation tool. It is not a successful validation result.
+The behavioral tests, skill validator, and Rivet STE checker pass in the development environment.
 
 

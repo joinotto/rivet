@@ -4,6 +4,8 @@
 
 The product helps an AI coding agent to make safe backend changes.
 
+The product is independent of one coding-agent host or model provider.
+
 The product supplies:
 
 - System context.
@@ -166,9 +168,23 @@ Required evidence:
 
 ## 7. Engine architecture
 
-The product should have four layers.
+The product should have five layers.
 
-### 7.1 Skill layer
+### 7.1 Host integration layer
+
+Host integrations connect Rivet to Codex, Claude Code, Cursor, and compatible coding tools.
+
+Each integration must:
+
+- Load the canonical Rivet skill and references.
+- Invoke the same evidence engine.
+- Map host permissions and approvals without weakening Rivet policy.
+- Declare unavailable host capabilities.
+- Avoid assumptions about the selected model provider.
+
+Read [Host integrations](docs/HOST-INTEGRATIONS.md).
+
+### 7.2 Skill layer
 
 The skill contains workflows and decision rules. It must remain readable and versioned.
 
@@ -176,7 +192,7 @@ All material workflows must use the TRACE method in `ENGINEERING-REASONING.md`.
 
 The product must request reviewable decisions and evidence. It must not request or store private chain-of-thought.
 
-### 7.2 Evidence engine
+### 7.3 Evidence engine
 
 The engine runs tools and normalizes results.
 
@@ -189,7 +205,7 @@ It must:
 - Redact secrets.
 - Distinguish no finding from tool failure.
 
-### 7.3 Adapter layer
+### 7.4 Tool adapter layer
 
 Adapters connect established tools.
 
@@ -210,7 +226,7 @@ Initial adapter classes:
 
 The core must not implement a weak replacement for these tools.
 
-### 7.4 Policy layer
+### 7.5 Policy layer
 
 Policy selects required evidence by risk and project context.
 
