@@ -1,16 +1,13 @@
 # Changelog
 
-## Unreleased
-
-- Record native Cosign v3 signed-artifact conformance for an offline,
-  self-managed key fixture.
-
 This file records notable changes to Rivet.
 
 ## Unreleased
 
 ### Added
 
+- Native Cosign v3 signed-artifact conformance for an offline, self-managed
+  key fixture.
 - ASD-STE100 research for agent skills.
 - Rivet technical-writing reference.
 - Markdown checker for deterministic faults and heuristic warnings.
