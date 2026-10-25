@@ -62,6 +62,10 @@ import {
   postmortemMarkdown,
 } from "./lib/postmortem.mjs";
 import { actionTemplate, validateAction } from "./lib/action.mjs";
+import {
+  githubIssuePlan,
+  parseGithubIssue,
+} from "./lib/ticket-sync.mjs";
 import { evaluateFindings } from "./lib/evaluate.mjs";
 import {
   threatModelTemplate,
@@ -1850,7 +1854,101 @@ function actionWorkflow() {
       if (report.decision === "overdue") process.exitCode = 1;
       return;
     }
-    throw new Error("Use action init or action validate.");
+    if (action === "sync") {
+      const artifact = evidenceArtifact("--file");
+      if (!artifact) throw new Error("Action synchronization requires --file <file>.");
+      const provider = value("--provider");
+      if (provider !== "github") {
+        throw new Error("Action synchronization currently supports --provider github.");
+      }
+      const repository = value("--repo");
+      if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository || "")) {
+        throw new Error("GitHub synchronization requires --repo owner/name.");
+      }
+      const actionRecord = readJson(artifact);
+      if (!actionRecord) throw new Error("The preventive action must contain valid JSON.");
+      const validation = validateAction(
+        artifact,
+        value("--as-of") || new Date().toISOString().slice(0, 10),
+      );
+      if (validation.decision === "invalid") {
+        throw new Error("The preventive action must be valid before ticket synchronization.");
+      }
+      if (actionRecord.ticket?.number || actionRecord.ticket?.url) {
+        throw new Error("The preventive action already has a synchronized ticket.");
+      }
+      const labels = (value("--labels") || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      const plan = githubIssuePlan(actionRecord, repository, labels);
+      if (has("--dry-run")) {
+        process.stdout.write(
+          `${JSON.stringify({
+            schema: 1,
+            workflow: "ticket-sync",
+            evidence_class: "planned",
+            action: actionRecord.id,
+            provider,
+            repository,
+            title: plan.title,
+            labels,
+            decision: "planned-not-executed",
+            limitations: [
+              "The plan does not create or update a ticket.",
+              "Rivet does not infer a GitHub assignee from the preventive-action owner.",
+            ],
+          }, null, 2)}\n`,
+        );
+        return;
+      }
+      if (!has("--allow-network") || !has("--allow-write") || !value("--approval")) {
+        throw new Error(
+          "Ticket synchronization requires --allow-network, --allow-write, and --approval.",
+        );
+      }
+      const result = run(plan.executable, plan.args, {
+        input: plan.body,
+        timeout: 120000,
+      });
+      if (result.error?.code === "ENOENT") throw new Error("The GitHub CLI is unavailable.");
+      if (result.status !== 0) {
+        throw new Error(
+          `GitHub issue creation failed with exit ${result.status}: ${redact(combinedOutput(result)).slice(-2000)}`,
+        );
+      }
+      const ticket = parseGithubIssue(combinedOutput(result));
+      actionRecord.ticket = {
+        provider,
+        repository,
+        number: ticket.number,
+        url: ticket.url,
+        synced_at: value("--synced-at") || new Date().toISOString(),
+        approval: value("--approval"),
+      };
+      fs.writeFileSync(artifact, `${JSON.stringify(actionRecord, null, 2)}\n`, {
+        mode: 0o600,
+      });
+      process.stdout.write(
+        `${JSON.stringify({
+          schema: 1,
+          workflow: "ticket-sync",
+          evidence_class: "observed",
+          action: actionRecord.id,
+          provider,
+          repository,
+          ticket,
+          approval: value("--approval"),
+          decision: "created",
+          limitations: [
+            "Rivet created the issue but did not verify project, milestone, or assignee policy.",
+            "Future issue status changes require separate synchronization evidence.",
+          ],
+        }, null, 2)}\n`,
+      );
+      return;
+    }
+    throw new Error("Use action init, action validate, or action sync.");
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
@@ -2144,7 +2242,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
+    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
   );
   process.exitCode = 1;
 }

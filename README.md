@@ -59,6 +59,7 @@ Version `0.1.0` contains:
 - Blameless postmortem drafts from validated incident evidence.
 - Repeated-sample performance statistics with explicit adequacy limits.
 - Owned preventive actions with due dates and follow-up verification.
+- Approval-gated GitHub Issue synchronization for preventive actions.
 - Deterministic seeded-defect precision and recall evaluation.
 
 Run the tests:

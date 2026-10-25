@@ -286,10 +286,7 @@ Implemented:
 - Insufficient-sample reporting.
 - Owned preventive actions with due dates and observed follow-up verification.
 - Overdue preventive-action reporting.
-
-Not implemented:
-
-- Native ticket-system synchronization.
+- Approval-gated GitHub Issue synchronization with duplicate-creation prevention.
 
 Commands:
 

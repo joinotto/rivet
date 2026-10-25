@@ -1571,6 +1571,103 @@ const overdueAction = invoke(intelligence, [
 ]);
 assert.strictEqual(overdueAction.status, 1, overdueAction.stderr);
 assert.strictEqual(JSON.parse(overdueAction.stdout).decision, "overdue");
+
+const ticketPlan = invoke(intelligence, [
+  "action",
+  "sync",
+  "--file",
+  "action.json",
+  "--provider",
+  "github",
+  "--repo",
+  "example/rivet",
+  "--labels",
+  "reliability,preventive-action",
+  "--dry-run",
+]);
+assert.strictEqual(ticketPlan.status, 0, ticketPlan.stderr);
+const ticketPlanReport = JSON.parse(ticketPlan.stdout);
+assert.strictEqual(ticketPlanReport.decision, "planned-not-executed");
+assert.deepStrictEqual(ticketPlanReport.labels, [
+  "reliability",
+  "preventive-action",
+]);
+
+const ticketWithoutApproval = invoke(intelligence, [
+  "action",
+  "sync",
+  "--file",
+  "action.json",
+  "--provider",
+  "github",
+  "--repo",
+  "example/rivet",
+  "--allow-network",
+  "--allow-write",
+]);
+assert.strictEqual(ticketWithoutApproval.status, 1);
+assert.match(ticketWithoutApproval.stderr, /requires .*--approval/);
+
+const mockTicketBin = path.join(intelligence, "mock-ticket-bin");
+fs.mkdirSync(mockTicketBin);
+fs.writeFileSync(
+  path.join(mockTicketBin, "gh"),
+  `#!/usr/bin/env node
+process.stdin.resume();
+process.stdin.on("end", () => {
+  process.stdout.write("https://github.com/example/rivet/issues/42\\n");
+});
+`,
+  { mode: 0o755 },
+);
+const ticketSync = invoke(
+  intelligence,
+  [
+    "action",
+    "sync",
+    "--file",
+    "action.json",
+    "--provider",
+    "github",
+    "--repo",
+    "example/rivet",
+    "--allow-network",
+    "--allow-write",
+    "--approval",
+    "CHANGE-2026-104",
+    "--synced-at",
+    "2026-10-25T12:00:00Z",
+  ],
+  { env: { PATH: `${mockTicketBin}${path.delimiter}${process.env.PATH}` } },
+);
+assert.strictEqual(ticketSync.status, 0, ticketSync.stderr);
+const ticketSyncReport = JSON.parse(ticketSync.stdout);
+assert.strictEqual(ticketSyncReport.decision, "created");
+assert.strictEqual(ticketSyncReport.ticket.number, 42);
+const synchronizedAction = JSON.parse(fs.readFileSync(actionFile, "utf8"));
+assert.strictEqual(synchronizedAction.ticket.number, 42);
+assert.strictEqual(synchronizedAction.ticket.approval, "CHANGE-2026-104");
+const duplicateTicketSync = invoke(
+  intelligence,
+  [
+    "action",
+    "sync",
+    "--file",
+    "action.json",
+    "--provider",
+    "github",
+    "--repo",
+    "example/rivet",
+    "--allow-network",
+    "--allow-write",
+    "--approval",
+    "CHANGE-2026-105",
+  ],
+  { env: { PATH: `${mockTicketBin}${path.delimiter}${process.env.PATH}` } },
+);
+assert.strictEqual(duplicateTicketSync.status, 1);
+assert.match(duplicateTicketSync.stderr, /already has a synchronized ticket/);
+
 assert.ok(
   telemetryReport.findings.some(
     (item) => item.id === "unbounded-metric-dimension",

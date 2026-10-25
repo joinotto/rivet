@@ -18,6 +18,14 @@ export function actionTemplate(id, incidentId, createdAt) {
       result: "",
       verified_at: "",
     },
+    ticket: {
+      provider: "",
+      repository: "",
+      number: null,
+      url: "",
+      synced_at: "",
+      approval: "",
+    },
   };
 }
 

@@ -440,6 +440,28 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" action validate \
 
 A completed action requires a contributing condition, concrete change, owner, priority, due date, verification method, evidence, passing result, and verification time. Rivet reports overdue open actions.
 
+Preview or create a GitHub issue from a valid preventive action:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" action sync \
+  --file .rivet/incidents/action.json \
+  --provider github \
+  --repo owner/repository \
+  --dry-run
+node "<skill-dir>/scripts/rivet-evidence.mjs" action sync \
+  --file .rivet/incidents/action.json \
+  --provider github \
+  --repo owner/repository \
+  --allow-network \
+  --allow-write \
+  --approval change-reference
+```
+
+Rivet uses the installed GitHub CLI, writes the returned issue identity into
+the action record, and rejects duplicate creation. It does not infer a GitHub
+assignee from an internal owner name. Ticket creation does not prove that the
+preventive action is complete.
+
 Write a machine-readable receipt only when useful:
 
 ```sh
