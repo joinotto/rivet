@@ -316,10 +316,11 @@ Implemented:
 - Stateful property-test model initialization and validation.
 - Command-path reachability, invariant, reset, isolation, seed, and shrinking
   readiness checks.
+- Coverage-guided fuzz campaign normalization with revision, corpus, tool,
+  sanitizer, and crash-reproduction evidence.
 
 Candidates:
 
-- Coverage-guided fuzzing.
 - Chaos experiments.
 - TLA+ model generation and model checking.
 - Privacy analysis.

@@ -285,6 +285,14 @@ postconditions, invariants, reset behavior, isolation, and reproducibility
 settings. Rivet validates the model. It does not claim that validation executed
 the system.
 
+### `fuzz`
+
+Purpose: Normalize saved evidence from a coverage-guided fuzzing campaign.
+
+The report must bind the engine, target, source revision, command, runtime,
+execution count, sanitizer, and crash artifacts. A campaign that observed no
+crash is not proof of safety.
+
 ### `hooks`
 
 Purpose: Configure low-cost automatic checks for changed backend files.
@@ -295,7 +303,6 @@ The hook must not run heavy integration, active security, load, or fuzz tests af
 
 Add only after Version 1 has evidence that users need them:
 
-- `fuzz`
 - `mutation`
 - `load`
 - `chaos`

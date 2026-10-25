@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Coverage-guided fuzz campaign evidence with reproducibility and crash
+  triage fields.
 - Stateful property-test model initialization and validation with command-path
   reachability and reproducibility checks.
 - Native Cosign v3 signed-artifact conformance for an offline, self-managed

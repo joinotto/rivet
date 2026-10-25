@@ -6,6 +6,7 @@ import { spawnSync } from "child_process";
 import { fileURLToPath } from "url";
 import { normalizeDependencyResult } from "../skills/rivet/scripts/lib/dependencies.mjs";
 import { validateStatefulModel } from "../skills/rivet/scripts/lib/stateful.mjs";
+import { normalizeFuzzCampaign } from "../skills/rivet/scripts/lib/fuzz.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repository = path.resolve(here, "..");
@@ -118,6 +119,43 @@ const incompleteStateful = validateStatefulModel({
   execution: { ...statefulModel.execution, records_seed: false },
 });
 assert.strictEqual(incompleteStateful.decision, "incomplete");
+const fuzzCampaign = {
+  schema: 1,
+  kind: "fuzz-campaign",
+  engine: "libFuzzer",
+  engine_version: "fixture",
+  target: "parse_message",
+  revision: "fixture-revision",
+  command_digest: "sha256:fixture",
+  started_at: "2026-10-25T10:00:00Z",
+  finished_at: "2026-10-25T10:05:00Z",
+  duration_seconds: 300,
+  executions: 50000,
+  seed_corpus_digest: "sha256:corpus",
+  dictionary_digest: "sha256:dictionary",
+  sanitizer: "address,undefined",
+  crashes: [],
+  timeouts: 0,
+  out_of_memory: 0,
+};
+assert.strictEqual(
+  normalizeFuzzCampaign(fuzzCampaign).decision,
+  "no-crash-observed",
+);
+assert.strictEqual(
+  normalizeFuzzCampaign({
+    ...fuzzCampaign,
+    crashes: [{
+      id: "crash-1",
+      class: "heap-buffer-overflow",
+      input_digest: "sha256:input",
+      artifact: "artifacts/crash-1",
+      stack_digest: "sha256:stack",
+      reproducible: true,
+    }],
+  }).decision,
+  "crash-observed",
+);
 
 fs.writeFileSync(
   path.join(fixture, "package.json"),

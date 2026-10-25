@@ -208,6 +208,19 @@ sequences when it supports shrinking. Validation checks the model structure and
 state reachability. It does not execute the model or prove that the model
 matches the system.
 
+Normalize a saved coverage-guided fuzzing campaign:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" fuzz \
+  --report reports/fuzz-campaign.json
+```
+
+Bind the report to the engine version, target, source revision, exact command,
+seed corpus, dictionary, sanitizer, duration, and execution count. Keep each
+crash input and its digest outside the report if it contains sensitive data.
+Record whether the crash reproduces. A `no-crash-observed` decision describes
+only the recorded campaign. It does not prove memory safety or input safety.
+
 Coverage normalization accepts Istanbul summary JSON, Cobertura XML, JaCoCo
 XML, LCOV, and Go cover profiles. Rivet reports only aggregate metrics that the
 source artifact contains.
