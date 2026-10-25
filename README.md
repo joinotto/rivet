@@ -30,6 +30,7 @@ Version `0.1.0` contains:
 - A host-integration contract for Codex, Claude Code, Cursor, and compatible tools.
 - Topology discovery for components, internal dependency edges, data-store artifacts, and messaging dependencies.
 - Reverse dependency impact for changed workspace components.
+- Normalized npm, Cargo, Go, and Python dependency-audit results.
 
 Run the tests:
 

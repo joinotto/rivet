@@ -10,6 +10,7 @@ import {
 } from "./lib/adapters.mjs";
 import { fingerprint, redact } from "./lib/redact.mjs";
 import { discoverTopology, topologyImpact } from "./lib/topology.mjs";
+import { normalizeDependencyResult } from "./lib/dependencies.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -355,16 +356,29 @@ function runAdapters(adapters, workflow) {
   for (const adapter of adapters) {
     const started = Date.now();
     const result = run(adapter.executable, adapter.args);
+    const normalized =
+      workflow === "dependencies"
+        ? normalizeDependencyResult(adapter, result)
+        : {
+            result:
+              result.error && result.error.code === "ENOENT"
+                ? "unavailable"
+                : result.status === 0
+                  ? "pass"
+                  : "tool-failure",
+            findings: [],
+            finding_count: null,
+            reason: null,
+          };
     results.push({
+      adapter_schema: adapter.schema,
       id: adapter.id,
       ecosystem: adapter.ecosystem,
       source: adapter.source,
-      result:
-        result.error && result.error.code === "ENOENT"
-          ? "unavailable"
-          : result.status === 0
-            ? "pass"
-            : "findings-or-failure",
+      result: normalized.result,
+      finding_count: normalized.finding_count,
+      findings: normalized.findings,
+      reason: normalized.reason,
       exit_code: Number.isInteger(result.status) ? result.status : null,
       duration_ms: Date.now() - started,
       output: redact(combinedOutput(result)).slice(-12000),
@@ -380,9 +394,13 @@ function runAdapters(adapters, workflow) {
     decision:
       !results.length
         ? "insufficient-evidence"
-        : results.some((item) => item.result === "unavailable")
+        : results.some(
+              (item) =>
+                item.result === "unavailable" ||
+                item.result === "tool-failure",
+            )
           ? "incomplete"
-          : results.some((item) => item.result !== "pass")
+          : results.some((item) => item.result === "findings")
             ? "review-findings"
             : "pass",
     limitations: [

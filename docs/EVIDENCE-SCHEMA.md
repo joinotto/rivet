@@ -18,6 +18,8 @@
 
 A tool failure must not produce `pass`.
 
+A dependency scanner can use a nonzero exit status to report findings. Rivet must parse the documented machine-readable output before it classifies that result. Invalid or missing output is a tool failure, not a vulnerability finding and not a pass.
+
 ## Receipt requirements
 
 A receipt must include:

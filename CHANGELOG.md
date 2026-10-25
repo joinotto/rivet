@@ -20,6 +20,7 @@ This file records notable changes to Rivet.
 - Four-ecosystem discovery fixtures.
 - Host package generator for Codex, Claude Code, Cursor, and portable hosts.
 - Repository topology discovery and reverse dependency impact.
+- Normalized dependency advisory findings and tool failures.
 
 ### Changed
 

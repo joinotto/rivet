@@ -59,10 +59,10 @@ Implemented:
 - Host integration contract.
 - Host package generator.
 - Topology-aware component and reverse-dependency impact mapping.
+- Normalized dependency advisory results with seeded fixtures.
 
 Not implemented:
 
-- Dependency advisory fixture execution.
 - Database migration and plan adapter.
 - Cross-host conformance fixtures.
 

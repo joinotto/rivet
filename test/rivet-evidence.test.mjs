@@ -4,6 +4,7 @@ import os from "os";
 import path from "path";
 import { spawnSync } from "child_process";
 import { fileURLToPath } from "url";
+import { normalizeDependencyResult } from "../skills/rivet/scripts/lib/dependencies.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repository = path.resolve(here, "..");
@@ -225,6 +226,69 @@ fs.writeFileSync(path.join(fixture, "package-lock.json"), "{}");
 const dependencyDryRun = invoke(fixture, ["dependencies", "--dry-run"]);
 assert.strictEqual(dependencyDryRun.status, 0, dependencyDryRun.stderr);
 assert.match(dependencyDryRun.stdout, /npm-audit/);
+
+const npmFindings = normalizeDependencyResult(
+  { id: "npm-audit" },
+  {
+    status: 1,
+    stdout: JSON.stringify({
+      vulnerabilities: {
+        vulnerable: { severity: "high", isDirect: true, via: ["ADV-1"] },
+      },
+    }),
+  },
+);
+assert.strictEqual(npmFindings.result, "findings");
+assert.strictEqual(npmFindings.finding_count, 1);
+
+const npmClean = normalizeDependencyResult(
+  { id: "npm-audit" },
+  { status: 0, stdout: JSON.stringify({ vulnerabilities: {} }) },
+);
+assert.strictEqual(npmClean.result, "pass");
+
+const invalidAudit = normalizeDependencyResult(
+  { id: "npm-audit" },
+  { status: 1, stdout: "registry unavailable" },
+);
+assert.strictEqual(invalidAudit.result, "tool-failure");
+
+const cargoFindings = normalizeDependencyResult(
+  { id: "cargo-audit" },
+  {
+    status: 1,
+    stdout: JSON.stringify({
+      vulnerabilities: {
+        list: [{
+          package: { name: "fixture" },
+          advisory: { id: "RUSTSEC-TEST" },
+        }],
+      },
+    }),
+  },
+);
+assert.strictEqual(cargoFindings.result, "findings");
+
+const pipFindings = normalizeDependencyResult(
+  { id: "pip-audit" },
+  {
+    status: 1,
+    stdout: JSON.stringify([{
+      name: "fixture",
+      vulns: [{ id: "PYSEC-TEST", fix_versions: ["2.0.0"] }],
+    }]),
+  },
+);
+assert.strictEqual(pipFindings.result, "findings");
+
+const goFindings = normalizeDependencyResult(
+  { id: "govulncheck" },
+  {
+    status: 3,
+    stdout: `${JSON.stringify({ finding: { osv: "GO-TEST", trace: [{}] } })}\n`,
+  },
+);
+assert.strictEqual(goFindings.result, "findings");
 
 const packages = path.join(os.tmpdir(), `rivet-hosts-${process.pid}`);
 const packageResult = spawnSync(
