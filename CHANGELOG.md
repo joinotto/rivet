@@ -32,6 +32,7 @@ This file records notable changes to Rivet.
 - Repeated-JUnit flake and test-presence analysis.
 - Requirements-first independent-review packet generation.
 - Seven executable backend reference systems with stable seeded defects.
+- SARIF, Trivy, CycloneDX, and SPDX security evidence normalization.
 
 ### Changed
 

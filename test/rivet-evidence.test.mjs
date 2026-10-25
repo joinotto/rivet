@@ -333,6 +333,94 @@ assert.strictEqual(
   flakeReport.inconsistent_presence[0].id,
   "orders::lists orders",
 );
+
+fs.writeFileSync(
+  path.join(intelligence, "sast.sarif"),
+  JSON.stringify({
+    version: "2.1.0",
+    runs: [{
+      tool: {
+        driver: {
+          name: "fixture-sast",
+          version: "1.0.0",
+          rules: [{
+            id: "auth-object",
+            properties: { tags: ["security", "CWE-639"] },
+          }],
+        },
+      },
+      results: [{
+        ruleId: "auth-object",
+        level: "error",
+        message: { text: "Object ownership is not checked." },
+        locations: [{
+          physicalLocation: {
+            artifactLocation: { uri: "src/invoice.js" },
+            region: { startLine: 12 },
+          },
+        }],
+      }],
+    }],
+  }),
+);
+const sarifEvidence = invoke(intelligence, [
+  "security",
+  "--sarif",
+  "sast.sarif",
+]);
+assert.strictEqual(sarifEvidence.status, 2, sarifEvidence.stderr);
+const sarifReport = JSON.parse(sarifEvidence.stdout);
+assert.strictEqual(sarifReport.findings[0].rule_id, "auth-object");
+assert.deepStrictEqual(sarifReport.findings[0].cwe, ["CWE-639"]);
+
+fs.writeFileSync(
+  path.join(intelligence, "trivy.json"),
+  JSON.stringify({
+    Results: [{
+      Target: "Dockerfile",
+      Vulnerabilities: [{
+        VulnerabilityID: "CVE-TEST",
+        PkgName: "fixture",
+        InstalledVersion: "1",
+        FixedVersion: "2",
+        Severity: "HIGH",
+      }],
+      Misconfigurations: [{
+        ID: "CFG-TEST",
+        Title: "Container runs as root",
+        Severity: "HIGH",
+      }],
+    }],
+  }),
+);
+const trivyEvidence = invoke(intelligence, [
+  "security",
+  "--trivy",
+  "trivy.json",
+]);
+assert.strictEqual(trivyEvidence.status, 2, trivyEvidence.stderr);
+assert.strictEqual(JSON.parse(trivyEvidence.stdout).findings.length, 2);
+
+fs.writeFileSync(
+  path.join(intelligence, "bom.json"),
+  JSON.stringify({
+    bomFormat: "CycloneDX",
+    specVersion: "1.6",
+    components: [{ type: "library", name: "fixture", version: "1.0.0" }],
+  }),
+);
+const sbomEvidence = invoke(intelligence, [
+  "sbom",
+  "--file",
+  "bom.json",
+  "--revision",
+  "fixture-revision",
+]);
+assert.strictEqual(sbomEvidence.status, 0, sbomEvidence.stderr);
+const sbomReport = JSON.parse(sbomEvidence.stdout);
+assert.strictEqual(sbomReport.format, "CycloneDX");
+assert.strictEqual(sbomReport.component_count, 1);
+assert.strictEqual(sbomReport.subject_revision, "fixture-revision");
 const nestedVerification = invoke(topology, [
   "verify",
   "--checks",

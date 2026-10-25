@@ -47,3 +47,9 @@ The human summary must be derived from the same in-memory receipt as the JSON ar
 
 CI annotations must contain check identity and result. They must not contain raw tool output, credentials, or untrusted multiline text.
 
+## Security artifacts
+
+Rivet preserves source rule and vulnerability identifiers.
+
+Rivet maps a result to CWE, ASVS, KEV, EPSS, or another taxonomy only when the source artifact or a dated authoritative enrichment record supplies that value. An agent must not infer a standards identifier from similar wording.
+

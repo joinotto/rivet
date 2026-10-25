@@ -171,6 +171,24 @@ Exit criteria:
 
 Duration: 10 to 12 weeks
 
+Status: In progress.
+
+Implemented:
+
+- SARIF 2.1.0 static-analysis result normalization.
+- Trivy container and IaC result normalization.
+- CycloneDX and SPDX structural SBOM evidence.
+- Explicit SBOM source-revision binding.
+
+Not implemented:
+
+- Active SAST adapter execution.
+- Full SBOM schema and signature validation.
+- KEV and EPSS enrichment.
+- Reachability evidence.
+- Waiver workflow.
+- Signed evidence artifacts.
+
 Commands:
 
 - `threat-model`

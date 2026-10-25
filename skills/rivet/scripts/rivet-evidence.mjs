@@ -23,6 +23,11 @@ import {
   normalizeMutation,
 } from "./lib/test-evidence.mjs";
 import { reviewMarkdown, reviewPacket } from "./lib/review.mjs";
+import {
+  normalizeSarif,
+  normalizeSbom,
+  normalizeTrivy,
+} from "./lib/security-evidence.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -1080,6 +1085,50 @@ function prepareReview() {
   }
 }
 
+function evidenceArtifact(flag) {
+  const relative = value(flag);
+  if (!relative) return null;
+  const absolute = path.resolve(cwd, relative);
+  if (!absolute.startsWith(`${cwd}${path.sep}`) || !fs.existsSync(absolute)) {
+    throw new Error("The evidence artifact must be an existing file inside the project.");
+  }
+  return absolute;
+}
+
+function securityEvidence() {
+  try {
+    const sarif = evidenceArtifact("--sarif");
+    const trivy = evidenceArtifact("--trivy");
+    if (Boolean(sarif) === Boolean(trivy)) {
+      throw new Error("Use exactly one of --sarif <file> or --trivy <file>.");
+    }
+    const report = sarif ? normalizeSarif(sarif) : normalizeTrivy(trivy);
+    report.artifact = path.relative(cwd, sarif || trivy);
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    if (report.decision === "review-findings") process.exitCode = 2;
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}
+
+function sbomEvidence() {
+  try {
+    const artifact = evidenceArtifact("--file");
+    const revision = value("--revision");
+    if (!artifact || !revision) {
+      throw new Error("SBOM verification requires --file <file> and --revision <value>.");
+    }
+    const report = normalizeSbom(artifact, revision);
+    report.artifact = path.relative(cwd, artifact);
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    if (report.decision === "insufficient-evidence") process.exitCode = 1;
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}
+
 function markdownSummary(receipt) {
   const lines = [
     "# Rivet verification",
@@ -1308,10 +1357,14 @@ if (command === "init") {
   testSelection();
 } else if (command === "review") {
   prepareReview();
+} else if (command === "security") {
+  securityEvidence();
+} else if (command === "sbom") {
+  sbomEvidence();
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--sarif file | --trivy file) | sbom --file file --revision value | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

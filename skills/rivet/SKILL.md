@@ -183,6 +183,18 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" review \
 
 Packet generation is not an independent review. Report its status as `prepared-not-reviewed` until a separate reviewer returns findings.
 
+Normalize established security artifacts:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" security --sarif reports/sast.sarif
+node "<skill-dir>/scripts/rivet-evidence.mjs" security --trivy reports/trivy.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" sbom \
+  --file reports/bom.json \
+  --revision source-revision
+```
+
+Preserve source identifiers such as CWE only when the tool supplies them. Do not present a clean artifact as proof that the system is secure.
+
 Write a machine-readable receipt only when useful:
 
 ```sh
