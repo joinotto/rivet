@@ -5,6 +5,7 @@ import path from "path";
 import { spawnSync } from "child_process";
 import { fileURLToPath } from "url";
 import { normalizeDependencyResult } from "../skills/rivet/scripts/lib/dependencies.mjs";
+import { validateStatefulModel } from "../skills/rivet/scripts/lib/stateful.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repository = path.resolve(here, "..");
@@ -66,6 +67,57 @@ function invokeSte(cwd, args) {
 }
 
 const fixture = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-evidence-"));
+
+const statefulModel = {
+  schema: 1,
+  kind: "stateful-test-model",
+  system: "ledger",
+  revision: "fixture-revision",
+  created_at: "2026-10-25",
+  model: {
+    initial_state: "empty",
+    states: [
+      { id: "empty", description: "The ledger has no entries." },
+      { id: "funded", description: "The ledger has a positive balance." },
+    ],
+    commands: [{
+      id: "credit",
+      description: "Add funds.",
+      generator: "Generate a positive integer amount.",
+      precondition: "The amount is within the account limit.",
+      action: "Credit the generated amount.",
+      postcondition: "The observed balance equals the model balance.",
+      from: ["empty", "funded"],
+      to: ["funded"],
+    }],
+    invariants: [{
+      id: "balance-agrees",
+      description: "The implementation and model balances agree.",
+      oracle: "Read both balances after each command.",
+    }],
+  },
+  execution: {
+    runner: "fast-check",
+    runs: 100,
+    max_commands: 50,
+    records_seed: true,
+    shrinking: true,
+    reset: "Create an isolated ledger.",
+    isolation: "Use a new transaction for each run.",
+  },
+  review: {
+    owner: "test-team",
+    evidence: [],
+  },
+};
+const statefulValidation = validateStatefulModel(statefulModel);
+assert.strictEqual(statefulValidation.decision, "ready-for-execution");
+assert.deepStrictEqual(statefulValidation.unreachable_states, []);
+const incompleteStateful = validateStatefulModel({
+  ...statefulModel,
+  execution: { ...statefulModel.execution, records_seed: false },
+});
+assert.strictEqual(incompleteStateful.decision, "incomplete");
 
 fs.writeFileSync(
   path.join(fixture, "package.json"),

@@ -311,9 +311,14 @@ Exit criteria:
 
 Start only after demand is clear.
 
+Implemented:
+
+- Stateful property-test model initialization and validation.
+- Command-path reachability, invariant, reset, isolation, seed, and shrinking
+  readiness checks.
+
 Candidates:
 
-- Stateful property testing.
 - Coverage-guided fuzzing.
 - Chaos experiments.
 - TLA+ model generation and model checking.

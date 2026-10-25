@@ -190,6 +190,24 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" contract \
 
 Rivet can also read a JUnit property-test report with `--property-report`. A coverage percentage is execution evidence, not proof that tests detect defects.
 
+For stateful property tests, define the model before you add generated command
+sequences:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" stateful init \
+  --system ledger \
+  --output .rivet/stateful-ledger.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" stateful validate \
+  --file .rivet/stateful-ledger.json
+```
+
+Declare the initial state, reachable states, generated commands, preconditions,
+actions, postconditions, and invariants. Also declare reset and isolation
+behavior. Record the random seed. Use a runner that shrinks failing command
+sequences when it supports shrinking. Validation checks the model structure and
+state reachability. It does not execute the model or prove that the model
+matches the system.
+
 Coverage normalization accepts Istanbul summary JSON, Cobertura XML, JaCoCo
 XML, LCOV, and Go cover profiles. Rivet reports only aggregate metrics that the
 source artifact contains.

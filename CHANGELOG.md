@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Stateful property-test model initialization and validation with command-path
+  reachability and reproducibility checks.
 - Native Cosign v3 signed-artifact conformance for an offline, self-managed
   key fixture.
 - ASD-STE100 research for agent skills.

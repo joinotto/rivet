@@ -275,6 +275,16 @@ Do not identify “human error” as the root cause without system analysis.
 
 Purpose: Detect stale context, broken adapters, missing tools, invalid policy, expired waivers, and unverifiable evidence.
 
+### `stateful`
+
+Purpose: Initialize and validate a stateful property-test model before a
+language-native runner generates command sequences.
+
+The model must define states, commands, preconditions, transitions,
+postconditions, invariants, reset behavior, isolation, and reproducibility
+settings. Rivet validates the model. It does not claim that validation executed
+the system.
+
 ### `hooks`
 
 Purpose: Configure low-cost automatic checks for changed backend files.
