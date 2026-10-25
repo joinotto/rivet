@@ -117,13 +117,14 @@ assert.strictEqual(incomplete.status, 1, incomplete.stderr);
 assert.strictEqual(JSON.parse(incomplete.stdout).decision, "incomplete");
 
 const serviceRisk = invoke(fixture, [
-  "change",
+  "impact",
   "--files",
   "src/api/orders.js,src/domain/money.js",
   "--json",
 ]);
 assert.strictEqual(serviceRisk.status, 0, serviceRisk.stderr);
 assert.strictEqual(JSON.parse(serviceRisk.stdout).risk_mode, "service");
+assert.strictEqual(JSON.parse(serviceRisk.stdout).workflow, "impact");
 
 const criticalRisk = invoke(fixture, [
   "change",
@@ -1241,7 +1242,7 @@ assert.strictEqual(
 
 const recordPath = path.join(fixture, "change.md");
 const record = invoke(fixture, [
-  "record",
+  "shape",
   "--title",
   "Order authorization",
   "--files",
@@ -1251,6 +1252,16 @@ const record = invoke(fixture, [
 ]);
 assert.strictEqual(record.status, 0, record.stderr);
 assert.match(fs.readFileSync(recordPath, "utf8"), /Risk mode: critical/);
+
+const legacyRecord = invoke(fixture, [
+  "record",
+  "--title",
+  "Legacy alias",
+  "--files",
+  "src/domain/money.js",
+]);
+assert.strictEqual(legacyRecord.status, 0, legacyRecord.stderr);
+assert.match(legacyRecord.stdout, /# Legacy alias/);
 
 const reviewPacketPath = path.join(fixture, ".rivet/review.md");
 const preparedReview = invoke(fixture, [

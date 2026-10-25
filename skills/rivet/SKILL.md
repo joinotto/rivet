@@ -87,8 +87,19 @@ Use existing repository checks first.
 Inspect change risk:
 
 ```sh
-node "<skill-dir>/scripts/rivet-evidence.mjs" change
+node "<skill-dir>/scripts/rivet-evidence.mjs" impact
 ```
+
+Use `shape` to create a TRACE record before a material, distributed, destructive,
+privileged, or critical change:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" shape \
+  --title "Order authorization" \
+  --output .rivet/changes/order-authorization.md
+```
+
+The older `change` and `record` names are compatibility aliases.
 
 Scan for common secret patterns:
 

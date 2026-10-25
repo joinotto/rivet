@@ -69,6 +69,7 @@ Implemented:
 - GitHub Actions annotations.
 - Native skill discovery in Codex with Amazon Bedrock.
 - Native skill discovery in Claude Code.
+- Canonical `shape` and `impact` commands with compatibility aliases.
 
 Not implemented:
 

@@ -83,19 +83,21 @@ Preview its detected checks:
 node skills/rivet/scripts/rivet-evidence.mjs verify --dry-run
 ```
 
-Classify a change:
+Analyze change impact:
 
 ```sh
-node skills/rivet/scripts/rivet-evidence.mjs change
+node skills/rivet/scripts/rivet-evidence.mjs impact
 ```
 
-Create a TRACE change record:
+Shape a change with a TRACE record:
 
 ```sh
-node skills/rivet/scripts/rivet-evidence.mjs record \
+node skills/rivet/scripts/rivet-evidence.mjs shape \
   --title "Order authorization" \
   --output .rivet/changes/order-authorization.md
 ```
+
+The older `change` and `record` names remain as compatibility aliases.
 
 Check skill documentation:
 

@@ -772,6 +772,7 @@ function changeAnalysis() {
   const impact = topologyImpact(discoverTopology(cwd), files);
   const report = {
     schema: 1,
+    workflow: "impact",
     evidence_class: "derived",
     files,
     risk_mode: risk.mode,
@@ -1812,9 +1813,9 @@ if (command === "init") {
   mapProject();
 } else if (command === "inspect") {
   inspect();
-} else if (command === "change") {
+} else if (command === "impact" || command === "change") {
   changeAnalysis();
-} else if (command === "record") {
+} else if (command === "shape" || command === "record") {
   changeRecord();
 } else if (command === "secrets") {
   secretScan();
@@ -1859,7 +1860,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate) | evaluate --fixtures dir --findings file | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
   );
   process.exitCode = 1;
 }
