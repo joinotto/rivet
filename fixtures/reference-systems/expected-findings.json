@@ -16,6 +16,11 @@
       "class": "idempotency"
     },
     {
+      "seed_id": "distributed-failure-recovery-gaps",
+      "fixture": "distributed-failure-recovery",
+      "class": "distributed-failure-recovery"
+    },
+    {
       "seed_id": "high-cardinality-metric-label",
       "fixture": "high-cardinality-telemetry",
       "class": "observability"

@@ -1,0 +1,13 @@
+{
+  "id": "distributed-failure-recovery-gaps",
+  "class": "distributed-failure-recovery",
+  "expected": "Duplicate, delayed, partial, and lost-response cases must preserve one durable order outcome.",
+  "control": "idempotency, monotonic ordering, durable progress, and outcome recovery",
+  "risk_mode": "distributed",
+  "failure_modes": [
+    "duplicate delivery",
+    "delayed out-of-order delivery",
+    "partial completion",
+    "lost response after completed work"
+  ]
+}

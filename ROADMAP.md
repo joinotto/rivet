@@ -26,7 +26,7 @@ Deliver:
 - Database design and migration specification.
 - Host integration contract.
 - One canonical portable skill source.
-- Seven executable reference systems with seeded defects.
+- Eight executable reference systems with seeded defects.
 
 Exit criteria:
 
@@ -244,6 +244,7 @@ Implemented:
 - OpenTelemetry service identity, deployment attribute, metric cardinality, and sensitive-data review.
 - Alert harm, urgency, ownership, and first-action validation.
 - OTLP runtime HTTP resend and repeated client-operation discovery with nested repetition analysis.
+- Reference tests for duplicate, delayed, partial, and lost-response behavior.
 
 Commands:
 

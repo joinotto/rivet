@@ -1956,7 +1956,7 @@ const referenceEvaluation = invoke(repository, [
 ]);
 assert.strictEqual(referenceEvaluation.status, 0, referenceEvaluation.stderr);
 const evaluationReport = JSON.parse(referenceEvaluation.stdout);
-assert.strictEqual(evaluationReport.seed_count, 7);
+assert.strictEqual(evaluationReport.seed_count, 8);
 assert.strictEqual(evaluationReport.metrics.recall, 1);
 assert.strictEqual(evaluationReport.metrics.precision, 1);
 

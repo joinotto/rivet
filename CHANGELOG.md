@@ -31,7 +31,7 @@ This file records notable changes to Rivet.
 - Test-intelligence script discovery and artifact normalization.
 - Repeated-JUnit flake and test-presence analysis.
 - Requirements-first independent-review packet generation.
-- Seven executable backend reference systems with stable seeded defects.
+- Eight executable backend reference systems with stable seeded defects.
 - SARIF, Trivy, CycloneDX, and SPDX security evidence normalization.
 - Dated CISA KEV and FIRST EPSS vulnerability enrichment.
 - Expiring, owned security waiver templates and validation.

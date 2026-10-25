@@ -7,6 +7,10 @@ import { listDocuments } from "./cross-tenant-data/system.mjs";
 import { processPayment } from "./duplicate-side-effect/system.mjs";
 import { requestAttributes } from "./high-cardinality-telemetry/system.mjs";
 import { callWithAmplifiedRetries } from "./retry-amplification/system.mjs";
+import {
+  applyStatus,
+  processOrder,
+} from "./distributed-failure-recovery/system.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 
@@ -40,6 +44,73 @@ await assert.rejects(() =>
 );
 assert.strictEqual(attempts, 9, "The retry amplification seed was removed.");
 
+const duplicateEffects = { reserves: 0, charges: 0 };
+const duplicateGateway = {
+  async reserve() {
+    duplicateEffects.reserves += 1;
+  },
+  async charge() {
+    duplicateEffects.charges += 1;
+    return { status: "charged" };
+  },
+};
+const orderMessage = { orderId: "order-1", amount: 100 };
+await processOrder(orderMessage, duplicateGateway);
+await processOrder(orderMessage, duplicateGateway);
+assert.deepStrictEqual(
+  duplicateEffects,
+  { reserves: 2, charges: 2 },
+  "The duplicate distributed-delivery seed was removed.",
+);
+
+const delayedOrder = { status: "created", sequence: 0 };
+applyStatus(delayedOrder, { status: "paid", sequence: 2 });
+applyStatus(delayedOrder, { status: "authorized", sequence: 1 });
+assert.deepStrictEqual(
+  delayedOrder,
+  { status: "authorized", sequence: 1 },
+  "The delayed out-of-order delivery seed was removed.",
+);
+
+let partialReserves = 0;
+let partialCharges = 0;
+const partialGateway = {
+  async reserve() {
+    partialReserves += 1;
+  },
+  async charge() {
+    partialCharges += 1;
+    if (partialCharges === 1) throw new Error("charge unavailable");
+    return { status: "charged" };
+  },
+};
+await assert.rejects(() => processOrder(orderMessage, partialGateway));
+await processOrder(orderMessage, partialGateway);
+assert.strictEqual(
+  partialReserves,
+  2,
+  "The partial-completion recovery seed was removed.",
+);
+
+let lostResponseCharges = 0;
+const lostResponseGateway = {
+  async reserve() {},
+  async charge() {
+    lostResponseCharges += 1;
+    if (lostResponseCharges === 1) {
+      throw new Error("response lost after provider completion");
+    }
+    return { status: "charged" };
+  },
+};
+await assert.rejects(() => processOrder(orderMessage, lostResponseGateway));
+await processOrder(orderMessage, lostResponseGateway);
+assert.strictEqual(
+  lostResponseCharges,
+  2,
+  "The lost-response recovery seed was removed.",
+);
+
 const migration = fs.readFileSync(
   path.join(root, "unsafe-migration/migration.sql"),
   "utf8",
@@ -72,10 +143,10 @@ const seedFiles = fs
   .readdirSync(root, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
   .map((entry) => path.join(root, entry.name, "seed.json"));
-assert.strictEqual(seedFiles.length, 7);
+assert.strictEqual(seedFiles.length, 8);
 for (const seedFile of seedFiles) {
   const seed = JSON.parse(fs.readFileSync(seedFile, "utf8"));
   assert.ok(seed.id && seed.class && seed.expected && seed.control && seed.risk_mode);
 }
 
-console.log("Seven Rivet reference defects are present.");
+console.log("Eight Rivet reference defects are present.");

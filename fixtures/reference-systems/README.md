@@ -27,3 +27,7 @@ Each fixture contains:
 - The expected defect class.
 - The evidence that a future Rivet workflow must produce.
 
+The distributed-failure fixture demonstrates duplicate delivery, delayed
+out-of-order delivery, partial completion, and a lost response after completed
+work. These are separate observations of one missing recovery design.
+
