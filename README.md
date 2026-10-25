@@ -218,6 +218,7 @@ The product must not present an inferred result as an observed result.
 - [Command and workflow catalog](COMMAND-CATALOG.md)
 - [Security and evidence model](SECURITY-MODEL.md)
 - [Roadmap](ROADMAP.md)
+- [Roadmap status and open evidence](docs/ROADMAP-STATUS.md)
 - [Open-source foundation](OPEN-SOURCE-FOUNDATION.md)
 - [Technical writing rules](TECHNICAL-WRITING.md)
 - [ASD-STE100 for agent skills](docs/ASD-STE100-FOR-SKILLS.md)

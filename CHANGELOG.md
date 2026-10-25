@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Roadmap status record that keeps native-host, security-review, human-baseline,
+  and Phase 6 acceptance gaps explicit.
 - Phase 5 conformance record for workload-bound performance, release evidence
   gaps, and approval-required incident writes.
 - Phase 4 conformance record for distributed failure cases, migration resume,
