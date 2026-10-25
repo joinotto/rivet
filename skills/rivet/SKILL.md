@@ -289,6 +289,16 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" performance \
 
 Reject different workloads. Report measured deltas without labeling them improvements or regressions until the project supplies metric direction and acceptable thresholds.
 
+Evaluate a staged release plan against evidence and optional performance thresholds:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" release \
+  --plan .rivet/release.json \
+  --performance reports/performance-comparison.json
+```
+
+Require increasing rollout stages that end at 100 percent. Record success evidence, a monitoring window, abort conditions, rollback steps, owners, compatibility, and open risks. `ready-for-human-approval` does not deploy or authorize a release.
+
 Write a machine-readable receipt only when useful:
 
 ```sh

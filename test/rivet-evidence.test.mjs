@@ -894,6 +894,73 @@ assert.strictEqual(
   JSON.parse(invalidPerformance.stdout).decision,
   "invalid-comparison",
 );
+
+fs.writeFileSync(
+  path.join(intelligence, "performance-comparison.json"),
+  JSON.stringify(performanceReport),
+);
+const releasePlan = {
+  revision: "candidate",
+  owner: "release-owner",
+  compatibility: {
+    status: "compatible",
+    evidence: "contract-suite-1",
+  },
+  monitoring_window: "30 minutes per stage",
+  rollout_stages: [
+    { percent: 5, success_evidence: "Error and latency objectives hold." },
+    { percent: 25, success_evidence: "No new failure class appears." },
+    { percent: 100, success_evidence: "All release objectives hold." },
+  ],
+  abort_conditions: [
+    "Abort when error rate exceeds the release objective.",
+  ],
+  rollback_steps: [
+    "Route traffic to the previous compatible revision.",
+  ],
+  evidence: [
+    { id: "tests", status: "pass" },
+    { id: "security", status: "pass" },
+  ],
+  performance_thresholds: [{
+    metric: "latency_p95_ms",
+    max_increase_percent: 10,
+  }],
+  open_risks: [],
+};
+fs.writeFileSync(
+  path.join(intelligence, "release-plan.json"),
+  JSON.stringify(releasePlan),
+);
+const heldRelease = invoke(intelligence, [
+  "release",
+  "--plan",
+  "release-plan.json",
+  "--performance",
+  "performance-comparison.json",
+]);
+assert.strictEqual(heldRelease.status, 2, heldRelease.stderr);
+const heldReport = JSON.parse(heldRelease.stdout);
+assert.strictEqual(heldReport.decision, "hold");
+assert.strictEqual(heldReport.performance_thresholds[0].result, "breach");
+
+releasePlan.performance_thresholds[0].max_increase_percent = 25;
+fs.writeFileSync(
+  path.join(intelligence, "release-plan.json"),
+  JSON.stringify(releasePlan),
+);
+const readyRelease = invoke(intelligence, [
+  "release",
+  "--plan",
+  "release-plan.json",
+  "--performance",
+  "performance-comparison.json",
+]);
+assert.strictEqual(readyRelease.status, 0, readyRelease.stderr);
+assert.strictEqual(
+  JSON.parse(readyRelease.stdout).decision,
+  "ready-for-human-approval",
+);
 assert.ok(
   telemetryReport.findings.some(
     (item) => item.id === "unbounded-metric-dimension",

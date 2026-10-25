@@ -276,12 +276,12 @@ Implemented:
 - Workload-bound baseline and candidate comparison.
 - Metric deltas without inferred direction or universal thresholds.
 - Invalid comparison detection for changed workloads.
+- Project-defined performance threshold evaluation.
+- Staged rollout, monitoring, abort, rollback, compatibility, risk, and evidence-gap validation.
 
 Not implemented:
 
 - Statistical sample analysis.
-- Threshold-based release gates.
-- Staged rollout plans.
 - Incident read-only mode.
 - Postmortem timeline generation.
 

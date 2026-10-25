@@ -50,6 +50,7 @@ Version `0.1.0` contains:
 - Expand-and-contract migration plan and dry-run evidence validation.
 - OpenTelemetry semantic, cardinality, sensitive-data, and alert review.
 - Workload-bound performance baseline and candidate comparison.
+- Threshold-based staged release decisions with explicit rollback and evidence gaps.
 
 Run the tests:
 
