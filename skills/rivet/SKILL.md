@@ -292,6 +292,20 @@ declared headroom and monthly cost. It does not invent a universal utilization
 target or treat a provider price as permanent. Test quotas, queues, failover,
 and correlated bottlenecks separately.
 
+Score a saved blinded evaluation campaign:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" evaluate \
+  --campaign reports/evaluation-campaign.json
+```
+
+Declare the seeded defects and each blind run artifact. Label runs as agent
+without Rivet, prose-only Rivet, tool-backed Rivet, or experienced human.
+Record findings, defects introduced, elapsed time, and evidence completeness.
+Rivet calculates per-condition precision and recall and pairwise reviewer
+agreement. Procedural evidence must establish blindness and reviewer
+experience. Agreement does not determine correctness.
+
 Coverage normalization accepts Istanbul summary JSON, Cobertura XML, JaCoCo
 XML, LCOV, and Go cover profiles. Rivet reports only aggregate metrics that the
 source artifact contains.

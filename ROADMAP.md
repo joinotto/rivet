@@ -351,6 +351,8 @@ Implemented:
 - Machine-readable seed records.
 - Deterministic precision, recall, miss, and unexpected-finding scoring.
 - Published expected-finding baseline.
+- Blinded comparison-campaign schema and per-condition scoring.
+- Pairwise observed agreement and Cohen kappa across seeded-defect labels.
 
 Not implemented:
 
@@ -358,7 +360,6 @@ Not implemented:
 - Blind prose-only Rivet runs.
 - Blind tool-backed Rivet runs.
 - Experienced human baseline.
-- Reviewer-agreement measurement.
 
 Compare:
 

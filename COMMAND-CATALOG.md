@@ -328,6 +328,15 @@ measured capacity, a project-selected utilization limit, and a dated price
 snapshot. It does not set universal thresholds or predict unmodeled
 bottlenecks.
 
+### `evaluate`
+
+Purpose: Score seeded findings or a blinded multi-condition evaluation
+campaign.
+
+Campaign scoring compares no-Rivet, prose-only, tool-backed, and experienced
+human runs. It reports precision, recall, introduced defects, elapsed time,
+evidence completeness, observed reviewer agreement, and Cohen kappa.
+
 ### `hooks`
 
 Purpose: Configure low-cost automatic checks for changed backend files.

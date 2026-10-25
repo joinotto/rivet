@@ -17,6 +17,7 @@ import {
 } from "../skills/rivet/scripts/lib/formalize.mjs";
 import { validatePrivacyAnalysis } from "../skills/rivet/scripts/lib/privacy.mjs";
 import { evaluateCapacityPlan } from "../skills/rivet/scripts/lib/capacity.mjs";
+import { evaluateCampaign } from "../skills/rivet/scripts/lib/evaluate.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repository = path.resolve(here, "..");
@@ -431,6 +432,31 @@ assert.strictEqual(
   }).decision,
   "capacity-gap",
 );
+const evaluationCampaign = {
+  schema: 1,
+  kind: "evaluation-campaign",
+  seeds: [{ id: "seed-a" }, { id: "seed-b" }],
+  runs: [
+    ["without", "agent-without-rivet", ["seed-a"], 0.5],
+    ["prose", "prose-only-rivet", ["seed-a"], 0.6],
+    ["tools", "tool-backed-rivet", ["seed-a", "seed-b"], 1],
+    ["human", "experienced-human", ["seed-a", "seed-b"], 0.9],
+  ].map(([id, condition, findings, completeness]) => ({
+    id,
+    condition,
+    blind: true,
+    reviewer_id: `${id}-reviewer`,
+    artifact: `reports/${id}.json`,
+    findings: findings.map((seed_id) => ({ seed_id })),
+    defects_introduced: 0,
+    duration_seconds: 60,
+    evidence_completeness: completeness,
+  })),
+};
+const campaignResult = evaluateCampaign(evaluationCampaign);
+assert.strictEqual(campaignResult.decision, "comparison-ready");
+assert.strictEqual(campaignResult.conditions["tool-backed-rivet"].mean_recall, 1);
+assert.strictEqual(campaignResult.reviewer_agreement.length, 6);
 
 fs.writeFileSync(
   path.join(fixture, "package.json"),

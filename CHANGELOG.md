@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Blinded evaluation-campaign scoring with per-condition metrics and pairwise
+  reviewer agreement.
 - Native Codex and Claude Code review conformance against a seeded
   authorization defect.
 - Workload-bound cost and capacity planning with measured limits, dated prices,
