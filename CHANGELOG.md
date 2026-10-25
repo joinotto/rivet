@@ -6,6 +6,10 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Phase 2 conformance record that binds each exit criterion to executable
+  evidence and documented limitations.
+- Reproducible generated-test evidence that removes temporary workspace paths
+  before it calculates failure-output digests.
 - Deterministic expected-behavior test generation that detects all eight
   published seeds across eleven reference failure cases.
 - Executable test-quality evidence where complete line coverage misses a

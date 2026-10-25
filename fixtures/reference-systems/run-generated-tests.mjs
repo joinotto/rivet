@@ -186,6 +186,7 @@ assert.strictEqual(charges, 1);
 ];
 
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-generated-"));
+const temporaryPaths = new Set([temporary, fs.realpathSync(temporary)]);
 const results = [];
 try {
   for (const [index, testCase] of cases.entries()) {
@@ -207,6 +208,10 @@ try {
       encoding: "utf8",
     });
     const contract = seed(testCase.fixture);
+    let normalizedOutput = `${execution.stdout || ""}${execution.stderr || ""}`;
+    for (const temporaryPath of temporaryPaths) {
+      normalizedOutput = normalizedOutput.replaceAll(temporaryPath, "<TEMP>");
+    }
     results.push({
       seed_id: contract.id,
       fixture: testCase.fixture,
@@ -214,7 +219,7 @@ try {
       generated_test_digest: digest(testCase.source.trimStart()),
       exit_code: execution.status,
       detected_seeded_defect: execution.status !== 0,
-      output_digest: digest(`${execution.stdout || ""}${execution.stderr || ""}`),
+      output_digest: digest(normalizedOutput),
     });
   }
 } finally {

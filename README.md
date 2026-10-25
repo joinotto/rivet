@@ -227,6 +227,7 @@ The product must not present an inferred result as an observed result.
 - [Native review conformance](docs/NATIVE-REVIEW-CONFORMANCE.md)
 - [Native host conformance](docs/HOST-CONFORMANCE.md)
 - [Initial blind evaluation](docs/BLIND-EVALUATION-2026-10-25.md)
+- [Phase 2 conformance](docs/PHASE-2-CONFORMANCE.md)
 - [Seeded reference systems](fixtures/reference-systems/README.md)
 
 ## Honest assessment
