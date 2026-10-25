@@ -53,6 +53,7 @@ Version `0.1.0` contains:
 - Threshold-based staged release decisions with explicit rollback and evidence gaps.
 - Read-only, approval-aware, hash-chained incident timelines.
 - Blameless postmortem drafts from validated incident evidence.
+- Repeated-sample performance statistics with explicit adequacy limits.
 
 Run the tests:
 

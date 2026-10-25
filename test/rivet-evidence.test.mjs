@@ -896,6 +896,64 @@ assert.strictEqual(
 );
 
 fs.writeFileSync(
+  path.join(intelligence, "sample-baseline.json"),
+  JSON.stringify({
+    revision: "baseline",
+    workload: performanceWorkload,
+    samples: {
+      latency_p95_ms: Array.from({ length: 30 }, (_, index) => 100 + index),
+    },
+  }),
+);
+fs.writeFileSync(
+  path.join(intelligence, "sample-candidate.json"),
+  JSON.stringify({
+    revision: "candidate",
+    workload: performanceWorkload,
+    samples: {
+      latency_p95_ms: Array.from({ length: 30 }, (_, index) => 110 + index),
+    },
+  }),
+);
+const samplePerformance = invoke(intelligence, [
+  "performance",
+  "--sample-baseline",
+  "sample-baseline.json",
+  "--sample-candidate",
+  "sample-candidate.json",
+]);
+assert.strictEqual(samplePerformance.status, 0, samplePerformance.stderr);
+const sampleReport = JSON.parse(samplePerformance.stdout);
+assert.strictEqual(sampleReport.decision, "comparison-observed");
+assert.strictEqual(
+  sampleReport.metrics[0].directional_evidence,
+  "increase",
+);
+assert.strictEqual(sampleReport.metrics[0].baseline.count, 30);
+assert.ok(Array.isArray(sampleReport.metrics[0].mean_delta_ci_95_approx));
+
+fs.writeFileSync(
+  path.join(intelligence, "small-sample.json"),
+  JSON.stringify({
+    revision: "candidate-small",
+    workload: performanceWorkload,
+    samples: { latency_p95_ms: [110, 111, 112] },
+  }),
+);
+const insufficientSamples = invoke(intelligence, [
+  "performance",
+  "--sample-baseline",
+  "sample-baseline.json",
+  "--sample-candidate",
+  "small-sample.json",
+]);
+assert.strictEqual(insufficientSamples.status, 1, insufficientSamples.stderr);
+assert.strictEqual(
+  JSON.parse(insufficientSamples.stdout).metrics[0].directional_evidence,
+  "insufficient-samples",
+);
+
+fs.writeFileSync(
   path.join(intelligence, "performance-comparison.json"),
   JSON.stringify(performanceReport),
 );

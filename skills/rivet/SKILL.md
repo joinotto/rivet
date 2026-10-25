@@ -289,6 +289,16 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" performance \
 
 Reject different workloads. Report measured deltas without labeling them improvements or regressions until the project supplies metric direction and acceptable thresholds.
 
+Compare repeated metric samples:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" performance \
+  --sample-baseline reports/baseline-samples.json \
+  --sample-candidate reports/candidate-samples.json
+```
+
+Rivet reports descriptive statistics and approximate confidence intervals for at least 30 samples per side. Use a distribution-appropriate method for heavy-tailed latency data. Statistical direction does not determine business significance.
+
 Evaluate a staged release plan against evidence and optional performance thresholds:
 
 ```sh

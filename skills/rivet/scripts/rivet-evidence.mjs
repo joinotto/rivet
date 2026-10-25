@@ -39,7 +39,10 @@ import {
   validateMigrationPlan,
 } from "./lib/migration.mjs";
 import { analyzeTelemetry } from "./lib/observe.mjs";
-import { comparePerformance } from "./lib/performance.mjs";
+import {
+  comparePerformance,
+  comparePerformanceSamples,
+} from "./lib/performance.mjs";
 import { evaluateRelease } from "./lib/release.mjs";
 import {
   appendIncidentEvent,
@@ -1374,18 +1377,26 @@ function observationEvidence() {
 
 function performanceEvidence() {
   try {
-    const baseline = evidenceArtifact("--baseline");
-    const candidate = evidenceArtifact("--candidate");
+    const sampleMode = value("--sample-baseline") || value("--sample-candidate");
+    const baseline = evidenceArtifact(
+      sampleMode ? "--sample-baseline" : "--baseline",
+    );
+    const candidate = evidenceArtifact(
+      sampleMode ? "--sample-candidate" : "--candidate",
+    );
     if (!baseline || !candidate) {
       throw new Error(
         "Performance comparison requires --baseline <file> and --candidate <file>.",
       );
     }
-    const report = comparePerformance(baseline, candidate);
+    const report = sampleMode
+      ? comparePerformanceSamples(baseline, candidate)
+      : comparePerformance(baseline, candidate);
     report.baseline_artifact = path.relative(cwd, baseline);
     report.candidate_artifact = path.relative(cwd, candidate);
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
     if (report.decision === "invalid-comparison") process.exitCode = 2;
+    if (report.decision === "insufficient-evidence") process.exitCode = 1;
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
@@ -1765,7 +1776,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance --baseline file --candidate file | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

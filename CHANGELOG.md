@@ -45,6 +45,7 @@ This file records notable changes to Rivet.
 - Project-threshold and staged-rollout release decisions.
 - Read-only, approval-aware incident action timelines.
 - Blameless postmortem drafts from validated timelines.
+- Repeated-sample performance statistics and adequacy reporting.
 
 ### Changed
 

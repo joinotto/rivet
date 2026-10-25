@@ -281,10 +281,11 @@ Implemented:
 - Read-only incident mode with approval-required write records.
 - Hash-chained, time-ordered incident action timeline.
 - Blameless postmortem drafts from validated incident timelines.
+- Repeated-sample descriptive statistics and approximate confidence intervals.
+- Insufficient-sample reporting.
 
 Not implemented:
 
-- Statistical sample analysis.
 - Preventive-action workflow and follow-up verification.
 
 Commands:
