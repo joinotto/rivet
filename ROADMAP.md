@@ -123,6 +123,8 @@ Implemented:
 
 - Package-local check discovery with preserved working directories.
 - Reverse-dependency-based test selection.
+- TRACE behavior, invariant, and failure-case extraction.
+- Risk-based test-family planning.
 
 Not implemented:
 
@@ -130,7 +132,6 @@ Not implemented:
 - Mutation testing adapter.
 - Property testing adapter.
 - API contract testing adapter.
-- Behavior and invariant extraction.
 - Independent review mode.
 - Flake detection.
 

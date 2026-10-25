@@ -192,6 +192,49 @@ assert.deepStrictEqual(
   JSON.parse(selectedTests.stdout).selected_checks.map((item) => item.id),
   ["test:apps/api", "test:packages/core"],
 );
+assert.match(
+  JSON.parse(selectedTests.stdout).missing_inputs[0],
+  /No change record/,
+);
+fs.mkdirSync(path.join(topology, ".rivet/changes"), { recursive: true });
+fs.writeFileSync(
+  path.join(topology, ".rivet/changes/core.md"),
+  `# Core change
+
+## Target
+
+- Required behavior: Preserve one charge for a repeated request.
+
+## Invariants
+
+- One payment attempt creates at most one provider charge.
+
+## Threats and failure cases
+
+- The provider completes the charge and the response is lost.
+
+## Verification
+
+- Retry the same stable request identifier.
+
+## Open risks
+
+- Provider behavior is simulated.
+`,
+);
+const plannedTests = invoke(topology, [
+  "test",
+  "--files",
+  "packages/core/src/payment.js",
+  "--record",
+  ".rivet/changes/core.md",
+  "--json",
+]);
+assert.strictEqual(plannedTests.status, 0, plannedTests.stderr);
+const testPlan = JSON.parse(plannedTests.stdout);
+assert.strictEqual(testPlan.record.invariants.length, 1);
+assert.ok(testPlan.test_families.some((item) => item.id === "recorded-failures"));
+assert.deepStrictEqual(testPlan.missing_inputs, []);
 const nestedVerification = invoke(topology, [
   "verify",
   "--checks",

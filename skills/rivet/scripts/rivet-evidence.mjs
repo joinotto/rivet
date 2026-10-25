@@ -15,6 +15,7 @@ import {
   inspectPostgresMigration,
   inspectPostgresPlan,
 } from "./lib/postgres.mjs";
+import { extractChangeRecord, testFamilies } from "./lib/test-plan.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -899,6 +900,19 @@ function testSelection() {
     if ((check.working_directory || ".") === ".") return true;
     return componentPaths.has(check.working_directory);
   });
+  const recordPath = value("--record");
+  let record = null;
+  if (recordPath) {
+    const absolute = path.resolve(cwd, recordPath);
+    if (!absolute.startsWith(`${cwd}${path.sep}`) || !fs.existsSync(absolute)) {
+      console.error("The change record must be an existing file inside the project.");
+      process.exitCode = 1;
+      return;
+    }
+    record = extractChangeRecord(absolute);
+    record.source = path.relative(cwd, absolute);
+  }
+  const risk = classifyRisk(files);
   const report = {
     schema: 1,
     workflow: "test-selection",
@@ -911,7 +925,16 @@ function testSelection() {
       working_directory: check.working_directory || ".",
       source: check.source,
     })),
-    risks: classifyRisk(files),
+    risks: risk,
+    record,
+    test_families: testFamilies(risk.mode, record),
+    missing_inputs: record
+      ? [
+          !record.target.length ? "Required behavior is missing from the change record." : null,
+          !record.invariants.length ? "No invariant was recorded." : null,
+          !record.failure_cases.length ? "No threat or failure case was recorded." : null,
+        ].filter(Boolean)
+      : ["No change record was supplied. Rivet did not infer product behavior."],
     limitations: [
       "Selection uses declared package dependencies and changed paths.",
       "Runtime calls, dynamic imports, generated code, and external consumers can require additional tests.",
@@ -927,6 +950,11 @@ function testSelection() {
   for (const check of report.selected_checks) {
     console.log(`- ${check.id} (${check.working_directory})`);
   }
+  console.log("Test families:");
+  for (const family of report.test_families) {
+    console.log(`- ${family.id}: ${family.purpose}`);
+  }
+  for (const missing of report.missing_inputs) console.log(`- missing: ${missing}`);
   for (const limitation of report.limitations) console.log(`- ${limitation}`);
 }
 
@@ -1159,7 +1187,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--json] | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--json] | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

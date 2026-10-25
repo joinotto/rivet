@@ -141,6 +141,16 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" test --json
 
 Review the limitations and add tests for runtime or external dependencies that repository topology cannot observe.
 
+Supply a TRACE change record to extract explicit behavior, invariants, failure cases, and risk-based test families:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" test \
+  --record .rivet/changes/change.md \
+  --json
+```
+
+Rivet reports missing inputs. It does not invent product requirements.
+
 Write a machine-readable receipt only when useful:
 
 ```sh
