@@ -495,8 +495,89 @@ const mutationEvidence = invoke(intelligence, [
 ]);
 assert.strictEqual(mutationEvidence.status, 2, mutationEvidence.stderr);
 const mutationReport = JSON.parse(mutationEvidence.stdout);
+assert.strictEqual(mutationReport.format, "stryker-json");
 assert.strictEqual(mutationReport.mutation_score, 50);
 assert.strictEqual(mutationReport.surviving_mutants.length, 1);
+
+fs.writeFileSync(
+  path.join(intelligence, "mutations.xml"),
+  `<?xml version="1.0" encoding="UTF-8"?>
+<mutations>
+  <mutation detected="true" status="KILLED">
+    <sourceFile>Order.java</sourceFile>
+    <mutatedClass>example.Order</mutatedClass>
+    <mutatedMethod>total</mutatedMethod>
+    <lineNumber>12</lineNumber>
+    <mutator>MathMutator</mutator>
+  </mutation>
+  <mutation detected="false" status="NO_COVERAGE">
+    <sourceFile>Order.java</sourceFile>
+    <mutatedClass>example.Order</mutatedClass>
+    <mutatedMethod>discount</mutatedMethod>
+    <lineNumber>18</lineNumber>
+    <mutator>ReturnValsMutator</mutator>
+  </mutation>
+</mutations>`,
+);
+const pitEvidence = invoke(intelligence, [
+  "test",
+  "--mutation-report",
+  "mutations.xml",
+]);
+assert.strictEqual(pitEvidence.status, 2, pitEvidence.stderr);
+const pitReport = JSON.parse(pitEvidence.stdout);
+assert.strictEqual(pitReport.format, "pitest-xml");
+assert.strictEqual(pitReport.mutation_score, 50);
+assert.strictEqual(pitReport.surviving_mutants[0].status, "NO_COVERAGE");
+
+fs.writeFileSync(
+  path.join(intelligence, "outcomes.json"),
+  JSON.stringify({
+    cargo_mutants_version: "25.3.1",
+    total_mutants: 2,
+    missed: 1,
+    caught: 1,
+    timeout: 0,
+    unviable: 0,
+    outcomes: [
+      {
+        scenario: {
+          Mutant: {
+            name: "src/order.rs:12: replace + with -",
+            file: "src/order.rs",
+            genre: "BinaryOperator",
+            span: { start: { line: 12, column: 9 } },
+          },
+        },
+        summary: "CaughtMutant",
+      },
+      {
+        scenario: {
+          Mutant: {
+            name: "src/order.rs:20: replace true with false",
+            file: "src/order.rs",
+            genre: "BoolValue",
+            span: { start: { line: 20, column: 5 } },
+          },
+        },
+        summary: "MissedMutant",
+      },
+    ],
+  }),
+);
+const cargoMutationEvidence = invoke(intelligence, [
+  "test",
+  "--mutation-report",
+  "outcomes.json",
+]);
+assert.strictEqual(cargoMutationEvidence.status, 2, cargoMutationEvidence.stderr);
+const cargoMutationReport = JSON.parse(cargoMutationEvidence.stdout);
+assert.strictEqual(cargoMutationReport.format, "cargo-mutants-json");
+assert.strictEqual(cargoMutationReport.mutation_score, 50);
+assert.strictEqual(
+  cargoMutationReport.surviving_mutants[0].location.file,
+  "src/order.rs",
+);
 
 fs.writeFileSync(
   path.join(intelligence, "contract.xml"),

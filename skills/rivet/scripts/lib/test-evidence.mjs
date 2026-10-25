@@ -163,41 +163,163 @@ export function normalizeCoverage(file) {
   };
 }
 
-export function normalizeMutation(file) {
-  const document = JSON.parse(fs.readFileSync(file, "utf8"));
-  const mutants = Object.values(document.files || {})
-    .flatMap((item) => item.mutants || []);
+function mutationReport(format, mutants, statusGroups) {
   const counts = {};
   for (const mutant of mutants) {
     const status = mutant.status || "Unknown";
     counts[status] = (counts[status] || 0) + 1;
   }
-  const assessed = mutants.filter(
-    (item) => !["Ignored", "CompileError"].includes(item.status),
-  );
-  const killed = assessed.filter((item) =>
-    ["Killed", "Timeout"].includes(item.status),
-  ).length;
-  const survived = assessed.filter((item) => item.status === "Survived");
+  const ignored = new Set(statusGroups.ignored);
+  const detected = new Set(statusGroups.detected);
+  const gaps = new Set(statusGroups.gaps);
+  const failures = new Set(statusGroups.failures);
+  const assessed = mutants.filter((item) => !ignored.has(item.status));
+  const killed = assessed.filter((item) => detected.has(item.status)).length;
+  const survived = assessed.filter((item) => gaps.has(item.status));
+  const toolFailures = assessed.filter((item) => failures.has(item.status));
   return {
     schema: 1,
     kind: "mutation",
     evidence_class: "observed",
-    artifact: file,
+    format,
     counts,
     mutation_score:
       assessed.length ? Number(((killed / assessed.length) * 100).toFixed(2)) : null,
     surviving_mutants: survived.map((item) => ({
       id: item.id || null,
-      mutator: item.mutatorName || null,
+      mutator: item.mutator || null,
+      location: item.location || null,
+      status: item.status,
+    })),
+    tool_failures: toolFailures.map((item) => ({
+      id: item.id || null,
+      status: item.status,
       location: item.location || null,
     })),
-    decision: survived.length ? "test-gaps" : assessed.length ? "pass" : "insufficient-evidence",
+    decision: toolFailures.length
+      ? "incomplete"
+      : survived.length
+        ? "test-gaps"
+        : assessed.length
+          ? "pass"
+          : "insufficient-evidence",
     limitations: [
       "Mutation score depends on the selected source files, operators, and test command.",
       "Equivalent mutants can survive without representing a useful test gap.",
+      "Tool-specific statuses are preserved because mutation tools do not classify every outcome in the same way.",
     ],
   };
+}
+
+function childText(xml, name) {
+  return xml.match(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`))?.[1]?.trim() || null;
+}
+
+function normalizePitMutation(xml) {
+  const mutants = [];
+  for (const match of xml.matchAll(/<mutation\b([^>]*)>([\s\S]*?)<\/mutation>/g)) {
+    const attributes = match[1];
+    const body = match[2];
+    const status = attributes.match(/\bstatus=["']([^"']+)["']/)?.[1] || "UNKNOWN";
+    const source = childText(body, "sourceFile");
+    const line = childText(body, "lineNumber");
+    mutants.push({
+      id: [
+        childText(body, "mutatedClass"),
+        childText(body, "mutatedMethod"),
+        line,
+        childText(body, "mutator"),
+      ].filter(Boolean).join(":"),
+      status,
+      mutator: childText(body, "mutator"),
+      location: source ? { file: source, line: line ? Number(line) : null } : null,
+    });
+  }
+  if (!mutants.length) throw new Error("PIT XML has no mutation records.");
+  return mutationReport("pitest-xml", mutants, {
+    detected: ["KILLED", "TIMED_OUT"],
+    gaps: ["SURVIVED", "NO_COVERAGE"],
+    ignored: ["NON_VIABLE"],
+    failures: ["RUN_ERROR", "MEMORY_ERROR"],
+  });
+}
+
+function normalizeCargoMutants(document) {
+  if (!Number.isInteger(document.total_mutants) || !Array.isArray(document.outcomes)) {
+    throw new Error("cargo-mutants JSON has no lab outcome.");
+  }
+  const mutantOutcomes = document.outcomes.filter((item) =>
+    [
+      "CaughtMutant",
+      "MissedMutant",
+      "Timeout",
+      "Unviable",
+      "Failure",
+    ].includes(item.summary),
+  );
+  const mutants = mutantOutcomes.map((item, index) => {
+    const mutant =
+      item.scenario?.Mutant ||
+      item.scenario?.mutant ||
+      item.scenario ||
+      {};
+    return {
+      id: mutant.name || item.diff_path || `mutant-${index + 1}`,
+      status: item.summary,
+      mutator: mutant.genre || null,
+      location: mutant.file
+        ? {
+            file: mutant.file,
+            line: mutant.span?.start?.line || null,
+          }
+        : null,
+    };
+  });
+  if (mutants.length !== document.total_mutants) {
+    throw new Error("cargo-mutants aggregate count does not match its mutant outcomes.");
+  }
+  return mutationReport("cargo-mutants-json", mutants, {
+    detected: ["CaughtMutant", "Timeout"],
+    gaps: ["MissedMutant"],
+    ignored: ["Unviable"],
+    failures: ["Failure"],
+  });
+}
+
+export function normalizeMutation(file) {
+  const body = fs.readFileSync(file, "utf8");
+  let report;
+  if (body.trimStart().startsWith("<")) {
+    if (!/<mutations\b/.test(body)) {
+      throw new Error("The XML artifact is not a PIT mutation report.");
+    }
+    report = normalizePitMutation(body);
+  } else {
+    const document = JSON.parse(body);
+    if (
+      Object.hasOwn(document, "cargo_mutants_version") ||
+      (Object.hasOwn(document, "total_mutants") && Array.isArray(document.outcomes))
+    ) {
+      report = normalizeCargoMutants(document);
+    } else {
+      const mutants = Object.values(document.files || {})
+        .flatMap((item) => item.mutants || [])
+        .map((item) => ({
+          id: item.id || null,
+          status: item.status || "Unknown",
+          mutator: item.mutatorName || null,
+          location: item.location || null,
+        }));
+      report = mutationReport("stryker-json", mutants, {
+        detected: ["Killed", "Timeout"],
+        gaps: ["Survived", "NoCoverage"],
+        ignored: ["Ignored", "CompileError"],
+        failures: ["RuntimeError"],
+      });
+    }
+  }
+  report.artifact = file;
+  return report;
 }
 
 function attribute(xml, name) {

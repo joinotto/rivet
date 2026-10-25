@@ -194,6 +194,10 @@ Coverage normalization accepts Istanbul summary JSON, Cobertura XML, JaCoCo
 XML, LCOV, and Go cover profiles. Rivet reports only aggregate metrics that the
 source artifact contains.
 
+Mutation normalization accepts Stryker JSON, PIT XML, and cargo-mutants lab
+outcome JSON. Rivet preserves tool-specific statuses and reports execution
+errors separately from surviving mutants.
+
 Preview repository-declared active contract checks:
 
 ```sh
