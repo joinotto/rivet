@@ -291,10 +291,12 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" sbom \
 Use `--signature sigstore --bundle bundle.json --identity value --issuer value`
 for identity-constrained Sigstore verification of CycloneDX or SPDX artifacts.
 Use `--signature cosign-key --bundle bundle.json --key-file public.key` for a
-self-managed Cosign key.
+self-managed Cosign key. This mode verifies the key signature but explicitly
+does not require a transparency-log entry.
 An unavailable validator or verifier produces insufficient evidence. A valid
 schema does not prove completeness. A valid signature does not prove content
-quality.
+quality. Require `sigstore` mode for public identity and transparency-log
+verification in that case.
 
 Preview and run a repository-declared SAST command:
 

@@ -781,6 +781,12 @@ fs.writeFileSync(
   `#!/usr/bin/env node
 if (process.argv.includes("--version")) {
   process.stdout.write("cosign version v3.1.4\\n");
+} else if (
+  process.argv.includes("--key") &&
+  !process.argv.includes("--insecure-ignore-tlog")
+) {
+  process.stderr.write("offline key verification must ignore the transparency log\\n");
+  process.exit(1);
 } else {
   process.stdout.write("Verified OK\\n");
 }
@@ -862,6 +868,10 @@ assert.strictEqual(verifiedCosignKeyReport.decision, "verified");
 assert.strictEqual(
   verifiedCosignKeyReport.signature_validation.mode,
   "cosign-key",
+);
+assert.match(
+  verifiedCosignKeyReport.signature_validation.output,
+  /Verified OK/,
 );
 
 fs.writeFileSync(

@@ -1593,6 +1593,7 @@ function sbomEvidence() {
           key,
           "--bundle",
           bundle,
+          "--insecure-ignore-tlog",
           artifact,
         ];
       } else {
