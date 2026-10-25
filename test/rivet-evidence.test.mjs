@@ -245,6 +245,7 @@ fs.writeFileSync(
       "test:mutation": "stryker run",
       "test:property": "vitest run property",
       "test:contract": "schemathesis run",
+      "security:scan": "node -e \"process.exit(0)\"",
     },
   }),
 );
@@ -254,6 +255,34 @@ assert.deepStrictEqual(
   JSON.parse(intelligenceInspection.stdout).project.checks.map((item) => item.kind),
   ["coverage-check", "mutation-check", "property-check", "contract-check"],
 );
+assert.strictEqual(
+  JSON.parse(intelligenceInspection.stdout).project.security_checks[0].kind,
+  "sast-check",
+);
+
+const securityDryRun = invoke(intelligence, [
+  "security",
+  "--run",
+  "--dry-run",
+]);
+assert.strictEqual(securityDryRun.status, 0, securityDryRun.stderr);
+assert.match(securityDryRun.stdout, /security:scan/);
+const securityWithoutNetworkApproval = invoke(intelligence, [
+  "security",
+  "--run",
+]);
+assert.strictEqual(securityWithoutNetworkApproval.status, 1);
+assert.match(
+  securityWithoutNetworkApproval.stderr,
+  /explicit --allow-network/,
+);
+const securityRun = invoke(intelligence, [
+  "security",
+  "--run",
+  "--allow-network",
+]);
+assert.strictEqual(securityRun.status, 0, securityRun.stderr);
+assert.strictEqual(JSON.parse(securityRun.stdout).decision, "pass");
 
 fs.writeFileSync(
   path.join(intelligence, "coverage-summary.json"),

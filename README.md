@@ -45,6 +45,7 @@ Version `0.1.0` contains:
 - Expiring security waiver templates and structural validation.
 - Revision-bound vulnerability reachability evidence.
 - Sigstore/Cosign evidence-signing and identity-constrained verification plans.
+- Explicitly authorized execution of repository-declared SAST commands.
 
 Run the tests:
 

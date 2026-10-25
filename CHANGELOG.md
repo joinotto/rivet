@@ -37,6 +37,7 @@ This file records notable changes to Rivet.
 - Expiring, owned security waiver templates and validation.
 - Revision-bound vulnerability reachability evidence.
 - Sigstore/Cosign keyless evidence-signing adapter.
+- Gated execution of repository-declared SAST commands.
 
 ### Changed
 

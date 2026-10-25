@@ -212,3 +212,38 @@ export function discoverDependencyAdapters(cwd) {
   return adapters;
 }
 
+export function discoverSecurityAdapters(cwd) {
+  const adapters = [];
+  const scriptNames = [
+    "sast",
+    "security",
+    "security:scan",
+    "scan:security",
+    "semgrep",
+    "codeql",
+  ];
+  for (const packageFile of packageFiles(cwd)) {
+    const directory = path.dirname(packageFile);
+    const packageJson = readJson(directory, "package.json");
+    if (!packageJson) continue;
+    const relative = path.relative(cwd, directory) || ".";
+    const runner = nodeRunner(directory);
+    for (const scriptId of scriptNames) {
+      if (!packageJson.scripts?.[scriptId]) continue;
+      adapters.push({
+        schema: ADAPTER_SCHEMA,
+        id: relative === "." ? scriptId : `${scriptId}:${relative}`,
+        base_id: scriptId,
+        ecosystem: "node",
+        executable: runner,
+        args: runner === "npm" ? ["run", scriptId] : [scriptId],
+        working_directory: relative,
+        source: `${relative === "." ? "package.json" : `${relative}/package.json`}#scripts.${scriptId}`,
+        kind: "sast-check",
+        network: "unknown",
+      });
+    }
+  }
+  return adapters;
+}
+

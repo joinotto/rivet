@@ -7,6 +7,7 @@ import { spawnSync } from "child_process";
 import {
   discoverCheckAdapters,
   discoverDependencyAdapters,
+  discoverSecurityAdapters,
 } from "./lib/adapters.mjs";
 import { fingerprint, redact } from "./lib/redact.mjs";
 import { discoverTopology, topologyImpact } from "./lib/topology.mjs";
@@ -117,6 +118,7 @@ function detectProject() {
     ].filter(exists),
     checks: discoverCheckAdapters(cwd),
     dependency_checks: discoverDependencyAdapters(cwd),
+    security_checks: discoverSecurityAdapters(cwd),
   };
 }
 
@@ -251,6 +253,11 @@ function mapProject() {
       ecosystem: item.ecosystem,
       source: item.source,
     })),
+    security_checks: project.security_checks.map((item) => ({
+      id: item.id,
+      ecosystem: item.ecosystem,
+      source: item.source,
+    })),
     topology,
     unknowns: [
       "Runtime topology was not observed.",
@@ -270,6 +277,9 @@ function mapProject() {
   );
   console.log(
     `Dependency checks: ${map.dependency_checks.map((item) => item.id).join(", ") || "none"}`,
+  );
+  console.log(
+    `Security checks: ${map.security_checks.map((item) => item.id).join(", ") || "none"}`,
   );
   console.log(
     `Components: ${map.topology.components.map((item) => item.id).join(", ") || "none"}`,
@@ -449,10 +459,17 @@ function runAdapters(adapters, workflow) {
           : results.some((item) => item.result === "findings")
             ? "review-findings"
             : "pass",
-    limitations: [
-      "Dependency tools report known data from their configured sources.",
-      "A clean result does not identify a new malicious package or prove runtime reachability.",
-    ],
+    limitations:
+      workflow === "dependencies"
+        ? [
+            "Dependency tools report known data from their configured sources.",
+            "A clean result does not identify a new malicious package or prove runtime reachability.",
+          ]
+        : [
+            "A zero exit status means only that the declared repository command completed successfully.",
+            "Use the command's machine-readable artifact to evaluate security findings.",
+            "A clean command result does not prove that the system is secure.",
+          ],
   };
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
   if (report.decision === "incomplete" || report.decision === "insufficient-evidence") {
@@ -485,7 +502,11 @@ function findExecutable(executable) {
 
 function doctor() {
   const project = detectProject();
-  const adapters = [...project.checks, ...project.dependency_checks];
+  const adapters = [
+    ...project.checks,
+    ...project.dependency_checks,
+    ...project.security_checks,
+  ];
   const tools = adapters.map((adapter) => ({
     id: adapter.id,
     ecosystem: adapter.ecosystem,
@@ -1101,6 +1122,20 @@ function evidenceArtifact(flag) {
 
 function securityEvidence() {
   try {
+    if (has("--run")) {
+      const adapters = discoverSecurityAdapters(cwd);
+      if (has("--dry-run")) {
+        runAdapters(adapters, "security");
+        return;
+      }
+      if (!has("--allow-network")) {
+        throw new Error(
+          "Security command execution requires explicit --allow-network.",
+        );
+      }
+      runAdapters(adapters, "security");
+      return;
+    }
     const reachability = value("--reachability");
     if (reachability) {
       const findings = evidenceArtifact("--reachability");
@@ -1512,7 +1547,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

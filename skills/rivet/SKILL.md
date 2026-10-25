@@ -195,6 +195,15 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" sbom \
 
 Preserve source identifiers such as CWE only when the tool supplies them. Do not present a clean artifact as proof that the system is secure.
 
+Preview and run a repository-declared SAST command:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" security --run --dry-run
+node "<skill-dir>/scripts/rivet-evidence.mjs" security --run --allow-network
+```
+
+Rivet requires network authorization because repository security commands can download rules or contact a service. Use the command's SARIF artifact to interpret findings.
+
 Join vulnerability findings with saved CISA KEV and FIRST EPSS snapshots:
 
 ```sh

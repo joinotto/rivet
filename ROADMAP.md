@@ -184,10 +184,11 @@ Implemented:
 - Expiring, owned, evidence-linked waiver templates and validation.
 - Revision-bound reachability records with fail-safe unknown handling.
 - Sigstore/Cosign keyless signing and identity-constrained verification adapter.
+- Repository-declared SAST command discovery and gated execution.
 
 Not implemented:
 
-- Active SAST adapter execution.
+- Native SAST tool fixtures with SARIF production.
 - Full SBOM schema and signature validation.
 - Native signed-artifact fixture because Cosign is unavailable in the current environment.
 
