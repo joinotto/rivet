@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Revision-bound engineering privacy analysis with data-minimization,
+  retention, deletion, third-party, request, and qualified-review controls.
 - TLA+ abstraction-contract and model-check evidence with explicit bounds,
   omissions, implementation mappings, and counterexample handling.
 - Bounded chaos-experiment planning and result evidence with mandatory stop,

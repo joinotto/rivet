@@ -15,6 +15,7 @@ import {
   normalizeModelCheckResult,
   validateFormalModel,
 } from "../skills/rivet/scripts/lib/formalize.mjs";
+import { validatePrivacyAnalysis } from "../skills/rivet/scripts/lib/privacy.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repository = path.resolve(here, "..");
@@ -285,6 +286,72 @@ assert.strictEqual(
     violations: [],
   }).decision,
   "no-violation-observed",
+);
+const privacyAnalysis = {
+  schema: 1,
+  kind: "privacy-analysis",
+  system: "customer-profile",
+  revision: "fixture-revision",
+  created_at: "2026-10-25",
+  scope: {
+    included: ["profile API and database"],
+    excluded: ["payment processor"],
+    jurisdictions: ["review-required"],
+  },
+  data_categories: [{
+    id: "email",
+    description: "Customer email address.",
+    subjects: "Customers.",
+    classification: "Personal data.",
+    source: "Customer input.",
+    retention: "Until account deletion plus the documented recovery period.",
+    deletion: "Delete from the primary store and expire backups.",
+    necessary: true,
+  }],
+  processing_activities: [{
+    id: "account-notices",
+    purpose: "Send account and security notices.",
+    necessity: "The service needs a delivery address for account notices.",
+    legal_basis_review: "Qualified reviewer must confirm.",
+    owner: "identity-team",
+    automated_decision_effect: "None.",
+    data_category_ids: ["email"],
+  }],
+  data_flows: [{
+    id: "profile-write",
+    from: "profile API",
+    to: "profile database",
+    transport: "encrypted service connection",
+    protection: "service identity and field-level access control",
+    data_category_ids: ["email"],
+  }],
+  third_parties: [],
+  risks: [{
+    id: "email-disclosure",
+    harm: "Unwanted disclosure of a customer email address.",
+    affected_subjects: "Customers.",
+    likelihood_basis: "API and storage exposure paths.",
+    control: "Object authorization and encrypted transport.",
+    verification: "Authorization tests and configuration evidence.",
+    owner: "identity-team",
+    residual_risk: "Privileged operator access.",
+  }],
+  rights_and_requests: {
+    access: "Export the current profile.",
+    correction: "Allow verified profile updates.",
+    deletion: "Run the documented deletion workflow.",
+    export: "Produce a machine-readable profile export.",
+    objection_or_restriction: "Route the request to the privacy owner.",
+  },
+  review: {
+    owner: "privacy-reviewer",
+    reviewed_at: "2026-10-25",
+    evidence: ["review-123"],
+  },
+};
+assert.strictEqual(
+  validatePrivacyAnalysis(privacyAnalysis).decision,
+  "ready-for-qualified-review",
 );
 
 fs.writeFileSync(

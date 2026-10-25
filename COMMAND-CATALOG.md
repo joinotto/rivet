@@ -311,6 +311,14 @@ The contract must bind assumptions, omitted behavior, implementation mappings,
 properties, and finite bounds to a source revision. Rivet does not infer that
 the implementation conforms to a checked model.
 
+### `privacy`
+
+Purpose: Initialize and validate a revision-bound engineering privacy analysis.
+
+Rivet records data necessity, purpose, flows, retention, deletion, third
+parties, request handling, harms, controls, and residual risk. It does not
+determine legal basis or certify compliance.
+
 ### `hooks`
 
 Purpose: Configure low-cost automatic checks for changed backend files.
@@ -323,7 +331,6 @@ Add only after Version 1 has evidence that users need them:
 
 - `mutation`
 - `load`
-- `privacy`
 - `compliance-map`
 - `capacity`
 - `cost`

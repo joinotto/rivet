@@ -257,6 +257,24 @@ temporal properties, and finite bounds. Preserve counterexamples and tool
 inputs. Rivet validates the contract and normalizes model-check results. It
 does not claim that the implementation conforms to the model.
 
+Create an engineering privacy analysis for systems that process personal or
+sensitive data:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" privacy init \
+  --system customer-profile \
+  --output .rivet/privacy-customer-profile.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" privacy validate \
+  --file .rivet/privacy-customer-profile.json
+```
+
+Inventory data categories, subjects, sources, classifications, necessity,
+purposes, processing activities, flows, retention, deletion, third parties,
+request handling, privacy harms, controls, verification, and residual risk.
+Bind the analysis to a source revision. Do not infer a legal basis or claim
+compliance. Route applicable-law and legal-basis decisions to a qualified
+reviewer.
+
 Coverage normalization accepts Istanbul summary JSON, Cobertura XML, JaCoCo
 XML, LCOV, and Go cover profiles. Rivet reports only aggregate metrics that the
 source artifact contains.

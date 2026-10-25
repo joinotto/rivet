@@ -325,10 +325,12 @@ Implemented:
   normalization.
 - Explicit assumptions, omissions, implementation mappings, finite bounds,
   counterexample preservation, and human-review evidence.
+- Revision-bound privacy analysis for data categories, processing purposes,
+  flows, minimization, retention, deletion, third parties, rights, and risks.
+- Explicit qualified review for legal basis and applicable-law decisions.
 
 Candidates:
 
-- Privacy analysis.
 - Cost and capacity planning.
 
 ## 2. Reference repositories
