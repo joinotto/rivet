@@ -1039,6 +1039,22 @@ assert.strictEqual(
   JSON.parse(incidentValidation.stdout).event_count,
   2,
 );
+const postmortem = invoke(intelligence, [
+  "postmortem",
+  "--incident",
+  "incident.json",
+  "--output",
+  "postmortem.md",
+]);
+assert.strictEqual(postmortem.status, 0, postmortem.stderr);
+const postmortemBody = fs.readFileSync(
+  path.join(intelligence, "postmortem.md"),
+  "utf8",
+);
+assert.match(postmortemBody, /# Postmortem: INC-2026-001/);
+assert.match(postmortemBody, /The error rate increased/);
+assert.match(postmortemBody, /does not infer root cause/);
+assert.match(postmortemBody, /Add owner, priority, due date, and verification/);
 const tamperedIncident = JSON.parse(
   fs.readFileSync(path.join(intelligence, "incident.json"), "utf8"),
 );
@@ -1059,6 +1075,14 @@ assert.ok(
     item.includes("invalid digest"),
   ),
 );
+const rejectedPostmortem = invoke(intelligence, [
+  "postmortem",
+  "--incident",
+  "incident.json",
+  "--json",
+]);
+assert.strictEqual(rejectedPostmortem.status, 1);
+assert.match(rejectedPostmortem.stderr, /timeline is invalid/);
 assert.ok(
   telemetryReport.findings.some(
     (item) => item.id === "unbounded-metric-dimension",

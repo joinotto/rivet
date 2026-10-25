@@ -280,11 +280,12 @@ Implemented:
 - Staged rollout, monitoring, abort, rollback, compatibility, risk, and evidence-gap validation.
 - Read-only incident mode with approval-required write records.
 - Hash-chained, time-ordered incident action timeline.
+- Blameless postmortem drafts from validated incident timelines.
 
 Not implemented:
 
 - Statistical sample analysis.
-- Postmortem timeline generation.
+- Preventive-action workflow and follow-up verification.
 
 Commands:
 

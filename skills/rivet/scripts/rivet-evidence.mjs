@@ -46,6 +46,10 @@ import {
   incidentReport,
   incidentTemplate,
 } from "./lib/incident.mjs";
+import {
+  buildPostmortem,
+  postmortemMarkdown,
+} from "./lib/postmortem.mjs";
 
 const argv = process.argv.slice(2);
 const command = argv[0] || "inspect";
@@ -1474,6 +1478,40 @@ function incidentWorkflow() {
   }
 }
 
+function postmortemEvidence() {
+  try {
+    const incident = evidenceArtifact("--incident");
+    if (!incident) throw new Error("Postmortem generation requires --incident <file>.");
+    const report = buildPostmortem(incident);
+    report.incident_artifact = path.relative(cwd, incident);
+    const output = value("--output");
+    if (output) {
+      const absolute = outputPath(output);
+      if (fs.existsSync(absolute) && !has("--force")) {
+        throw new Error(`Refusing to overwrite existing file: ${output}`);
+      }
+      fs.mkdirSync(path.dirname(absolute), { recursive: true });
+      fs.writeFileSync(
+        absolute,
+        output.endsWith(".json")
+          ? `${JSON.stringify(report, null, 2)}\n`
+          : postmortemMarkdown(report),
+        { mode: 0o600 },
+      );
+      console.log(`Postmortem draft: ${output}`);
+      return;
+    }
+    if (has("--json")) {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    } else {
+      process.stdout.write(postmortemMarkdown(report));
+    }
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}
+
 function markdownSummary(receipt) {
   const lines = [
     "# Rivet verification",
@@ -1722,10 +1760,12 @@ if (command === "init") {
   releaseEvidence();
 } else if (command === "incident") {
   incidentWorkflow();
+} else if (command === "postmortem") {
+  postmortemEvidence();
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance --baseline file --candidate file | release --plan file [--performance comparison.json] | incident (init | add | validate) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
+    "Use: init [--force] | map [--json] | inspect [--json] | change [--files list] [--json] | record [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | review --record file [--files list] [--output file] [--json] | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file | --enrich findings --kev snapshot --epss snapshot --retrieved-at date | --reachability findings --evidence record) | sbom --file file --revision value | waiver (init | validate) | attest (plan | sign | verify) | resilience --file model.json | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance --baseline file --candidate file | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]",
   );
   process.exitCode = 1;
 }

@@ -316,6 +316,16 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" incident add \
 
 Events default to `read` mode and form a local hash chain. A recorded write requires `--mode write --approval approval-reference`. Rivet records the action but does not execute it.
 
+Create a blameless postmortem draft from a valid incident timeline:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" postmortem \
+  --incident .rivet/incidents/incident.json \
+  --output .rivet/incidents/postmortem.md
+```
+
+The draft preserves observed events and leaves contributing conditions unknown. Add evidence before stating a root cause. Do not use human error as a root cause without analyzing enabling system conditions.
+
 Write a machine-readable receipt only when useful:
 
 ```sh

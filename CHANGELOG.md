@@ -44,6 +44,7 @@ This file records notable changes to Rivet.
 - Workload-bound performance evidence comparison.
 - Project-threshold and staged-rollout release decisions.
 - Read-only, approval-aware incident action timelines.
+- Blameless postmortem drafts from validated timelines.
 
 ### Changed
 
