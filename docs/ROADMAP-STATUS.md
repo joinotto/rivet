@@ -32,6 +32,9 @@ completion.
   experts.
 - Record reviewer identity, scope, revision, findings, and dispositions.
 
+The prepared packet and incomplete reviewer record are in
+`docs/security-review/`.
+
 Executable fixtures cover the other published Phase 3 criteria. Automated
 tests cannot substitute for the required expert review.
 

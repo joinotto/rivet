@@ -17,9 +17,19 @@ export function createSecurityReviewPacket({
   threatModelFile,
   findingSchema,
   createdAt,
+  system,
+  revision,
 }) {
   const threatModelSource = fs.readFileSync(threatModelFile, "utf8");
-  const threatModel = JSON.parse(threatModelSource);
+  let threatModel;
+  let format;
+  try {
+    threatModel = JSON.parse(threatModelSource);
+    format = "json";
+  } catch {
+    threatModel = threatModelSource;
+    format = "markdown";
+  }
   const findingSchemaSource = `${JSON.stringify(findingSchema, null, 2)}\n`;
   return {
     schema: 1,
@@ -27,12 +37,19 @@ export function createSecurityReviewPacket({
     evidence_class: "derived",
     created_at: createdAt,
     subject: {
-      system: threatModel.system || null,
-      revision: threatModel.revision || null,
+      system:
+        format === "json" && text(threatModel.system)
+          ? threatModel.system
+          : system || null,
+      revision:
+        format === "json" && text(threatModel.revision)
+          ? threatModel.revision
+          : revision || null,
     },
     artifacts: {
       threat_model: {
         path: threatModelFile,
+        format,
         sha256: digest(threatModelSource),
         content: threatModel,
       },
@@ -53,6 +70,9 @@ export function createSecurityReviewPacket({
       "Packet creation is not expert review.",
       "A digest binds the supplied artifact. It does not prove that the artifact is complete.",
       "Rivet cannot determine reviewer competence, independence, or organizational authority.",
+      ...(format === "markdown"
+        ? ["The Markdown threat model has no machine-validated threat-model schema."]
+        : []),
     ],
   };
 }

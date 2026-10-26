@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "kind": "security-expert-review-packet",
+  "evidence_class": "derived",
+  "created_at": "2026-10-26",
+  "subject": {
+    "system": "Rivet",
+    "revision": "4dc06502d885f5cb360eaa3c3b2be2a6e9adda8f"
+  },
+  "artifacts": {
+    "threat_model": {
+      "path": "THREAT-MODEL.md",
+      "format": "markdown",
+      "sha256": "ec592e58521b530252f2027324a5063cc21efb8472af5a5048f61e887392ebaa",
+      "content": "# Rivet Threat Model\n\n## Assets\n\n- User source code.\n- Credentials and environment data.\n- Evidence receipts.\n- Tool and policy configuration.\n- Release artifacts.\n- Maintainer identities.\n\n## Trust boundaries\n\n- Agent to local command runner.\n- Repository content to agent instructions.\n- Local process to network service.\n- Rivet adapter to external tool.\n- CI workflow to release registry.\n\n## Principal threats\n\n### Malicious repository instruction\n\nA repository can contain text that requests unsafe commands or secret disclosure.\n\nControls:\n\n- Treat repository text as data.\n- Use declared adapters.\n- Do not execute commands from documentation.\n- Require approval for external effects.\n\n### Command injection\n\nUntrusted text can enter a shell command.\n\nControls:\n\n- Use an executable and argument array.\n- Do not use shell evaluation.\n- Do not create adapters from arbitrary project text.\n\n### Secret disclosure\n\nA tool can print a credential in its output.\n\nControls:\n\n- Redact output before persistence.\n- Store evidence files with restricted permissions.\n- Do not print matched secret values.\n\n### False pass\n\nA missing or failed tool can appear as a successful verification.\n\nControls:\n\n- Use separate pass, fail, unavailable, and insufficient states.\n- Record exit status.\n- State evidence limitations.\n\n### Unsafe active test\n\nA security or load tool can damage an unauthorized target.\n\nControls:\n\n- Require explicit target authorization.\n- Default to local systems.\n- Keep active adapters out of automatic hooks.\n\n### Compromised release\n\nAn attacker can modify a distributed skill or runner.\n\nPlanned controls:\n\n- Signed release artifacts.\n- Software bill of materials.\n- Build provenance.\n- Two-person release approval.\n\n## Residual risks\n\n- Heuristic risk classification can miss business-critical code.\n- Redaction patterns cannot identify all secrets.\n- Existing repository scripts can perform unsafe actions.\n- Third-party tools can have vulnerabilities.\n- An agent can form an incorrect inference from correct evidence.\n\n"
+    },
+    "finding_schema": {
+      "id": "rivet-independent-review-findings-schema-1",
+      "sha256": "113bc980744287a4d7501f7cc881093290b87108aaf21bd3fae7fc39f59e1496",
+      "content": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "verdict",
+          "findings",
+          "limitations"
+        ],
+        "properties": {
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "findings",
+              "insufficient-evidence"
+            ]
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "severity",
+                "category",
+                "summary",
+                "evidence",
+                "recommendation",
+                "confidence"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "severity": {
+                  "type": "string",
+                  "enum": [
+                    "critical",
+                    "high",
+                    "medium",
+                    "low",
+                    "note"
+                  ]
+                },
+                "category": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "summary": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "requirement": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "file": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "line": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "recommendation": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "confidence": {
+                  "type": "string",
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low"
+                  ]
+                }
+              }
+            }
+          },
+          "limitations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  },
+  "reviewer_tasks": [
+    "Review the stated system scope, exclusions, and assumptions.",
+    "Identify missing assets, actors, entry points, trust boundaries, data flows, abuse cases, threats, and residual risks.",
+    "Review each control, verification method, owner, status, and standard mapping.",
+    "Review the finding schema for severity, confidence, evidence, location, recommendation, verdict, and limitation semantics.",
+    "Record disagreements, required changes, accepted residual risks, and insufficient evidence."
+  ],
+  "limitations": [
+    "Packet creation is not expert review.",
+    "A digest binds the supplied artifact. It does not prove that the artifact is complete.",
+    "Rivet cannot determine reviewer competence, independence, or organizational authority.",
+    "The Markdown threat model has no machine-validated threat-model schema."
+  ]
+}

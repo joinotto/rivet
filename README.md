@@ -148,6 +148,7 @@ node skills/rivet/scripts/rivet-evidence.mjs security-review packet \
 
 Use `security-review init` to create the reviewer record and
 `security-review validate` after the qualified reviewer completes it.
+For a Markdown threat model, also supply `--system` and `--revision`.
 
 Run an isolated independent review:
 

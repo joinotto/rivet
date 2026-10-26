@@ -673,6 +673,8 @@ function securityReviewWorkflow() {
         threatModelFile: path.relative(cwd, threatModelFile),
         findingSchema: reviewFindingsSchema,
         createdAt: value("--created-at") || new Date().toISOString().slice(0, 10),
+        system: value("--system"),
+        revision: value("--revision") || gitInfo().revision,
       });
       const absolute = outputPath(output);
       if (fs.existsSync(absolute) && !has("--force")) {

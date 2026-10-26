@@ -1114,6 +1114,44 @@ assert.match(
   parsedSecurityReviewPacket.artifacts.finding_schema.sha256,
   /^[a-f0-9]{64}$/,
 );
+const markdownThreatModelPath = path.join(intelligence, "threat-model.md");
+fs.writeFileSync(
+  markdownThreatModelPath,
+  "# Threat model\n\n## Assets\n\n- Customer records.\n",
+);
+const markdownSecurityReviewPacket = invoke(intelligence, [
+  "security-review",
+  "packet",
+  "--threat-model",
+  "threat-model.md",
+  "--system",
+  "fixture-service",
+  "--revision",
+  "fixture-markdown-revision",
+  "--created-at",
+  "2026-10-26",
+  "--output",
+  "markdown-security-review-packet.json",
+]);
+assert.strictEqual(
+  markdownSecurityReviewPacket.status,
+  0,
+  markdownSecurityReviewPacket.stderr,
+);
+const parsedMarkdownPacket = JSON.parse(markdownSecurityReviewPacket.stdout);
+assert.strictEqual(parsedMarkdownPacket.subject.system, "fixture-service");
+assert.strictEqual(
+  parsedMarkdownPacket.subject.revision,
+  "fixture-markdown-revision",
+);
+assert.strictEqual(
+  parsedMarkdownPacket.artifacts.threat_model.format,
+  "markdown",
+);
+assert.match(
+  parsedMarkdownPacket.limitations.join(" "),
+  /no machine-validated threat-model schema/,
+);
 const securityReviewInit = invoke(intelligence, [
   "security-review",
   "init",

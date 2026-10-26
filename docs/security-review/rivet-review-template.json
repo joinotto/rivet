@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "kind": "security-expert-review",
+  "evidence_class": "declared-human-review",
+  "created_at": "2026-10-26",
+  "packet": {
+    "threat_model_sha256": "ec592e58521b530252f2027324a5063cc21efb8472af5a5048f61e887392ebaa",
+    "finding_schema_sha256": "113bc980744287a4d7501f7cc881093290b87108aaf21bd3fae7fc39f59e1496",
+    "subject_revision": "4dc06502d885f5cb360eaa3c3b2be2a6e9adda8f"
+  },
+  "reviewer": {
+    "name": "",
+    "role": "",
+    "organization": "",
+    "qualifications": [],
+    "independence": "",
+    "conflicts": ""
+  },
+  "reviewed_at": "",
+  "scope": {
+    "threat_model": false,
+    "finding_schema": false
+  },
+  "conclusion": "",
+  "findings": [],
+  "accepted_residual_risks": [],
+  "limitations": [],
+  "signature": {
+    "method": "",
+    "identity": "",
+    "artifact": ""
+  }
+}

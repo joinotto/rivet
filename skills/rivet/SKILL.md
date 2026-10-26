@@ -135,6 +135,9 @@ record requires reviewer qualifications, independence and conflict statements,
 scope, findings, dispositions, and a conclusion. Structural validation does
 not establish reviewer qualifications or authority.
 
+The packet command also accepts a Markdown threat model. Supply `--system` and
+`--revision` when the document does not contain structured subject metadata.
+
 Scan for common secret patterns:
 
 ```sh

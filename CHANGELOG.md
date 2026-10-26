@@ -6,6 +6,9 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Markdown threat-model support for digest-bound expert-review packets.
+- Prepared Rivet threat-model and finding-schema packet for qualified external
+  security review.
 - Complete host-package inventory, digest, manifest, capability, and install
   path drift checks.
 - Project-selected quality-ratchet evidence for weakened metrics, removed
