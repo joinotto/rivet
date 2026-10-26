@@ -41,6 +41,8 @@ Version `0.1.0` contains:
 - Stryker, PIT, and cargo-mutants result normalization.
 - Property and contract-test artifact normalization.
 - Flake and inconsistent test-selection detection from repeated JUnit runs.
+- Project-selected quality ratchets for weakened metrics, removed assertions,
+  new suppressions, skipped tests, and expiring exceptions.
 - Requirements-first, redacted independent-review packet generation.
 - SARIF, Trivy, CycloneDX, and SPDX security evidence normalization.
 - Official CycloneDX and SPDX schema validation with embedded or Sigstore signature verification.

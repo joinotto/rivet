@@ -133,6 +133,15 @@ Purpose: Review design, correctness, maintainability, and evidence.
 
 Use an independent review context when the agent system supports it. Do not let the implementation explanation anchor the first review.
 
+### `quality-ratchet`
+
+Purpose: Detect a weaker project-selected quality baseline.
+
+Compare minimum and maximum metrics, named assertions, suppressions, and
+skipped tests. Permit a regression only through an owned, evidence-linked,
+expiring exception. The command must not install a tool or set a universal
+threshold.
+
 ### `threat-model`
 
 Purpose: Identify assets, actors, entry points, trust boundaries, abuse cases, threats, controls, and residual risk.

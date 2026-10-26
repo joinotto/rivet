@@ -354,6 +354,18 @@ tests. A surviving non-equivalent mutant is direct evidence that the current
 suite accepts at least one changed behavior. Add the smallest meaningful test
 that distinguishes the required behavior, then rerun the same mutant.
 
+Use a quality ratchet when a project has an accepted baseline:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" quality-ratchet \
+  --file reports/quality-ratchet.json
+```
+
+Compare project-selected minimum or maximum metrics, named assertions,
+suppressions, and skipped tests. Do not invent a universal threshold. A
+temporary exception must name its owner, reason, evidence, and expiry. An
+exception records acceptance. It does not prove that the regression is safe.
+
 Generate tests from explicit requirements and invariants, not from the current
 implementation. A generated test has value only when its expected behavior is
 independent of the code under test. Keep the generation input and test digest

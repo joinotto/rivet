@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Project-selected quality-ratchet evidence for weakened metrics, removed
+  assertions, new suppressions, skipped tests, and expiring exceptions.
 - Deterministic Rivet routing contract with positive, negative, and
   verification-pressure cases.
 - Machine-readable skill-change rejection ledger with retry conditions and

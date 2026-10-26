@@ -79,6 +79,7 @@ import {
   securityReviewTemplate,
   validateSecurityReview,
 } from "./lib/security-review.mjs";
+import { evaluateQualityRatchet } from "./lib/quality-ratchet.mjs";
 import {
   statefulTemplate,
   validateStatefulModel,
@@ -961,6 +962,30 @@ function capacityWorkflow() {
       return;
     }
     throw new Error("Use capacity init or capacity evaluate.");
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}
+
+function qualityRatchetWorkflow() {
+  try {
+    const artifact = evidenceArtifact("--file");
+    if (!artifact) {
+      throw new Error("Quality ratchet evaluation requires --file <file>.");
+    }
+    const document = readJson(artifact);
+    if (!document) {
+      throw new Error("The quality ratchet file must contain valid JSON.");
+    }
+    const report = evaluateQualityRatchet(
+      document,
+      value("--observed-at") || new Date().toISOString().slice(0, 10),
+    );
+    report.artifact = path.relative(cwd, artifact);
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    if (report.decision === "invalid-evidence") process.exitCode = 1;
+    if (report.decision === "regression-detected") process.exitCode = 2;
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
@@ -2733,6 +2758,8 @@ if (command === "init") {
   privacyWorkflow();
 } else if (command === "capacity") {
   capacityWorkflow();
+} else if (command === "quality-ratchet") {
+  qualityRatchetWorkflow();
 } else if (command === "review") {
   prepareReview();
 } else if (command === "security") {
@@ -2764,7 +2791,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | stateful (init | validate) | fuzz --report file | chaos (init | validate | result) | formalize (init | validate | result) | privacy (init | validate) | capacity (init | evaluate) | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security-review (packet | init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file [--enrich findings --kev snapshot --epss snapshot --retrieved-at date] [--reachability findings --evidence record]) | sbom --file file --revision value [--validate-schema] [--signature embedded|sigstore|cosign-key] | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate (--campaign file | --fixtures dir --findings file) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
+    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | quality-ratchet --file file [--observed-at date] | stateful (init | validate) | fuzz --report file | chaos (init | validate | result) | formalize (init | validate | result) | privacy (init | validate) | capacity (init | evaluate) | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security-review (packet | init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file [--enrich findings --kev snapshot --epss snapshot --retrieved-at date] [--reachability findings --evidence record]) | sbom --file file --revision value [--validate-schema] [--signature embedded|sigstore|cosign-key] | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate (--campaign file | --fixtures dir --findings file) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
   );
   process.exitCode = 1;
 }

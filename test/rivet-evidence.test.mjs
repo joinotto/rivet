@@ -17,6 +17,7 @@ import {
 } from "../skills/rivet/scripts/lib/formalize.mjs";
 import { validatePrivacyAnalysis } from "../skills/rivet/scripts/lib/privacy.mjs";
 import { evaluateCapacityPlan } from "../skills/rivet/scripts/lib/capacity.mjs";
+import { evaluateQualityRatchet } from "../skills/rivet/scripts/lib/quality-ratchet.mjs";
 import { evaluateCampaign } from "../skills/rivet/scripts/lib/evaluate.mjs";
 import {
   prepareBlindWorkspace,
@@ -604,6 +605,103 @@ assert.strictEqual(
     }],
   }).decision,
   "capacity-gap",
+);
+const qualityRatchet = {
+  schema: 1,
+  kind: "quality-ratchet",
+  revision: "fixture-revision",
+  baseline: {
+    metrics: [
+      { id: "mutation-score", direction: "minimum", value: 70 },
+      { id: "lint-errors", direction: "maximum", value: 0 },
+    ],
+    assertions: [{ id: "authorization-boundary" }],
+    suppressions: [],
+    skipped_tests: [],
+  },
+  candidate: {
+    metrics: [
+      { id: "mutation-score", direction: "minimum", value: 72 },
+      { id: "lint-errors", direction: "maximum", value: 0 },
+    ],
+    assertions: [{ id: "authorization-boundary" }],
+    suppressions: [],
+    skipped_tests: [],
+  },
+  exceptions: [],
+};
+assert.strictEqual(
+  evaluateQualityRatchet(qualityRatchet, "2026-10-26").decision,
+  "ratchet-held",
+);
+const regressedRatchet = JSON.parse(JSON.stringify(qualityRatchet));
+regressedRatchet.candidate.metrics[0].value = 60;
+regressedRatchet.candidate.assertions = [];
+regressedRatchet.candidate.suppressions = [{ id: "security-rule" }];
+regressedRatchet.candidate.skipped_tests = [{ id: "integration-test" }];
+assert.strictEqual(
+  evaluateQualityRatchet(regressedRatchet, "2026-10-26").decision,
+  "regression-detected",
+);
+regressedRatchet.exceptions = [
+      {
+        id: "temporary-mutation-exception",
+        control: "metric:mutation-score",
+        owner: "quality-owner",
+        reason: "The upstream test runner is incompatible with this revision.",
+        evidence: "issue-123",
+        expires_on: "2026-11-02",
+      },
+      {
+        id: "temporary-assertion-exception",
+        control: "assertion:authorization-boundary",
+        owner: "security-owner",
+        reason: "Replacement assertion is under review.",
+        evidence: "review-123",
+        expires_on: "2026-11-02",
+      },
+      {
+        id: "temporary-suppression-exception",
+        control: "suppression:security-rule",
+        owner: "security-owner",
+        reason: "The rule has a confirmed tool defect.",
+        evidence: "issue-456",
+        expires_on: "2026-11-02",
+      },
+      {
+        id: "temporary-skip-exception",
+        control: "skip:integration-test",
+        owner: "test-owner",
+        reason: "The isolated dependency is unavailable.",
+        evidence: "incident-789",
+        expires_on: "2026-11-02",
+      },
+];
+assert.strictEqual(
+  evaluateQualityRatchet(regressedRatchet, "2026-10-26").decision,
+  "temporary-exceptions",
+);
+assert.strictEqual(
+  evaluateQualityRatchet(regressedRatchet, "2026-11-03").decision,
+  "regression-detected",
+);
+const qualityRatchetFile = path.join(fixture, "quality-ratchet.json");
+fs.writeFileSync(qualityRatchetFile, JSON.stringify(qualityRatchet));
+const qualityRatchetCommand = invoke(fixture, [
+  "quality-ratchet",
+  "--file",
+  "quality-ratchet.json",
+  "--observed-at",
+  "2026-10-26",
+]);
+assert.strictEqual(
+  qualityRatchetCommand.status,
+  0,
+  qualityRatchetCommand.stderr,
+);
+assert.strictEqual(
+  JSON.parse(qualityRatchetCommand.stdout).decision,
+  "ratchet-held",
 );
 const evaluationCampaign = {
   schema: 1,
