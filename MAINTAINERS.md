@@ -20,6 +20,9 @@ available. A temporary lack of a second qualified reviewer does not convert
 one review into two-person approval. Record the limitation and defer the
 release when the risk requires independent approval.
 
+`docs/BRANCH-PROTECTION.md` records the enforced repository settings and the
+current single-maintainer approval limitation.
+
 ## Changes
 
 Record maintainer additions and removals in the repository history. Include
