@@ -101,6 +101,18 @@ node "<skill-dir>/scripts/rivet-evidence.mjs" shape \
 
 The older `change` and `record` names are compatibility aliases.
 
+Evaluate a PostgreSQL index only from a named query and measured comparison:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" database \
+  --index-evidence reports/orders-index-evidence.json
+```
+
+The artifact must identify the query, workload, dataset, environment,
+observation window, baseline plan and latency, candidate plan and latency,
+index definition, sample counts, and write-cost evidence. Do not generalize
+the recommendation beyond the measured workload.
+
 Create and validate a structured threat model:
 
 ```sh

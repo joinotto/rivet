@@ -2978,6 +2978,63 @@ assert.strictEqual(planInspection.status, 2, planInspection.stderr);
 const planReport = JSON.parse(planInspection.stdout);
 assert.strictEqual(planReport.query_id, "orders-by-customer");
 assert.strictEqual(planReport.observations[0].relation, "orders");
+const indexEvidenceFile = path.join(fixture, "index-evidence.json");
+const indexEvidence = {
+  schema: 1,
+  kind: "postgres-index-evidence",
+  query: {
+    id: "orders-by-customer",
+    purpose: "Read recent orders for one authorized customer.",
+    statement_digest: "sha256:orders-by-customer-v1",
+  },
+  workload: {
+    source: "staging replay report 2026-10-26",
+    environment: "PostgreSQL 16 staging",
+    dataset: "Ten million synthetic orders with production-shaped skew.",
+    observation_window: "Thirty minutes after warm-up.",
+  },
+  baseline: {
+    plan_artifact: "reports/orders-baseline-plan.json",
+    measured_at: "2026-10-26T09:00:00Z",
+    sample_count: 500,
+    latency_p95_ms: 240,
+  },
+  candidate: {
+    index_definition:
+      "CREATE INDEX CONCURRENTLY orders_customer_created_idx ON orders (customer_id, created_at DESC);",
+    plan_artifact: "reports/orders-candidate-plan.json",
+    measured_at: "2026-10-26T10:00:00Z",
+    sample_count: 500,
+    latency_p95_ms: 70,
+    write_cost_evidence: "Insert throughput changed from 9200 to 8900 rows per second.",
+  },
+};
+fs.writeFileSync(indexEvidenceFile, JSON.stringify(indexEvidence));
+const indexRecommendation = invoke(fixture, [
+  "database",
+  "--index-evidence",
+  "index-evidence.json",
+]);
+assert.strictEqual(indexRecommendation.status, 0, indexRecommendation.stderr);
+const indexReport = JSON.parse(indexRecommendation.stdout);
+assert.strictEqual(indexReport.decision, "recommendation-supported");
+assert.strictEqual(indexReport.query.id, "orders-by-customer");
+assert.strictEqual(indexReport.measured_baseline.latency_p95_ms, 240);
+assert.match(indexReport.recommendation.statement, /orders-by-customer/);
+
+const unsupportedIndexEvidence = JSON.parse(JSON.stringify(indexEvidence));
+unsupportedIndexEvidence.candidate.latency_p95_ms = 260;
+fs.writeFileSync(indexEvidenceFile, JSON.stringify(unsupportedIndexEvidence));
+const unsupportedIndex = invoke(fixture, [
+  "database",
+  "--index-evidence",
+  "index-evidence.json",
+]);
+assert.strictEqual(unsupportedIndex.status, 2, unsupportedIndex.stderr);
+assert.strictEqual(
+  JSON.parse(unsupportedIndex.stdout).decision,
+  "recommendation-not-supported",
+);
 assert.match(planReport.limitations[0], /not sufficient evidence/);
 
 const packages = path.join(os.tmpdir(), `rivet-hosts-${process.pid}`);

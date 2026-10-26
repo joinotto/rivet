@@ -110,3 +110,89 @@ export function inspectPostgresPlan(file, queryId) {
     ],
   };
 }
+
+function text(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function positive(value) {
+  return Number.isFinite(value) && value > 0;
+}
+
+export function evaluatePostgresIndexEvidence(document) {
+  const faults = [];
+  if (document?.schema !== 1 || document?.kind !== "postgres-index-evidence") {
+    faults.push("The artifact must use postgres-index-evidence schema 1.");
+  }
+  for (const field of ["id", "purpose", "statement_digest"]) {
+    if (!text(document?.query?.[field])) {
+      faults.push(`The query requires ${field}.`);
+    }
+  }
+  for (const field of ["source", "environment", "dataset", "observation_window"]) {
+    if (!text(document?.workload?.[field])) {
+      faults.push(`The workload requires ${field}.`);
+    }
+  }
+  for (const name of ["baseline", "candidate"]) {
+    const measurement = document?.[name];
+    for (const field of ["plan_artifact", "measured_at"]) {
+      if (!text(measurement?.[field])) {
+        faults.push(`The ${name} requires ${field}.`);
+      }
+    }
+    for (const field of ["sample_count", "latency_p95_ms"]) {
+      if (!positive(measurement?.[field])) {
+        faults.push(`The ${name} requires a positive ${field}.`);
+      }
+    }
+  }
+  if (!text(document?.candidate?.index_definition)) {
+    faults.push("The candidate requires index_definition.");
+  }
+  if (!text(document?.candidate?.write_cost_evidence)) {
+    faults.push("The candidate requires write_cost_evidence.");
+  }
+
+  const baseline = document?.baseline?.latency_p95_ms;
+  const candidate = document?.candidate?.latency_p95_ms;
+  const improvement =
+    positive(baseline) && positive(candidate)
+      ? {
+          latency_p95_ms: baseline - candidate,
+          latency_p95_percent: ((baseline - candidate) / baseline) * 100,
+        }
+      : null;
+  const supported = !faults.length && candidate < baseline;
+  return {
+    schema: 1,
+    kind: "postgres-index-recommendation",
+    engine: "postgresql",
+    query: {
+      id: document?.query?.id || null,
+      purpose: document?.query?.purpose || null,
+      statement_digest: document?.query?.statement_digest || null,
+    },
+    workload: document?.workload || null,
+    measured_baseline: document?.baseline || null,
+    measured_candidate: document?.candidate || null,
+    measured_improvement: improvement,
+    recommendation: supported
+      ? {
+          index_definition: document.candidate.index_definition,
+          statement: `Use the candidate index for query ${document.query.id} under the measured workload.`,
+        }
+      : null,
+    faults,
+    decision: faults.length
+      ? "insufficient-evidence"
+      : supported
+        ? "recommendation-supported"
+        : "recommendation-not-supported",
+    limitations: [
+      "The recommendation applies only to the named query, dataset, environment, and observation window.",
+      "A lower measured latency does not prove lower production cost or stable planner selection.",
+      "Review storage, write amplification, maintenance, locking, and redundant-index effects before deployment.",
+    ],
+  };
+}

@@ -14,6 +14,7 @@ import { fingerprint, redact } from "./lib/redact.mjs";
 import { discoverTopology, topologyImpact } from "./lib/topology.mjs";
 import { normalizeDependencyResult } from "./lib/dependencies.mjs";
 import {
+  evaluatePostgresIndexEvidence,
   inspectPostgresMigration,
   inspectPostgresPlan,
 } from "./lib/postgres.mjs";
@@ -1101,22 +1102,31 @@ function doctor() {
 function databaseEvidence() {
   const migration = value("--migration");
   const plan = value("--plan");
-  if (Boolean(migration) === Boolean(plan)) {
-    console.error("Use exactly one of --migration <file> or --plan <file>.");
+  const indexEvidence = value("--index-evidence");
+  if ([migration, plan, indexEvidence].filter(Boolean).length !== 1) {
+    console.error(
+      "Use exactly one of --migration <file>, --plan <file>, or --index-evidence <file>.",
+    );
     process.exitCode = 1;
     return;
   }
   try {
-    const artifact = path.resolve(cwd, migration || plan);
+    const artifact = path.resolve(cwd, migration || plan || indexEvidence);
     if (!artifact.startsWith(`${cwd}${path.sep}`) || !fs.existsSync(artifact)) {
       throw new Error("The database artifact must be an existing file inside the project.");
     }
     const report = migration
       ? inspectPostgresMigration(artifact)
-      : inspectPostgresPlan(artifact, value("--query") || "unspecified");
+      : plan
+        ? inspectPostgresPlan(artifact, value("--query") || "unspecified")
+        : evaluatePostgresIndexEvidence(readJson(artifact));
     report.artifact = path.relative(cwd, artifact);
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
-    if (report.decision !== "pass") process.exitCode = 2;
+    if (
+      !["pass", "recommendation-supported"].includes(report.decision)
+    ) {
+      process.exitCode = report.decision === "insufficient-evidence" ? 1 : 2;
+    }
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;

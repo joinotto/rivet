@@ -90,6 +90,9 @@ Required output:
 - Unknowns.
 
 The command must not add an index without plan or workload evidence.
+An index recommendation must identify the query and statement digest. It must
+include measured baseline and candidate plans, sample counts, latency,
+workload, dataset, environment, observation window, and write-cost evidence.
 
 ### `verify`
 

@@ -66,6 +66,8 @@ Implemented:
 - Topology-aware component and reverse-dependency impact mapping.
 - Normalized dependency advisory results with seeded fixtures.
 - Read-only PostgreSQL migration and JSON plan inspection.
+- Query-bound PostgreSQL index comparison with measured baseline, candidate,
+  workload, and write-cost evidence.
 - Cross-package conformance fixtures for all initial host distributions.
 - Read-only environment and adapter readiness diagnosis.
 - Reproducibility metadata with tool, command, and configuration identity.
