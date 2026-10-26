@@ -110,6 +110,26 @@ revision passed the CodeQL workflow and the GitHub code-scanning status.
 
 Result: observed pass with stated limitations.
 
+Manifest verification run:
+
+- Pull request: `33`.
+- Workflow run: `40392510055`.
+- Job: `121816882371`.
+- Event head revision: `5037a38c33f9a8c55175fa2716407c021995445d`.
+- Artifact: `rivet-pr-33-report`.
+- Artifact identifier: `12685375581`.
+- GitHub artifact digest:
+  `sha256:49dc73d48ab8a7f973a23f20cbd1d5ba1873e371cdd2bcf5028eae7a34dbb50d`.
+- Downloaded manifest digest:
+  `sha256:668608eb9bcd13a5077f2f63087e846e7d3c17a3116452a81c09a665e3d42127`.
+- Manifest-bound files: 5.
+- Offline verification decision: pass.
+
+The portable verifier read the downloaded artifact outside the repository and
+validated its inventory, revision bindings, byte sizes, and SHA-256 digests.
+
+Result: observed pass.
+
 Limitations:
 
 - CI does not run paid native agent evaluations.
