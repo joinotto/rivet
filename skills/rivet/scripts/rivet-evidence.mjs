@@ -132,12 +132,31 @@ function explicitFiles() {
     ) {
       throw new Error("The file list must be inside the project.");
     }
-    if (!fs.existsSync(absolute) || !fs.statSync(absolute).isFile()) {
-      throw new Error("The file list must be an existing file.");
-    }
-    const body = fs.readFileSync(absolute);
-    if (body.length > 1024 * 1024) {
-      throw new Error("The file list must not exceed 1 MiB.");
+    let descriptor;
+    let body;
+    try {
+      descriptor = fs.openSync(
+        absolute,
+        fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0),
+      );
+      const stat = fs.fstatSync(descriptor);
+      if (!stat.isFile()) {
+        throw new Error("The file list must be an existing file.");
+      }
+      if (stat.size > 1024 * 1024) {
+        throw new Error("The file list must not exceed 1 MiB.");
+      }
+      body = fs.readFileSync(descriptor);
+    } catch (error) {
+      if (
+        error.message === "The file list must be an existing file." ||
+        error.message === "The file list must not exceed 1 MiB."
+      ) {
+        throw error;
+      }
+      throw new Error("The file list must be an existing regular file.");
+    } finally {
+      if (descriptor !== undefined) fs.closeSync(descriptor);
     }
     let decoded;
     try {
