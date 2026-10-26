@@ -1,4 +1,6 @@
 # Local Rivet evidence and temporary output
+# Private development notes, experiments, and implementation helpers
+.rivet/development/
 .rivet/
 coverage/
 dist/

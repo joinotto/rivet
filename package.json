@@ -2,37 +2,35 @@
   "name": "rivet",
   "version": "0.1.0",
   "private": true,
+  "description": "Evidence-driven backend engineering skills for Codex and Claude Code.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joinotto/rivet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/joinotto/rivet/issues"
+  },
+  "keywords": ["agent-skills", "codex", "claude-code", "backend", "database-design", "testing", "security", "developer-tools"],
   "type": "module",
   "scripts": {
-    "test": "node test/rivet-evidence.test.mjs && node test/skill-package-validator.test.mjs && node test/skill-rejection-ledger.test.mjs && node test/skill-routing-contract.test.mjs && node test/human-baseline.test.mjs && node test/open-source-foundation.test.mjs && node test/openssf-evidence-integrity.test.mjs && node test/claude-macos-sandbox.test.mjs && node test/pr-verification.test.mjs && node test/osv-workflow.test.mjs && node test/fuzz-workflow.test.mjs && node test/coverage-guided-fuzz.test.mjs",
-    "test:release": "node test/release-candidate.test.mjs && node test/release-candidate-workflow.test.mjs && node test/release-evidence.test.mjs",
+    "test": "node test/rivet-evidence.test.mjs && node test/skill-package-validator.test.mjs && node test/claude-macos-sandbox.test.mjs && node test/pr-verification.test.mjs && node test/osv-workflow.test.mjs && node test/fuzz-workflow.test.mjs && node test/coverage-guided-fuzz.test.mjs && node test/skill-installation.test.mjs",
+    "test:release": "node test/release-candidate.test.mjs && node test/release-candidate-workflow.test.mjs",
     "test:release-verification": "node test/release-candidate-verification.test.mjs",
     "test:evaluation": "node skills/rivet/scripts/rivet-evidence.mjs evaluate --fixtures fixtures/reference-systems --findings fixtures/reference-systems/expected-findings.json",
     "test:quality": "node fixtures/test-quality/run-evidence.mjs fixtures/test-quality/evidence",
-    "evaluate:blind": "node scripts/run-blind-evaluation.mjs",
-    "evaluate:campaign": "node scripts/build-evaluation-campaign.mjs",
-    "evaluate:human": "node scripts/human-baseline.mjs",
-    "test:host-native": "node scripts/run-host-conformance.mjs",
-    "test:host-session": "node scripts/run-session-conformance.mjs",
-    "test:host-workspace": "node scripts/run-workspace-conformance.mjs",
-    "test:host-approval-hooks": "node scripts/run-approval-hook-conformance.mjs",
     "test:fixtures": "node fixtures/reference-systems/test-seeds.mjs",
     "test:generated": "node fixtures/reference-systems/run-generated-tests.mjs fixtures/reference-systems/generated-test-evidence.json",
     "test:fuzz": "node scripts/run-parser-fuzz.mjs --executions 3000 --seed 20261026",
     "test:migration": "node fixtures/migration-resume/run-evidence.mjs fixtures/migration-resume/evidence.json",
     "test:hosts": "node scripts/test-host-packages.mjs",
+    "test:installation": "node test/skill-installation.test.mjs",
+    "skill": "node scripts/install-skill.mjs",
     "check:dco": "node scripts/check-dco.mjs",
     "check:ste": "node skills/rivet/scripts/rivet-ste.mjs skills/rivet",
     "validate:skill": "node scripts/validate-skill-package.mjs skills/rivet",
-    "validate:rejections": "node scripts/validate-skill-rejections.mjs",
-    "validate:openssf": "node scripts/validate-openssf-baseline.mjs",
-    "validate:foundation": "node scripts/validate-open-source-foundation.mjs",
-    "test:routing": "node scripts/evaluate-skill-routing.mjs",
-    "validate:skill:openai": "python3 /Users/apple/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/rivet",
     "package:hosts": "node scripts/package-hosts.mjs",
     "package:release-candidate": "node scripts/build-release-candidate.mjs",
-    "verify:release-candidate": "node scripts/verify-release-candidate.mjs",
-    "release:evidence": "node scripts/release-evidence.mjs"
+    "verify:release-candidate": "node scripts/verify-release-candidate.mjs"
   },
   "engines": {
     "node": ">=16"

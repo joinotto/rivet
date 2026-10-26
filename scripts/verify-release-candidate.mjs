@@ -211,13 +211,20 @@ export function verifyReleaseCandidate(input, expected = {}) {
     archiveDigests.set(archive.file, sha256(content));
     const entries = inspectTar(content, archive.file, faults);
     const hostEntry = entries.find((entry) => entry.path === "rivet-host.json");
-    if (!hostEntry || !entries.some((entry) => entry.path === "rivet/SKILL.md")) {
+    if (!hostEntry || !entries.some((entry) => entry.path === "rivet/SKILL.md") ||
+        !entries.some((entry) => entry.path === "install.mjs") ||
+        !entries.some((entry) => entry.path === "LICENSE") ||
+        !entries.some((entry) => entry.path === "NOTICE")) {
       faults.push(`${archive.file} does not contain the required package files.`);
       continue;
     }
     try {
       const host = JSON.parse(hostEntry.content.toString("utf8"));
       if (`rivet-${manifest.version}-${host.host}.tar` !== archive.file) faults.push(`${archive.file} has inconsistent host metadata.`);
+      if (host.version !== manifest.version || host.source_revision !== manifest.revision ||
+          host.source_state !== (manifest.source_state === "clean" ? "clean" : "dirty")) {
+        faults.push(`${archive.file} has inconsistent installation source identity.`);
+      }
     } catch (error) {
       faults.push(`${archive.file} has invalid host metadata: ${error.message}`);
     }

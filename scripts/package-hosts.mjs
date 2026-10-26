@@ -5,6 +5,7 @@ import os from "os";
 import path from "path";
 import process from "process";
 import { fileURLToPath } from "url";
+import { sourceForHost } from "./install-skill.mjs";
 
 const repository = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -73,9 +74,13 @@ if (fs.existsSync(output)) {
 for (const host of hosts) {
   const target = path.join(output, host.id, "rivet");
   copyDirectory(source, target, host.include_agent_metadata);
+  const identity = sourceForHost(host.id);
   const manifest = {
     schema: 1,
     host: host.id,
+    version: identity.version,
+    source_revision: identity.revision,
+    source_state: identity.state,
     canonical_source: "skills/rivet",
     install_path: host.install_path,
     capabilities: {
@@ -91,6 +96,13 @@ for (const host of hosts) {
     `${JSON.stringify(manifest, null, 2)}\n`,
     { mode: 0o600 },
   );
+  fs.copyFileSync(
+    path.join(repository, "scripts/install-skill.mjs"),
+    path.join(output, host.id, "install.mjs"),
+  );
+  for (const document of ["LICENSE", "NOTICE"]) {
+    fs.copyFileSync(path.join(repository, document), path.join(output, host.id, document));
+  }
 }
 
 console.log(`Generated ${hosts.length} Rivet host packages in ${output}`);

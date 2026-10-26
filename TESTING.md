@@ -18,9 +18,9 @@ npm run test:hosts
 npm run test:evaluation
 npm run test:fuzz
 npm run validate:skill
-npm run validate:rejections
-npm run validate:openssf
-npm run test:routing
+npm run test:installation
+npm run test:release
+npm run test:release-verification
 npm run check:ste
 ```
 
@@ -42,7 +42,7 @@ for each campaign. Only a successful run on `main` can publish the next cache.
 
 A command exit status of zero means that its published assertions passed. It
 does not prove production correctness or native host behavior. Read each
-command's limitations in its output and conformance document.
+command's limitations in its output and user documentation.
 
 ## Continuous integration
 

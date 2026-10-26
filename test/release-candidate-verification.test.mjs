@@ -45,7 +45,9 @@ try {
   const source = path.join(temporary, "source");
   fs.cpSync(repository, source, {
     recursive: true,
-    filter: (entry) => !entry.split(path.sep).includes(".git")
+    filter: (entry) => !entry.split(path.sep).some(
+      (part) => [".git", ".rivet", "dist", "node_modules", "coverage"].includes(part)
+    )
   });
   command(source, "git", ["init", "-q"]);
   command(source, "git", ["add", "."]);

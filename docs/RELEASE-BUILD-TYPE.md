@@ -9,6 +9,10 @@ The build creates the Codex and Claude Code host-package archives from the canon
 `skills/rivet/` source. It also creates `SHA256SUMS`, a CycloneDX SBOM, an
 unsigned SLSA provenance statement, and a candidate manifest.
 
+Each host archive includes the standalone installer, source-bound host
+metadata, Apache-2.0 `LICENSE`, and project `NOTICE`. The installer and notices
+are distributed beside the canonical skill, not added to its instructions.
+
 External parameters:
 
 - `version`: the candidate semantic version.

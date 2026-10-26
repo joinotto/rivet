@@ -36,8 +36,9 @@ Library modules implement focused contracts for topology, tests, security,
 databases, migrations, resilience, observability, performance, releases,
 incidents, evaluation, and advanced verification.
 
-Repository scripts package hosts, validate skills, run conformance probes, and
-prepare blinded evaluations.
+Public repository tooling builds and verifies distributions, validates the
+skill, and checks package behavior. Research and experimental probes are not
+part of the runtime or distribution.
 
 ## Evidence flow
 

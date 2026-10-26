@@ -1,0 +1,111 @@
+# Installation and recovery
+
+This procedure uses an ASD-STE100-aligned style. It is not a certified
+ASD-STE100 document.
+
+## Scope
+
+Install only in an explicit project directory. The installer supports Codex
+and Claude Code. It does not install globally, download code, change model
+providers, change permissions, or execute repository checks.
+
+The source is the reviewed Rivet checkout or an extracted host package.
+Its files are bounded and read without following symbolic links.
+
+## Status
+
+```sh
+node scripts/install-skill.mjs status \
+  --host codex --project /absolute/path/backend
+```
+
+Use `--host claude-code` for the other host.
+
+`installed` means the skill matches its recorded file and directory inventory.
+`modified` means that inventory changed. `unmanaged` means a valid receipt is
+absent or invalid. `missing` means the discovery target is absent.
+
+The receipt records the host, source version, source revision, source state,
+and SHA-256 inventory. It is local ownership evidence, not a digital signature
+or authorization to execute the skill.
+
+## Upgrade
+
+Warning: preserve your changes before an upgrade. Rivet refuses a modified
+or unmanaged installation. There is no force-overwrite option.
+
+Obtain and review the new source or package. Preview the operation:
+
+```sh
+node scripts/install-skill.mjs upgrade \
+  --host codex --project /absolute/path/backend --dry-run
+```
+
+If the preview matches your intent, run the command without `--dry-run`.
+
+Rivet stages the new files before replacement. It moves the previous skill
+to `.rivet/installation-backups/<host>/rivet-<unique-id>`. The result reports
+the exact backup path. It then moves the staged skill into the discovery path.
+
+If replacement fails, Rivet attempts to restore the previous installation.
+If restoration fails or another target appears, Rivet preserves the backup
+and reports its path. Inspect both locations before further action.
+
+## Remove
+
+```sh
+node scripts/install-skill.mjs remove \
+  --host codex --project /absolute/path/backend --dry-run
+```
+
+If the preview matches your intent, run the command without `--dry-run`.
+
+Removal moves the managed skill to the same backup directory. It does not
+delete its contents or change another skill. An already absent installation
+is unchanged.
+
+Keep backups until the rollback period ends. Remove a backup only after you
+inspect its exact path and confirm that it contains no required user changes.
+The installer does not automatically delete backups.
+
+## Recover a backup
+
+1. Read the exact backup path from the operation result.
+2. Run status for the destination.
+3. If another managed installation exists, remove it through Rivet to retain
+   a separate backup.
+4. If a modified or unmanaged target exists, preserve it manually in a new
+   location. Do not overwrite it.
+5. Confirm that the discovery target is absent.
+6. Move the selected backup into that exact discovery target.
+7. Run status. Confirm `installed` before use.
+
+Recovery requires both locations to support a filesystem rename. A
+cross-filesystem error leaves the original installation unchanged.
+
+## Interrupted operation
+
+Rivet serializes mutations with `.rivet-install.lock` in the host's `skills`
+directory. A normal success or caught failure removes its own lock.
+
+If a process terminates abruptly:
+
+1. Read the lock's process identifier and machine name.
+2. Confirm that no installation process is active.
+3. Inspect the discovery target, retained backups, and `.rivet-stage-*`
+   directories in that exact host skills directory.
+4. Preserve any complete installation before recovery.
+5. Move the stale lock to a separate record. Do not move an active lock.
+6. Recover an intact backup when required. Run status before retrying.
+
+The installer does not automatically guess whether a lock is stale. A staged
+directory is not a completed installation. Hosts must not use it as Rivet.
+
+## Limitations
+
+- This is a local file-management tool, not an operating-system sandbox.
+- The lock coordinates Rivet installers, not arbitrary concurrent editors.
+- Do not run it while an untrusted process can replace project directories.
+- Dirty source is recorded as dirty. It is not a production release.
+- Exit status `2` means a refused operation or modified/unmanaged status.
+- A dry-run does not create directories, locks, files, or backups.

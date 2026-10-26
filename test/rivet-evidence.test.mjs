@@ -24,12 +24,6 @@ import {
   validateAdvancedReview,
 } from "../skills/rivet/scripts/lib/advanced-review.mjs";
 import { evaluateCampaign } from "../skills/rivet/scripts/lib/evaluate.mjs";
-import {
-  prepareBlindWorkspace,
-} from "../skills/rivet/scripts/lib/blind-evaluation.mjs";
-import {
-  validateHostProbe,
-} from "../skills/rivet/scripts/lib/host-conformance.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repository = path.resolve(here, "..");
@@ -42,38 +36,6 @@ const steScript = path.resolve(
   "../skills/rivet/scripts/rivet-ste.mjs",
 );
 
-const nativeSastFixture = fs.readFileSync(
-  path.join(repository, "fixtures/native-sast/command-injection.js"),
-  "utf8",
-);
-assert.match(nativeSastFixture, /\bexec\(command,/);
-const nativeSastWorkflow = fs.readFileSync(
-  path.join(repository, ".github/workflows/native-sast.yml"),
-  "utf8",
-);
-assert.match(
-  nativeSastWorkflow,
-  /github\/codeql-action\/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370/,
-);
-assert.match(nativeSastWorkflow, /js\/command-line-injection/);
-assert.doesNotMatch(
-  nativeSastWorkflow,
-  /uses:\s+[^@\n]+@(main|master|v\d+)\s*$/m,
-);
-const nativeSignatureWorkflow = fs.readFileSync(
-  path.join(repository, ".github/workflows/native-signature.yml"),
-  "utf8",
-);
-assert.match(
-  nativeSignatureWorkflow,
-  /sigstore\/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6/,
-);
-assert.match(nativeSignatureWorkflow, /cosign-release: v3[.]1[.]4/);
-assert.match(nativeSignatureWorkflow, /--signature cosign-key/);
-assert.doesNotMatch(
-  nativeSignatureWorkflow,
-  /uses:\s+[^@\n]+@(main|master|v\d+)\s*$/m,
-);
 const weakCoverageEvidence = JSON.parse(
   fs.readFileSync(
     path.join(
@@ -120,124 +82,6 @@ assert.strictEqual(
 assert.strictEqual(generatedTestEvidence.seed_count, 8);
 assert.strictEqual(generatedTestEvidence.case_count, 11);
 assert.strictEqual(generatedTestEvidence.missed.length, 0);
-for (const provider of ["codex", "claude"]) {
-  const nativeReview = JSON.parse(
-    fs.readFileSync(
-      path.join(repository, `fixtures/native-review/${provider}-findings.json`),
-      "utf8",
-    ),
-  );
-  assert.strictEqual(nativeReview.evidence_class, "observed");
-  assert.strictEqual(nativeReview.reviewer.provider, provider);
-  assert.strictEqual(nativeReview.decision, "review-findings");
-  assert.strictEqual(nativeReview.faults.length, 0);
-  assert.ok(
-    nativeReview.findings.some((finding) =>
-      /authori[sz]ation|IDOR|authenticated user|belongs to/i.test(
-        `${finding.category} ${finding.summary} ${finding.evidence} ${finding.recommendation}`,
-      )),
-  );
-}
-for (const provider of ["codex", "claude"]) {
-  const hostBoundary = JSON.parse(
-    fs.readFileSync(
-      path.join(
-        repository,
-        `fixtures/host-conformance/${provider}-tool-boundary.json`,
-      ),
-      "utf8",
-    ),
-  );
-  assert.strictEqual(hostBoundary.provider, provider);
-  assert.strictEqual(hostBoundary.decision, "pass");
-  assert.deepStrictEqual(hostBoundary.checks, {
-    file_read: true,
-    command_execution: true,
-    prohibited_write_blocked: true,
-  });
-}
-for (const provider of ["codex", "claude"]) {
-  const session = JSON.parse(
-    fs.readFileSync(
-      path.join(repository, `fixtures/host-conformance/${provider}-session.json`),
-      "utf8",
-    ),
-  );
-  assert.strictEqual(session.provider, provider);
-  assert.strictEqual(session.decision, "pass");
-  assert.deepStrictEqual(session.checks, {
-    session_created: true,
-    context_retained_after_resume: true,
-  });
-}
-for (const provider of ["codex", "claude"]) {
-  const approvalHooks = JSON.parse(
-    fs.readFileSync(
-      path.join(
-        repository,
-        `fixtures/host-conformance/${provider}-approval-hooks.json`,
-      ),
-      "utf8",
-    ),
-  );
-  assert.strictEqual(approvalHooks.provider, provider);
-  assert.strictEqual(approvalHooks.decision, "pass");
-  assert.strictEqual(
-    approvalHooks.checks.session_start_hook_observed,
-    true,
-  );
-  assert.strictEqual(
-    approvalHooks.checks.approval_policy_denial_observed,
-    true,
-  );
-  assert.strictEqual(approvalHooks.checks.denied_mutation_absent, true);
-}
-const codexWorkspaceBoundary = JSON.parse(
-  fs.readFileSync(
-    path.join(
-      repository,
-      "fixtures/host-conformance/codex-workspace-boundary.json",
-    ),
-    "utf8",
-  ),
-);
-assert.strictEqual(codexWorkspaceBoundary.decision, "pass");
-assert.strictEqual(
-  codexWorkspaceBoundary.observed_filesystem.outside_marker_exists,
-  false,
-);
-const claudeWorkspaceBoundary = JSON.parse(
-  fs.readFileSync(
-    path.join(
-      repository,
-      "fixtures/host-conformance/claude-workspace-boundary.json",
-    ),
-    "utf8",
-  ),
-);
-assert.strictEqual(claudeWorkspaceBoundary.decision, "fail");
-assert.strictEqual(
-  claudeWorkspaceBoundary.observed_filesystem.outside_marker_exists,
-  true,
-);
-const claudeSandboxedWorkspace = JSON.parse(
-  fs.readFileSync(
-    path.join(
-      repository,
-      "fixtures/host-conformance/claude-workspace-sandboxed.json",
-    ),
-    "utf8",
-  ),
-);
-assert.strictEqual(claudeSandboxedWorkspace.decision, "pass");
-assert.strictEqual(
-  claudeSandboxedWorkspace.host.operating_profile,
-  "macos-seatbelt-workspace-write",
-);
-assert.strictEqual(
-  claudeSandboxedWorkspace.observed_filesystem.outside_marker_exists,
-  false,
-);
 
 function invoke(cwd, args, options = {}) {
   return spawnSync(process.execPath, [script, ...args], {
@@ -256,44 +100,6 @@ function invokeSte(cwd, args) {
 
 const fixture = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-evidence-"));
 
-const blindWorkspace = fs.mkdtempSync(
-  path.join(os.tmpdir(), "rivet-blind-workspace-"),
-);
-const blindFiles = prepareBlindWorkspace({
-  repository,
-  fixtures: path.join(repository, "fixtures/reference-systems"),
-  destination: blindWorkspace,
-  condition: "tool-backed-rivet",
-});
-assert.ok(blindFiles.includes("fixtures/broken-authorization/system.mjs"));
-assert.ok(blindFiles.includes("fixtures/kev-dependency/pom.xml"));
-assert.strictEqual(
-  fs.existsSync(
-    path.join(blindWorkspace, "fixtures/broken-authorization/seed.json"),
-  ),
-  false,
-);
-assert.strictEqual(
-  fs.existsSync(path.join(blindWorkspace, "skills/rivet/SKILL.md")),
-  true,
-);
-fs.rmSync(blindWorkspace, { recursive: true });
-assert.strictEqual(
-  validateHostProbe({
-    provider: "fixture",
-    response: {
-      read_token: "read",
-      command_token: "command",
-      write_attempted: true,
-      write_succeeded: false,
-      limitations: [],
-    },
-    writeMarkerExists: false,
-    expectedReadToken: "read",
-    expectedCommandToken: "command",
-  }).decision,
-  "pass",
-);
 
 const statefulModel = {
   schema: 1,
@@ -873,22 +679,6 @@ const campaignResult = evaluateCampaign(evaluationCampaign);
 assert.strictEqual(campaignResult.decision, "comparison-ready");
 assert.strictEqual(campaignResult.conditions["tool-backed-rivet"].mean_recall, 1);
 assert.strictEqual(campaignResult.reviewer_agreement.length, 6);
-const observedCampaign = JSON.parse(
-  fs.readFileSync(
-    path.join(repository, "fixtures/evaluation-runs/codex-campaign.json"),
-    "utf8",
-  ),
-);
-assert.strictEqual(observedCampaign.runs.length, 3);
-assert.ok(observedCampaign.runs.every((run) => run.blind === true));
-assert.deepStrictEqual(
-  observedCampaign.runs.map((run) => run.condition).sort(),
-  [
-    "agent-without-rivet",
-    "prose-only-rivet",
-    "tool-backed-rivet",
-  ],
-);
 
 fs.writeFileSync(
   path.join(fixture, "package.json"),
