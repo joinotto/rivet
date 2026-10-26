@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- General CI across Node.js 16 and 22, plus maintainer, support, release, and
+  architecture documentation required by the open-source foundation.
 - Phase 6 criterion-by-criterion conformance record with independent-review
   gates kept explicit.
 - Digest-bound independent-review packets and human-review validation for

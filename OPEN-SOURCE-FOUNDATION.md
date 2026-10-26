@@ -15,7 +15,7 @@ Use another license only after legal review.
 
 ## 2. Required repository files
 
-Add these files before the first public release:
+Maintain these files before the first public release:
 
 - `LICENSE`
 - `NOTICE`
