@@ -31,8 +31,14 @@ npm ci --prefix fuzz/coverage-guided
 node scripts/run-coverage-guided-fuzz.mjs \
   --executions 10000 \
   --workspace .rivet/coverage-guided \
+  --persistent-corpus .rivet/persistent-coverage-guided-corpus \
   --output .rivet/coverage-guided/report.json
 ```
+
+The persistent corpus is optional for local runs. Rivet accepts only regular
+files, limits each input and the total corpus, removes duplicate content, and
+records the restored and saved corpus digests. CI restores the trusted corpus
+for each campaign. Only a successful run on `main` can publish the next cache.
 
 A command exit status of zero means that its published assertions passed. It
 does not prove production correctness or native host behavior. Read each

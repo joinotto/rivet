@@ -43,6 +43,12 @@ dependencies in a lockfile. A separate least-privilege workflow runs 10,000
 libFuzzer-guided executions against the same four normalizers. It retains the
 revision-bound report, expanded corpus, and crash inputs for 14 days.
 
+The workflow restores a bounded, content-addressed corpus. The runner rejects
+links, non-regular files, oversized inputs, excessive file counts, and an
+excessive total size. It records the prior and next corpus digests and removes
+duplicate content. Only a successful `main` run can publish the next shared
+corpus. Pull-request code cannot update that trusted corpus lineage.
+
 The first campaign found reproducible type errors for malformed nested
 structures. The normalizers now reject those structures with stable validation
 errors. The same 3,000-execution campaign then completed with no crash.
@@ -62,9 +68,9 @@ zero crashes, timeouts, and out-of-memory results. Its evidence decision was
 
 Result: pass for the published evidence contract and bounded parser campaign.
 
-Limitation: the bounded CI campaigns do not preserve a corpus between workflow
-runs and are not a long-running fuzzing service. They do not prove adequate
-corpus quality, path coverage, target selection, or absence of defects.
+Limitation: the bounded CI campaigns are not a long-running fuzzing service.
+Corpus persistence does not prove adequate corpus quality, path coverage,
+target selection, or absence of defects.
 
 ## Chaos controls
 

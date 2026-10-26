@@ -79,9 +79,16 @@ and final corpus digests, dictionary digest, execution count, process result,
 crash inputs, and evidence limitations. The workflow retains the report,
 expanded corpus, and crash directory for 14 days, including after failure.
 
+The workflow restores a content-addressed corpus before each run. The runner
+rejects symbolic links, non-regular files, inputs larger than 65,536 bytes,
+more than 2,048 files, and more than 64 MiB of total input. It removes
+duplicate content and records restored, imported, and saved corpus counts and
+digests. Pull requests can consume an eligible trusted cache. Only a successful
+run on `main` can publish the next persistent corpus.
+
 The workflow has only `contents: read` permission. It uses commit-pinned
-actions, does not persist checkout credentials, and does not use
-`pull_request_target`.
+actions, including separate cache restore and save actions. It does not
+persist checkout credentials or use `pull_request_target`.
 
 Native execution evidence:
 

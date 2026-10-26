@@ -4,6 +4,11 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { normalizeFuzzCampaign } from "../skills/rivet/scripts/lib/fuzz.mjs";
+import {
+  mergeCorpus,
+  readCorpus,
+  replaceCorpus,
+} from "./lib/coverage-guided-corpus.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -90,6 +95,18 @@ const output = projectPath(
   option("--output", ".rivet/coverage-guided/report.json"),
   "--output",
 );
+const persistentCorpusOption = option("--persistent-corpus", null);
+const persistentCorpus = persistentCorpusOption
+  ? projectPath(persistentCorpusOption, "--persistent-corpus")
+  : null;
+if (
+  persistentCorpus &&
+  (persistentCorpus === workspace ||
+    persistentCorpus.startsWith(`${workspace}${path.sep}`) ||
+    workspace.startsWith(`${persistentCorpus}${path.sep}`))
+) {
+  throw new Error("--persistent-corpus and --workspace must be separate.");
+}
 const packageRoot = path.join(root, "fuzz/coverage-guided");
 const seedCorpus = path.join(packageRoot, "corpus");
 const corpus = path.join(workspace, "corpus");
@@ -107,6 +124,17 @@ if (!fs.existsSync(executable)) {
 fs.rmSync(workspace, { recursive: true, force: true });
 fs.mkdirSync(crashesRoot, { recursive: true, mode: 0o700 });
 fs.cpSync(seedCorpus, corpus, { recursive: true });
+const persistentBefore = persistentCorpus
+  ? {
+      files: readCorpus(persistentCorpus).length,
+      digest: fs.existsSync(persistentCorpus)
+        ? directoryDigest(persistentCorpus)
+        : null,
+    }
+  : null;
+const persistentMerge = persistentCorpus
+  ? mergeCorpus(persistentCorpus, corpus)
+  : null;
 
 const target = path.join(packageRoot, "target.mjs");
 const dictionary = path.join(packageRoot, "dictionary.txt");
@@ -160,6 +188,12 @@ const crashes = crashFiles.map((file) => {
     reproducible: false,
   };
 });
+const persistentAfter = persistentCorpus
+  ? {
+      ...replaceCorpus(corpus, persistentCorpus),
+      digest: directoryDigest(persistentCorpus),
+    }
+  : null;
 const version = JSON.parse(
   fs.readFileSync(path.join(packageRoot, "node_modules/@jazzer.js/core/package.json"))
 ).version;
@@ -177,6 +211,15 @@ const report = {
   executions: observedExecutions,
   seed_corpus_digest: directoryDigest(seedCorpus),
   final_corpus_digest: directoryDigest(corpus),
+  persistent_corpus: persistentCorpus
+    ? {
+        restored_files: persistentBefore.files,
+        restored_digest: persistentBefore.digest,
+        imported_files: persistentMerge.added,
+        saved_files: persistentAfter.files,
+        saved_digest: persistentAfter.digest,
+      }
+    : null,
   dictionary_digest: digest(fs.readFileSync(dictionary)),
   sanitizer:
     "Jazzer.js/libFuzzer coverage, JavaScript exceptions, determinism, output-size checks, and built-in bug detectors",
