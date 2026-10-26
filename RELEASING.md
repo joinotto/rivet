@@ -2,6 +2,25 @@
 
 Status: no public release has occurred.
 
+## Release candidate
+
+Build an unsigned local candidate only from a clean committed revision:
+
+```sh
+npm run package:release-candidate -- \
+  --version 0.1.0 \
+  --revision "$(git rev-parse HEAD)" \
+  --output dist/release
+```
+
+The builder creates deterministic uncompressed host archives, SHA-256 sums, a
+CycloneDX SBOM, unsigned source-bound provenance, and a manifest. CI builds the
+candidate twice and requires byte-identical output.
+
+The candidate is not a release. Do not publish it until the signing,
+independent approval, support, verification, and publication requirements in
+this document are complete.
+
 ## Release authority
 
 A named maintainer prepares a release. Security-sensitive binaries or
