@@ -1602,6 +1602,18 @@ assert.deepStrictEqual(
   sarifReport.findings[0].standard_mappings,
   ["CWE-639", "OWASP-ASVS-4.2.1"],
 );
+fs.writeFileSync(
+  path.join(intelligence, "malformed-sarif.json"),
+  JSON.stringify({ version: "2.1.0", runs: [null] }),
+);
+const malformedSarif = invoke(intelligence, [
+  "security",
+  "--sarif",
+  "malformed-sarif.json",
+]);
+assert.strictEqual(malformedSarif.status, 1);
+assert.match(malformedSarif.stderr, /The artifact is not SARIF 2[.]1[.]0[.]/);
+assert.doesNotMatch(malformedSarif.stderr, /TypeError/);
 
 fs.writeFileSync(
   path.join(intelligence, "trivy.json"),
@@ -1630,6 +1642,21 @@ const trivyEvidence = invoke(intelligence, [
 ]);
 assert.strictEqual(trivyEvidence.status, 2, trivyEvidence.stderr);
 assert.strictEqual(JSON.parse(trivyEvidence.stdout).findings.length, 2);
+fs.writeFileSync(
+  path.join(intelligence, "malformed-trivy.json"),
+  JSON.stringify({ Results: [{ Vulnerabilities: [null] }] }),
+);
+const malformedTrivy = invoke(intelligence, [
+  "security",
+  "--trivy",
+  "malformed-trivy.json",
+]);
+assert.strictEqual(malformedTrivy.status, 1);
+assert.match(
+  malformedTrivy.stderr,
+  /The artifact is not a supported Trivy JSON report[.]/,
+);
+assert.doesNotMatch(malformedTrivy.stderr, /TypeError/);
 
 fs.writeFileSync(
   path.join(intelligence, "bom.json"),
@@ -1651,6 +1678,23 @@ const sbomReport = JSON.parse(sbomEvidence.stdout);
 assert.strictEqual(sbomReport.format, "CycloneDX");
 assert.strictEqual(sbomReport.component_count, 1);
 assert.strictEqual(sbomReport.subject_revision, "fixture-revision");
+fs.writeFileSync(
+  path.join(intelligence, "malformed-bom.json"),
+  JSON.stringify({ bomFormat: "CycloneDX", components: -1 }),
+);
+const malformedSbom = invoke(intelligence, [
+  "sbom",
+  "--file",
+  "malformed-bom.json",
+  "--revision",
+  "fixture-revision",
+]);
+assert.strictEqual(malformedSbom.status, 1);
+assert.match(
+  malformedSbom.stderr,
+  /The artifact is not supported CycloneDX or SPDX JSON[.]/,
+);
+assert.doesNotMatch(malformedSbom.stderr, /TypeError/);
 
 const unavailableSbomValidator = invoke(intelligence, [
   "sbom",

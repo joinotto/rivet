@@ -45,6 +45,9 @@ jobs:
       - name: Run seeded evaluation
         run: npm run test:evaluation
 
+      - name: Run bounded parser fuzzing
+        run: npm run test:fuzz
+
       - name: Validate skill package
         run: npm run validate:skill
 

@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Bounded deterministic fuzz execution for SARIF, Trivy, CycloneDX, and SPDX
+  normalization boundaries.
 - OpenSSF baseline-3 assessment, secure-development and testing policies, and
   pull-request OSV dependency scanning.
 - OpenSSF baseline-2 evidence assessment, documented sensitive-access holders,

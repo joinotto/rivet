@@ -4,6 +4,10 @@ function readJson(file) {
   return JSON.parse(fs.readFileSync(file, "utf8"));
 }
 
+function record(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
 function location(result) {
   const physical = result.locations?.[0]?.physicalLocation;
   return {
@@ -14,20 +18,38 @@ function location(result) {
 
 export function normalizeSarif(file) {
   const document = readJson(file);
-  if (document.version !== "2.1.0" || !Array.isArray(document.runs)) {
+  if (
+    !record(document) ||
+    document.version !== "2.1.0" ||
+    !Array.isArray(document.runs)
+  ) {
     throw new Error("The artifact is not SARIF 2.1.0.");
   }
   const findings = [];
   const tools = [];
   for (const run of document.runs) {
-    const driver = run.tool?.driver;
+    if (!record(run)) throw new Error("The artifact is not SARIF 2.1.0.");
+    const driver = record(run.tool?.driver) ? run.tool.driver : null;
+    const rules = Array.isArray(driver?.rules) ? driver.rules : [];
+    const results =
+      run.results === undefined
+        ? []
+        : Array.isArray(run.results)
+          ? run.results
+          : null;
+    if (!results) throw new Error("The artifact is not SARIF 2.1.0.");
     tools.push({
       name: driver?.name || "unknown",
       version: driver?.semanticVersion || driver?.version || null,
     });
-    for (const result of run.results || []) {
-      const rule = (driver?.rules || []).find((item) => item.id === result.ruleId);
-      const tags = rule?.properties?.tags || [];
+    for (const result of results) {
+      if (!record(result)) throw new Error("The artifact is not SARIF 2.1.0.");
+      const rule = rules.find(
+        (item) => record(item) && item.id === result.ruleId,
+      );
+      const tags = Array.isArray(rule?.properties?.tags)
+        ? rule.properties.tags.filter((tag) => typeof tag === "string")
+        : [];
       const cwe = tags.filter((tag) => /^CWE-\d+$/i.test(tag));
       const asvs = tags.filter(
         (tag) => /^(?:OWASP[-: ])?ASVS[-: ][A-Za-z0-9.-]+$/i.test(tag),
@@ -63,12 +85,33 @@ export function normalizeSarif(file) {
 
 export function normalizeTrivy(file) {
   const document = readJson(file);
-  if (!Array.isArray(document.Results)) {
+  if (!record(document) || !Array.isArray(document.Results)) {
     throw new Error("The artifact is not a supported Trivy JSON report.");
   }
   const findings = [];
   for (const result of document.Results) {
-    for (const item of result.Vulnerabilities || []) {
+    if (!record(result)) {
+      throw new Error("The artifact is not a supported Trivy JSON report.");
+    }
+    const vulnerabilities =
+      result.Vulnerabilities === undefined
+        ? []
+        : Array.isArray(result.Vulnerabilities)
+          ? result.Vulnerabilities
+          : null;
+    const misconfigurations =
+      result.Misconfigurations === undefined
+        ? []
+        : Array.isArray(result.Misconfigurations)
+          ? result.Misconfigurations
+          : null;
+    if (!vulnerabilities || !misconfigurations) {
+      throw new Error("The artifact is not a supported Trivy JSON report.");
+    }
+    for (const item of vulnerabilities) {
+      if (!record(item)) {
+        throw new Error("The artifact is not a supported Trivy JSON report.");
+      }
       findings.push({
         class: "vulnerability",
         target: result.Target || null,
@@ -80,7 +123,10 @@ export function normalizeTrivy(file) {
         evidence_class: "observed",
       });
     }
-    for (const item of result.Misconfigurations || []) {
+    for (const item of misconfigurations) {
+      if (!record(item)) {
+        throw new Error("The artifact is not a supported Trivy JSON report.");
+      }
       findings.push({
         class: "misconfiguration",
         target: result.Target || null,
@@ -108,22 +154,28 @@ export function normalizeTrivy(file) {
 
 export function normalizeSbom(file, revision) {
   const document = readJson(file);
+  if (!record(document)) {
+    throw new Error("The artifact is not supported CycloneDX or SPDX JSON.");
+  }
   let format;
   let version;
   let components;
   if (document.bomFormat === "CycloneDX") {
     format = "CycloneDX";
     version = document.specVersion;
-    components = document.components || [];
+    components = document.components === undefined ? [] : document.components;
   } else if (String(document.spdxVersion || "").startsWith("SPDX-")) {
     format = "SPDX";
     version = document.spdxVersion;
-    components = document.packages || [];
+    components = document.packages === undefined ? [] : document.packages;
   } else if (Array.isArray(document["@graph"]) || Array.isArray(document.element)) {
     format = "SPDX";
     version = "3";
     components = document["@graph"] || document.element;
   } else {
+    throw new Error("The artifact is not supported CycloneDX or SPDX JSON.");
+  }
+  if (!Array.isArray(components)) {
     throw new Error("The artifact is not supported CycloneDX or SPDX JSON.");
   }
   return {
