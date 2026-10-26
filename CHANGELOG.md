@@ -24,6 +24,9 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- An isolated, lockfile-pinned Jazzer.js/libFuzzer workspace and
+  exact-revision CI campaign for the SARIF, Trivy, CycloneDX, and SPDX
+  normalizers, with retained report, corpus, and crash inputs.
 - Deterministic unsigned in-toto Statements with the SLSA v1 provenance
   predicate, explicit local-builder trust limits, resolved source identity,
   subjects, and byproducts for release candidates.

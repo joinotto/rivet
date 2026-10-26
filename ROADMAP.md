@@ -356,6 +356,8 @@ Implemented:
   readiness checks.
 - Coverage-guided fuzz campaign normalization with revision, corpus, tool,
   sanitizer, and crash-reproduction evidence.
+- Isolated Jazzer.js/libFuzzer coverage-guided CI campaigns for the SARIF,
+  Trivy, CycloneDX, and SPDX normalizers.
 - Bounded chaos-experiment planning and observed-result normalization.
 - Required steady-state probes, target limits, stop conditions, rollback
   verification, user-harm signals, and explicit approval.

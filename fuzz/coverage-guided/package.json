@@ -1,0 +1,12 @@
+{
+  "name": "rivet-coverage-guided-fuzzing",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@jazzer.js/core": "4.0.0"
+  }
+}
