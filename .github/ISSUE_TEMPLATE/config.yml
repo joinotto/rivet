@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private vulnerability report
+    url: https://github.com/joinotto/rivet/security/advisories/new
+    about: Report a suspected vulnerability without public disclosure.
+  - name: Support guidance
+    url: https://github.com/joinotto/rivet/blob/main/SUPPORT.md
+    about: Review supported questions and required diagnostic information.

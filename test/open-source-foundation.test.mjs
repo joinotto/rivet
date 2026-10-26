@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  requiredCommunityFiles,
   requiredFoundationFiles,
   validateOpenSourceFoundation
 } from "../scripts/validate-open-source-foundation.mjs";
@@ -17,6 +18,7 @@ const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-foundation-"));
 try {
   for (const relative of [
     ...requiredFoundationFiles,
+    ...requiredCommunityFiles,
     "REUSE.toml",
     "LICENSES/Apache-2.0.txt",
     "package.json"

@@ -5,6 +5,8 @@
 ## Before you contribute
 
 Open an issue or discussion for a large interface, security, policy, or architecture change.
+Use the repository issue forms for bugs, feature proposals, and documentation
+problems. Do not put a suspected vulnerability in a public issue.
 
 Keep a pull request small enough for a reviewer to understand.
 
