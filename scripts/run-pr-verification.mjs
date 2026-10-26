@@ -86,6 +86,10 @@ const impact = run(process.execPath, [
   "impact",
   "--files-from",
   relativeFilesPath,
+  "--base-revision",
+  mergeBase,
+  "--head-revision",
+  head,
   "--json",
 ]);
 if (impact.status !== 0) {

@@ -967,6 +967,71 @@ const criticalRisk = invoke(fixture, [
 assert.strictEqual(criticalRisk.status, 0, criticalRisk.stderr);
 assert.strictEqual(JSON.parse(criticalRisk.stdout).risk_mode, "critical");
 
+const diffRisk = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-diff-risk-"));
+function diffRiskGit(args) {
+  const result = spawnSync("git", args, { cwd: diffRisk, encoding: "utf8" });
+  assert.strictEqual(result.status, 0, result.stderr);
+  return result.stdout.trim();
+}
+diffRiskGit(["init", "--initial-branch=main"]);
+diffRiskGit(["config", "user.name", "Rivet Test"]);
+diffRiskGit(["config", "user.email", "rivet-test@example.invalid"]);
+fs.mkdirSync(path.join(diffRisk, "src"), { recursive: true });
+fs.mkdirSync(path.join(diffRisk, "docs"), { recursive: true });
+fs.writeFileSync(
+  path.join(diffRisk, "src/logic.js"),
+  "export const payment = 'legacy';\n",
+);
+fs.writeFileSync(path.join(diffRisk, "docs/guide.md"), "# Guide\n");
+diffRiskGit(["add", "."]);
+diffRiskGit(["commit", "-m", "base"]);
+const diffBase = diffRiskGit(["rev-parse", "HEAD"]);
+fs.appendFileSync(path.join(diffRisk, "src/logic.js"), "export const value = 1;\n");
+fs.appendFileSync(
+  path.join(diffRisk, "docs/guide.md"),
+  "Explain authorization and secrets.\n",
+);
+diffRiskGit(["add", "."]);
+diffRiskGit(["commit", "-m", "safe change"]);
+const safeHead = diffRiskGit(["rev-parse", "HEAD"]);
+const safeDiffRisk = invoke(diffRisk, [
+  "impact",
+  "--files",
+  "src/logic.js,docs/guide.md",
+  "--base-revision",
+  diffBase,
+  "--head-revision",
+  safeHead,
+  "--json",
+]);
+assert.strictEqual(safeDiffRisk.status, 0, safeDiffRisk.stderr);
+assert.strictEqual(JSON.parse(safeDiffRisk.stdout).risk_mode, "local");
+assert.deepStrictEqual(JSON.parse(safeDiffRisk.stdout).signals, []);
+
+fs.appendFileSync(
+  path.join(diffRisk, "src/logic.js"),
+  "export const permission = 'admin';\n",
+);
+diffRiskGit(["add", "."]);
+diffRiskGit(["commit", "-m", "critical change"]);
+const criticalHead = diffRiskGit(["rev-parse", "HEAD"]);
+const criticalDiffRisk = invoke(diffRisk, [
+  "impact",
+  "--files",
+  "src/logic.js",
+  "--base-revision",
+  safeHead,
+  "--head-revision",
+  criticalHead,
+  "--json",
+]);
+assert.strictEqual(criticalDiffRisk.status, 0, criticalDiffRisk.stderr);
+assert.strictEqual(JSON.parse(criticalDiffRisk.stdout).risk_mode, "critical");
+assert.strictEqual(
+  JSON.parse(criticalDiffRisk.stdout).signals[0].source,
+  "added-content-heuristic",
+);
+
 const topology = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-topology-"));
 fs.mkdirSync(path.join(topology, "packages/core"), { recursive: true });
 fs.mkdirSync(path.join(topology, "apps/api"), { recursive: true });

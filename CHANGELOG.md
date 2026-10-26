@@ -182,6 +182,9 @@ This file records notable changes to Rivet.
 
 ### Changed
 
+- Limited pull-request content-risk signals to added production lines. The
+  classifier excludes unchanged code, documentation, tests, fixtures, and
+  GitHub configuration from content heuristics.
 - Made the ASD-STE100-aligned profile optional and risk-based.
 - Limited STE routing to consequential procedures and formal evidence.
 - Defined Rivet as host-independent and model-provider-independent.
