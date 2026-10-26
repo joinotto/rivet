@@ -31,6 +31,7 @@ The repository uses:
 - Required pull requests.
 - Required Node.js 16 and Node.js 22 checks.
 - Required repository-wide CodeQL analysis.
+- Required OSV dependency-difference scanning.
 - Linear history.
 - Resolved review conversations before merge.
 - Read-only default workflow permissions.
@@ -85,5 +86,4 @@ The local baseline-1, baseline-2, and baseline-3 evidence assessments are in
 `docs/openssf-baseline-2-assessment.json`, and
 `docs/openssf-baseline-3-assessment.json`. Baseline-1 identifies organization
 multi-factor authentication as not met. Baseline-3 identifies independent
-human approval as not met and keeps the OSV native-run requirement open. A
-local assessment is not a badge.
+human approval as not met. A local assessment is not a badge.

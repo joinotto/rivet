@@ -8,8 +8,8 @@ Protected branch: `main`
 
 - Require the pull-request path.
 - Require the branch to be current before merge.
-- Require successful `Node.js 16`, `Node.js 22`, and `Analyze JavaScript`
-  checks from GitHub Actions.
+- Require successful `Node.js 16`, `Node.js 22`, `Analyze JavaScript`, and
+  `Dependency vulnerability diff / osv-scan` checks from GitHub Actions.
 - Dismiss stale review state after a new push.
 - Require resolution of review conversations.
 - Require linear history.
@@ -37,7 +37,8 @@ this file and the repository history.
 The repository branch-protection API reported:
 
 - Strict required status checks enabled.
-- Required checks: `Node.js 16`, `Node.js 22`, and `Analyze JavaScript`.
+- Required checks: `Node.js 16`, `Node.js 22`, `Analyze JavaScript`, and
+  `Dependency vulnerability diff / osv-scan`.
 - Pull-request review protection enabled.
 - Required approval count: zero.
 - Administrator enforcement enabled.
