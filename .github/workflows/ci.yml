@@ -63,6 +63,9 @@ jobs:
       - name: Validate OpenSSF baseline assessment
         run: npm run validate:openssf
 
+      - name: Validate open-source foundation
+        run: npm run validate:foundation
+
       - name: Check DCO sign-offs
         env:
           DCO_HEAD_SHA: ${{ github.event.pull_request.head.sha }}

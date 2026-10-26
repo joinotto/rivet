@@ -32,6 +32,11 @@ Maintain these files before the first public release:
 - `THREAT-MODEL.md`
 - `docs/architecture.md`
 
+Run `npm run validate:foundation` to check that this set is present and that
+selected license, navigation, maintainer, support, and security-reporting
+records are consistent. This check does not replace legal or governance
+review.
+
 ## 3. Contribution model
 
 Use:
