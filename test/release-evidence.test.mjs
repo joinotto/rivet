@@ -42,7 +42,7 @@ try {
     "fixture"
   ]);
   const revision = command(source, "git", ["rev-parse", "HEAD"]);
-  const candidate = path.join(temporary, "candidate");
+  const candidate = path.join(source, ".rivet", "tmp", "candidate");
   command(source, process.execPath, [
     "scripts/build-release-candidate.mjs",
     "--version",

@@ -115,6 +115,35 @@ const output = path.resolve(repository, value("--output") || "dist/release");
 const force = argv.includes("--force");
 const allowDirty = argv.includes("--allow-dirty");
 
+function requireSafeOutput(target) {
+  const repositoryReal = fs.realpathSync(repository);
+  let existing = target;
+  while (!fs.existsSync(existing)) {
+    const parent = path.dirname(existing);
+    if (parent === existing) {
+      throw new Error("Cannot resolve the --output parent directory.");
+    }
+    existing = parent;
+  }
+  const existingReal = fs.realpathSync(existing);
+  const targetReal = path.resolve(
+    existingReal,
+    path.relative(existing, target)
+  );
+  if (
+    targetReal === repositoryReal ||
+    !targetReal.startsWith(`${repositoryReal}${path.sep}`)
+  ) {
+    throw new Error("--output must resolve to a directory inside the project.");
+  }
+  if (fs.existsSync(target)) {
+    const stat = fs.lstatSync(target);
+    if (!stat.isDirectory() || stat.isSymbolicLink()) {
+      throw new Error("--output must be a non-symbolic directory.");
+    }
+  }
+}
+
 if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version || "")) {
   throw new Error("--version must be a semantic version without a v prefix.");
 }
@@ -129,6 +158,7 @@ if (packageDocument.version !== version) {
     `package.json version ${packageDocument.version} does not match ${version}.`
   );
 }
+requireSafeOutput(output);
 const head = run("git", ["rev-parse", "HEAD"]);
 if (head.status !== 0 || head.stdout.trim() !== revision) {
   throw new Error("--revision must match the current Git HEAD.");

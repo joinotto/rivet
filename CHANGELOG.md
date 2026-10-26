@@ -6,6 +6,9 @@ This file records notable changes to Rivet.
 
 ### Changed
 
+- Release-candidate output is restricted to a non-symbolic directory inside
+  the project, including when forced replacement is requested. The security
+  baseline now reflects existing revision-bound CycloneDX generation.
 - Phase 6 and CI conformance now record native, exact-revision fuzz reports
   for both supported Node.js runtimes.
 - Security baseline status now reflects the completed OpenSSF Scorecard run
