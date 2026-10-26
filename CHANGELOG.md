@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Enforced `main` branch protection with required Node.js 16 and 22 checks,
+  plus a documented single-maintainer review limitation.
 - General CI across Node.js 16 and 22, plus maintainer, support, release, and
   architecture documentation required by the open-source foundation.
 - Pinned Ubuntu 24.04 CI runner and an observed CI conformance record.

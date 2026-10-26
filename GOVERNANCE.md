@@ -5,6 +5,7 @@
 ## Current stage
 
 The project is founder-led during initial development.
+The `main` branch uses a protected pull-request and required-CI path.
 
 ## Decision rules
 
@@ -24,6 +25,11 @@ Maintainers can:
 - Respond to security reports.
 
 The project must publish a named maintainer list before its first public release.
+
+The project currently has one named maintainer. The branch approval count is
+zero because GitHub does not permit self-approval. This is not independent
+review. Increase the count when another qualified maintainer or regular
+reviewer is available.
 
 ## Maintainer changes
 

@@ -246,6 +246,7 @@ The product must not present an inferred result as an observed result.
 - [Open-source foundation](OPEN-SOURCE-FOUNDATION.md)
 - [Architecture](docs/architecture.md)
 - [Continuous-integration conformance](docs/CI-CONFORMANCE.md)
+- [Branch protection](docs/BRANCH-PROTECTION.md)
 - [Maintainers](MAINTAINERS.md)
 - [Support](SUPPORT.md)
 - [Releasing](RELEASING.md)

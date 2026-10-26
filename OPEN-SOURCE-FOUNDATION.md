@@ -73,6 +73,9 @@ Required:
 - Two-person release approval for sensitive binaries.
 - Documented key compromise and revocation procedure.
 
+Current branch settings and limitations are recorded in
+`docs/BRANCH-PROTECTION.md`.
+
 Use SLSA as the incremental provenance model.
 
 Source: [SLSA specification](https://slsa.dev/spec/)
