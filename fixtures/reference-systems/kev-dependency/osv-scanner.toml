@@ -1,0 +1,38 @@
+# This manifest is an intentionally vulnerable evaluation fixture.
+# It is not a Rivet runtime dependency.
+
+[[IgnoredVulns]]
+id = "GHSA-3pxv-7cmr-fjr4"
+reason = "Intentional Log4j 2.14.1 evaluation fixture for vulnerability detection."
+
+[[IgnoredVulns]]
+id = "GHSA-6hg6-v5c8-fphq"
+reason = "Intentional Log4j 2.14.1 evaluation fixture for vulnerability detection."
+
+[[IgnoredVulns]]
+id = "GHSA-7rjr-3q55-vv33"
+reason = "Intentional Log4j 2.14.1 evaluation fixture for vulnerability detection."
+
+[[IgnoredVulns]]
+id = "GHSA-8489-44mv-ggj8"
+reason = "Intentional Log4j 2.14.1 evaluation fixture for vulnerability detection."
+
+[[IgnoredVulns]]
+id = "GHSA-h383-gmxw-35v2"
+reason = "Intentional Log4j 2.14.1 evaluation fixture for vulnerability detection."
+
+[[IgnoredVulns]]
+id = "GHSA-jfh8-c2jp-5v3q"
+reason = "Intentional Log4j 2.14.1 evaluation fixture for vulnerability detection."
+
+[[IgnoredVulns]]
+id = "GHSA-p6xc-xr62-6r2g"
+reason = "Intentional Log4j 2.14.1 evaluation fixture for vulnerability detection."
+
+[[IgnoredVulns]]
+id = "GHSA-qv9r-c865-cp47"
+reason = "Intentional Log4j 2.14.1 evaluation fixture for vulnerability detection."
+
+[[IgnoredVulns]]
+id = "GHSA-vc5p-v9hr-52mj"
+reason = "Intentional Log4j 2.14.1 evaluation fixture for vulnerability detection."

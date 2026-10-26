@@ -35,6 +35,7 @@ The repository uses:
 - Read-only default workflow permissions.
 - Commit-pinned third-party GitHub Actions.
 - Native static-analysis and signature workflows.
+- Repository-wide CodeQL analysis on pull requests and `main`.
 - OpenSSF Scorecard analysis with SARIF upload.
 
 See `docs/BRANCH-PROTECTION.md`, `docs/CI-CONFORMANCE.md`, and
