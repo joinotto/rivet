@@ -54,6 +54,22 @@ repository settings.
 The project currently has no runtime package dependencies. Recheck the update
 configuration when a package ecosystem or lock file is added.
 
+Exact-revision full-scan conformance:
+
+- Workflow run: `40394485453`.
+- Job: `121823782336`.
+- Source revision: `11057ede7b9e246fe5e0bd8291938d4459d0a676`.
+- Trigger: push to `main`.
+- OSV Scanner: `v2.7.0`.
+- Scan result: pass.
+- SARIF upload: pass.
+- Artifact identifier: `12685408323`.
+- GitHub artifact digest:
+  `sha256:7f1c7ad1b3bd711e7f4b6084d6c36310da315f945ba842294786095eec55a95a`.
+
+The pull-request diff job correctly skipped on the push event. This result can
+support the dependency gate only for the recorded source revision.
+
 ## Secret controls
 
 The repository enables:
