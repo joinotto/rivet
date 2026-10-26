@@ -34,6 +34,12 @@ The verifier fails when the inventory, digests, normalized archive structure,
 host metadata, SBOM binding, or provenance binding is inconsistent. It does not
 verify a publisher identity or authorize publication.
 
+An authorized maintainer can run the `Unsigned release candidate` workflow
+with a full commit identifier from `main` and the matching package version.
+The workflow has read-only repository permission. It builds and verifies the
+candidate, then retains it as a 14-day workflow artifact. It does not create a
+tag, GitHub release, package, signature, or publication.
+
 ## Release authority
 
 A named maintainer prepares a release. Security-sensitive binaries or
