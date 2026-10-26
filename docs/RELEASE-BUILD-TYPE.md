@@ -5,7 +5,7 @@
 
 ## v1
 
-The build creates the four Rivet host-package archives from the canonical
+The build creates the Codex and Claude Code host-package archives from the canonical
 `skills/rivet/` source. It also creates `SHA256SUMS`, a CycloneDX SBOM, an
 unsigned SLSA provenance statement, and a candidate manifest.
 
@@ -19,8 +19,13 @@ architecture, clean-source state, archive format, timestamp, file mode, owner,
 and group normalization.
 
 The resolved dependency is the Rivet Git repository at the selected commit.
-The subjects are the four host-package archives. The SBOM and `SHA256SUMS` are
+The subjects are exactly these two host-package archives. The manifest records
+`hosts: ["claude-code", "codex"]`. The SBOM and `SHA256SUMS` are
 recorded as byproducts.
+
+Earlier unsigned candidates contained four host archives. Those candidates
+predate the initial support decision. Rebuild a candidate from the current
+source before release review.
 
 ## Local builder
 

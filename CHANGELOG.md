@@ -6,6 +6,10 @@ This file records notable changes to Rivet.
 
 ### Changed
 
+- Initial host support is limited to Codex and Claude Code. The package
+  generator no longer emits Cursor or generic host packages. Release candidates
+  record the two supported hosts and reject other archive inventories. Future
+  host expansion is deferred in the roadmap.
 - Candidate verification now enforces SLSA statement source, builder,
   invocation, normalization, subject, and byproduct semantics.
 - Release-candidate conformance now records a native exact-revision in-toto

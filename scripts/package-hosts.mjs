@@ -22,11 +22,6 @@ const allowedRoots = [repository, fs.realpathSync(os.tmpdir())];
 
 const hosts = [
   {
-    id: "portable",
-    install_path: "Choose a skill directory supported by the host.",
-    include_agent_metadata: false,
-  },
-  {
     id: "codex",
     install_path: ".agents/skills/rivet or the configured Codex skills directory",
     include_agent_metadata: true,
@@ -34,11 +29,6 @@ const hosts = [
   {
     id: "claude-code",
     install_path: ".claude/skills/rivet",
-    include_agent_metadata: false,
-  },
-  {
-    id: "cursor",
-    install_path: ".cursor/skills/rivet",
     include_agent_metadata: false,
   },
 ];

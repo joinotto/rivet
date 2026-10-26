@@ -8,6 +8,10 @@ This record covers the manual `Unsigned release candidate` GitHub Actions
 workflow. It does not cover signing, approval, publication, installation, or a
 public release.
 
+The runs below predate the 2026-10-26 decision to support only Codex and Claude
+Code. Their four-archive inventories are historical evidence. Current
+candidate generation and verification require exactly two host archives.
+
 ## Observed run
 
 - Workflow run: `40381304029`.
@@ -47,7 +51,7 @@ Observed archive digests:
 | Cursor | `5101774c7cff99cbb66a0ae9c8b2c2de8249386c0aed3c3de25b7598fbfe515d` |
 | Portable | `a2d9d2bccdfd643bce2e12cdfab369825cc1d73825135da32824828875a0fd40` |
 
-## Current milestone candidate
+## Historical milestone candidate
 
 The workflow was repeated after the pull-request verification milestone was
 implemented and enforced:
@@ -65,7 +69,7 @@ implemented and enforced:
 - Candidate manifest digest:
   `sha256:5500ca7602e9cb40678b7233f742381acbd291d0f07e1f9673251110da3f6957`.
 
-Observed current archive digests:
+Observed archive digests:
 
 | Host | SHA-256 |
 | --- | --- |

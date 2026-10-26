@@ -172,7 +172,9 @@ The product should have five layers.
 
 ### 7.1 Host integration layer
 
-Host integrations connect Rivet to Codex, Claude Code, Cursor, and compatible coding tools.
+The initial host integrations connect Rivet to Codex and Claude Code only.
+Cursor and other host integrations are future work in `ROADMAP.md`. Rivet
+does not generate or support packages for those hosts.
 
 Each integration must:
 

@@ -2,7 +2,10 @@
 
 Observed on 2026-10-26.
 
-Status: incomplete.
+Status: complete for the published initial two-host scope.
+
+The product owner limited initial support to Codex and Claude Code on
+2026-10-26. Future host expansion is a separate roadmap item.
 
 ## Four language ecosystems
 
@@ -111,7 +114,7 @@ Native evidence:
 - `docs/HOST-CONFORMANCE.md`
 - `fixtures/host-conformance/`
 
-All portable, Codex, Claude Code, and Cursor packages pass artifact inventory,
+Both Codex and Claude Code packages pass artifact inventory,
 digest, manifest, install-path, inspection, verification, and redaction
 checks.
 
@@ -135,18 +138,11 @@ Apple marks `sandbox-exec` as deprecated. This is a tested macOS compatibility
 profile, not a portable or long-term boundary. Unsandboxed `acceptEdits`
 remains nonconforming.
 
-Cursor package conformance passes. Native discovery, approval, hook, session,
-and boundary behavior remain untested. Cursor 2.2.36 is installed, but
-`cursor agent status` reports `Not logged in`.
-
-Result: fail for the published exit criterion.
-
-Required evidence:
-
-- Authenticate Cursor and run the native conformance suites.
+Result: pass for the initial host scope and the declared operating profiles.
 
 ## Decision
 
-Phase 1 remains in progress because Cursor native runtime evidence is missing.
-The Claude Code requirement passes only for the explicit tested macOS
-operating profile.
+Phase 1 is complete for the published Codex and Claude Code scope. The Claude
+Code filesystem-boundary requirement passes only for the explicit tested macOS
+operating profile. This decision does not certify a public or production
+release.

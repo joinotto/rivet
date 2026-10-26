@@ -115,13 +115,14 @@ try {
     manifest.source_state,
     sourceIsDirty ? "dirty-allowed" : "clean"
   );
-  assert.strictEqual(manifest.files.length, 7);
+  assert.strictEqual(manifest.files.length, 5);
+  assert.deepStrictEqual(manifest.hosts, ["claude-code", "codex"]);
 
   const sbom = JSON.parse(
     fs.readFileSync(path.join(first, "bom.cdx.json"), "utf8")
   );
   assert.strictEqual(sbom.bomFormat, "CycloneDX");
-  assert.strictEqual(sbom.components.length, 4);
+  assert.strictEqual(sbom.components.length, 2);
 
   const provenance = JSON.parse(
     fs.readFileSync(path.join(first, "provenance.json"), "utf8")
@@ -131,14 +132,14 @@ try {
     provenance.predicateType,
     "https://slsa.dev/provenance/v1"
   );
-  assert.strictEqual(provenance.subject.length, 4);
+  assert.strictEqual(provenance.subject.length, 2);
   assert.strictEqual(
     provenance.predicate.buildDefinition.externalParameters.revision,
     manifest.revision
   );
   assert.strictEqual(provenance.predicate.rivetMetadata.unsigned, true);
 
-  for (const host of ["portable", "codex", "claude-code", "cursor"]) {
+  for (const host of ["codex", "claude-code"]) {
     const archive = path.join(first, `rivet-0.1.0-${host}.tar`);
     assert.ok(fs.statSync(archive).size > 1024);
     const listed = spawnSync("tar", ["-tf", archive], { encoding: "utf8" });
@@ -151,7 +152,7 @@ try {
     .readFileSync(path.join(first, "SHA256SUMS"), "utf8")
     .trim()
     .split("\n");
-  assert.strictEqual(sums.length, 4);
+  assert.strictEqual(sums.length, 2);
   for (const line of sums) {
     const [expected, file] = line.split(/  /);
     const content = fs.readFileSync(path.join(first, file));

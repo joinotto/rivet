@@ -8,6 +8,8 @@ Release-candidate build and verification conformance was observed on
 ## Completed published scopes
 
 - Phase 0: foundation. See `docs/PHASE-0-CONFORMANCE.md`.
+- Phase 1: initial Codex and Claude Code scope. See
+  `docs/PHASE-1-CONFORMANCE.md`.
 - Phase 2: test intelligence. See `docs/PHASE-2-CONFORMANCE.md`.
 - Phase 4: data and distributed systems. See
   `docs/PHASE-4-CONFORMANCE.md`.
@@ -22,24 +24,27 @@ The implementation is complete. The product is not publicly released.
 
 Rivet can inspect an exact pull-request revision range, classify backend risk,
 run detected repository checks, emit GitHub annotations, and retain
-machine-readable and human-readable reports. The portable runner ships in the
-Codex, Claude Code, Cursor, and generic host packages.
+machine-readable and human-readable reports. The runner ships in the Codex
+and Claude Code packages only.
 
 Native workflow evidence is recorded in `docs/CI-CONFORMANCE.md`.
 
-## Open Phase 1 evidence
+## Initial host scope
 
 See `docs/PHASE-1-CONFORMANCE.md` for the criterion-by-criterion record.
 
-- Run native Cursor skill discovery after Cursor agent authentication is
-  available.
-- Test native approval and hook behavior in Cursor after authentication is
-  available.
+The product owner limited initial support to Codex and Claude Code. The package
+generator and release verifier enforce this scope. Cursor and other hosts
+are deferred in `ROADMAP.md`.
 
 Claude Code now has a passing, tested macOS external-sandbox profile.
 Unsandboxed `acceptEdits` still fails, and Apple marks the compatibility
-sandbox command as deprecated. Cursor evidence is the remaining Phase 1 exit
-criterion blocker.
+sandbox command as deprecated. Initial host conformance passes only for the
+declared operating profiles.
+
+See `docs/INITIAL-RELEASE-PLAN.md` for installation, pilot, and production-release
+gates. Initial host scope does not remove the required security review,
+independent release approvals, or signed-artifact requirements.
 
 ## Open Phase 3 evidence
 

@@ -76,8 +76,25 @@ try {
     revision
   });
   assert.strictEqual(valid.decision, "pass", JSON.stringify(valid.faults));
-  assert.strictEqual(valid.archives, 4);
+  assert.strictEqual(valid.archives, 2);
+  assert.deepStrictEqual(valid.hosts, ["claude-code", "codex"]);
   assert.strictEqual(valid.signature, "not-checked");
+
+  const retiredHost = copyCandidate(candidate, "retired-host");
+  const retiredManifestFile = path.join(retiredHost, "manifest.json");
+  const retiredManifest = JSON.parse(fs.readFileSync(retiredManifestFile, "utf8"));
+  fs.renameSync(
+    path.join(retiredHost, "rivet-0.1.0-claude-code.tar"),
+    path.join(retiredHost, "rivet-0.1.0-cursor.tar"),
+  );
+  retiredManifest.files.find(
+    (record) => record.file === "rivet-0.1.0-claude-code.tar",
+  ).file = "rivet-0.1.0-cursor.tar";
+  retiredManifest.hosts = ["codex", "cursor"];
+  fs.writeFileSync(retiredManifestFile, JSON.stringify(retiredManifest));
+  const retiredResult = verifyReleaseCandidate(retiredHost);
+  assert.strictEqual(retiredResult.decision, "fail");
+  assert.ok(retiredResult.faults.some((fault) => /exactly/.test(fault)));
 
   const changedArchive = copyCandidate(candidate, "changed-archive");
   fs.appendFileSync(
