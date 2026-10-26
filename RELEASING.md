@@ -42,7 +42,8 @@ verify a publisher identity or authorize publication.
 
 The verifier reads each retained artifact once through a bounded, no-follow
 file descriptor. It rejects a symbolic-link candidate root and non-file
-inventory entries.
+inventory entries. It also requires exact provenance subject and byproduct
+inventories and verifies their digests.
 
 An authorized maintainer can run the `Unsigned release candidate` workflow
 with a full commit identifier from `main` and the matching package version.

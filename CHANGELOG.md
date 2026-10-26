@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Changed
 
+- Candidate verification now enforces SLSA statement source, builder,
+  invocation, normalization, subject, and byproduct semantics.
 - Release-candidate conformance now records a native exact-revision in-toto
   Statement with the SLSA v1 provenance predicate and downloaded-artifact
   verification.
