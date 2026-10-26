@@ -34,7 +34,9 @@ time, and reproducible crash artifacts.
 
 The bounded deterministic campaign mutates SARIF, Trivy, CycloneDX, and SPDX
 structures. It rejects malformed input, compares repeated results, limits
-serialized output, and treats unexpected exceptions as crashes.
+serialized output, and treats unexpected exceptions as crashes. Both supported
+Node.js CI jobs retain the exact-revision campaign result for 14 days, including
+when the campaign fails.
 
 The first campaign found reproducible type errors for malformed nested
 structures. The normalizers now reject those structures with stable validation

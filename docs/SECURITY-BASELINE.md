@@ -100,7 +100,7 @@ The following controls are not complete:
 - Release artifact signing.
 - Software bill of materials generation.
 - Build provenance attestation.
-- Fuzzing for future parsers and trust-boundary code.
+- Coverage-guided continuous fuzzing for parsers and trust-boundary code.
 
 Add each control only when Rivet has the related code or release artifact.
 

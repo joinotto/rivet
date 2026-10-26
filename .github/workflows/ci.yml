@@ -59,7 +59,17 @@ jobs:
         run: npm run test:evaluation
 
       - name: Run bounded parser fuzzing
-        run: npm run test:fuzz
+        run: npm run test:fuzz -- --output ".rivet/ci/parser-fuzz-node-${{ matrix.node }}.json"
+
+      - name: Retain bounded parser fuzz evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: rivet-parser-fuzz-node-${{ matrix.node }}
+          path: .rivet/ci/parser-fuzz-node-${{ matrix.node }}.json
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
 
       - name: Test release-candidate reproducibility
         run: npm run test:release

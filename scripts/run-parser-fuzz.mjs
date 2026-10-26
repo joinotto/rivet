@@ -11,7 +11,7 @@ import {
 import { normalizeFuzzCampaign } from "../skills/rivet/scripts/lib/fuzz.mjs";
 
 function option(name, fallback) {
-  const index = process.argv.indexOf(name);
+  const index = process.argv.lastIndexOf(name);
   return index === -1 ? fallback : process.argv[index + 1];
 }
 
@@ -161,11 +161,22 @@ const allowedErrors = new Set([
 
 const executions = Number(option("--executions", "3000"));
 const seed = Number(option("--seed", "20261026"));
+const outputOption = option("--output", "");
 if (!Number.isInteger(executions) || executions < 1 || executions > 100000) {
   throw new Error("--executions must be an integer from 1 through 100000");
 }
 if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) {
   throw new Error("--seed must be a 32-bit unsigned integer");
+}
+if (process.argv.includes("--output") && !outputOption) {
+  throw new Error("--output requires a project-relative file path");
+}
+let outputFile = "";
+if (outputOption) {
+  outputFile = path.resolve(process.cwd(), outputOption);
+  if (!outputFile.startsWith(`${process.cwd()}${path.sep}`)) {
+    throw new Error("--output must be inside the project.");
+  }
 }
 
 const random = generator(seed);
@@ -249,7 +260,18 @@ const report = {
   }
 };
 const evidence = normalizeFuzzCampaign(report);
-console.log(JSON.stringify({ report, evidence }, null, 2));
+const result = `${JSON.stringify({ report, evidence }, null, 2)}\n`;
+if (outputFile) {
+  fs.mkdirSync(path.dirname(outputFile), { recursive: true, mode: 0o700 });
+  const temporary = `${outputFile}.${process.pid}.tmp`;
+  try {
+    fs.writeFileSync(temporary, result, { mode: 0o600, flag: "wx" });
+    fs.renameSync(temporary, outputFile);
+  } finally {
+    fs.rmSync(temporary, { force: true });
+  }
+}
+process.stdout.write(result);
 if (crashes.length > 0 || evidence.decision !== "no-crash-observed") {
   process.exitCode = 1;
 }
