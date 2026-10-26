@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- OpenSSF baseline-3 assessment, secure-development and testing policies, and
+  pull-request OSV dependency scanning.
 - OpenSSF baseline-2 evidence assessment, documented sensitive-access holders,
   and required DCO sign-off verification.
 - Machine-validated OpenSSF baseline-1 evidence assessment and repository

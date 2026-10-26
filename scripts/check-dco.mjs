@@ -1,10 +1,5 @@
 import { spawnSync } from "node:child_process";
 
-function fail(message) {
-  console.error(`DCO check failed: ${message}`);
-  process.exitCode = 1;
-}
-
 function requestedRange() {
   const rangeIndex = process.argv.indexOf("--range");
   if (rangeIndex !== -1) {
@@ -21,6 +16,7 @@ function requestedRange() {
 }
 
 const range = requestedRange();
+const faults = [];
 const result = spawnSync(
   "git",
   ["log", "--format=%H%x00%an%x00%ae%x00%B%x00", range],
@@ -28,7 +24,7 @@ const result = spawnSync(
 );
 
 if (result.status !== 0) {
-  fail(result.stderr.trim() || `cannot inspect ${range}`);
+  faults.push(result.stderr.trim() || `cannot inspect ${range}`);
 } else {
   const fields = result.stdout.split("\0");
   const commits = [];
@@ -39,7 +35,7 @@ if (result.status !== 0) {
   }
 
   if (commits.length === 0) {
-    fail(`no commits found in ${range}`);
+    faults.push(`no commits found in ${range}`);
   }
 
   const failures = [];
@@ -64,8 +60,9 @@ if (result.status !== 0) {
     range,
     commits: commits.length,
     failures,
-    decision: failures.length === 0 ? "pass" : "fail"
+    faults,
+    decision: failures.length === 0 && faults.length === 0 ? "pass" : "fail"
   };
   console.log(JSON.stringify(report, null, 2));
-  if (failures.length > 0) process.exitCode = 1;
+  if (failures.length > 0 || faults.length > 0) process.exitCode = 1;
 }

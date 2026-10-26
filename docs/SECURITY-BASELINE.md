@@ -80,8 +80,10 @@ The following controls are not complete:
 
 Add each control only when Rivet has the related code or release artifact.
 
-The local baseline-1 and baseline-2 evidence assessments are in
+The local baseline-1, baseline-2, and baseline-3 evidence assessments are in
 `docs/openssf-baseline-assessment.json` and
-`docs/openssf-baseline-2-assessment.json`. Baseline-1 currently identifies
-organization multi-factor authentication as not met. A local assessment is
-not a badge.
+`docs/openssf-baseline-2-assessment.json`, and
+`docs/openssf-baseline-3-assessment.json`. Baseline-1 identifies organization
+multi-factor authentication as not met. Baseline-3 identifies independent
+human approval as not met and keeps the OSV native-run requirement open. A
+local assessment is not a badge.

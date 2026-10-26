@@ -39,8 +39,16 @@ A new maintainer must have:
 - Sound technical judgment.
 - Responsible security behavior.
 - Agreement from current maintainers.
+- A review of conflicts of interest.
+- A recorded need for the requested repository or secret access.
 
-The project must record maintainer additions and removals.
+The project must review a collaborator before it grants write, maintain, admin,
+release, security-advisory, or secret access. The record must identify the
+approvers, role, required access, identity evidence, conflicts, and effective
+date.
+
+Grant the smallest role that can do the work. Review and remove access when the
+role changes. The project must record maintainer additions and removals.
 
 ## Future governance
 

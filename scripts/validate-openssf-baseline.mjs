@@ -55,6 +55,33 @@ const definitions = [
       "OSPS-VM-03.01",
       "OSPS-VM-04.01"
     ]
+  },
+  {
+    file: "../docs/openssf-baseline-3-assessment.json",
+    kind: "openssf-baseline-3-assessment",
+    expected: [
+      "OSPS-AC-04.02",
+      "OSPS-BR-01.04",
+      "OSPS-BR-02.02",
+      "OSPS-BR-07.02",
+      "OSPS-DO-03.01",
+      "OSPS-DO-03.02",
+      "OSPS-DO-04.01",
+      "OSPS-DO-05.01",
+      "OSPS-GV-04.01",
+      "OSPS-QA-02.02",
+      "OSPS-QA-04.02",
+      "OSPS-QA-06.02",
+      "OSPS-QA-06.03",
+      "OSPS-QA-07.01",
+      "OSPS-SA-03.02",
+      "OSPS-VM-04.02",
+      "OSPS-VM-05.01",
+      "OSPS-VM-05.02",
+      "OSPS-VM-05.03",
+      "OSPS-VM-06.01",
+      "OSPS-VM-06.02"
+    ]
   }
 ];
 const statuses = new Set(["met", "not_met", "not_applicable", "needs_review"]);

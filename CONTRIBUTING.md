@@ -16,6 +16,9 @@ Requirements:
 
 - Node.js 16 or later.
 
+Read `TESTING.md` for test scope, CI behavior, result interpretation, and the
+policy for material changes.
+
 Run:
 
 ```sh
