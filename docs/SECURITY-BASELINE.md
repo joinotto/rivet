@@ -77,6 +77,12 @@ The repository enables:
 - Secret scanning.
 - Push protection.
 
+The required pull-request report also runs Rivet's read-only secret patterns
+against bounded, regular changed files. It rejects a finding and retains only
+a fingerprint and a redacted value. Pattern scanning can miss unknown formats.
+It does not replace provider scanning, secret validity checks, confirmation, or
+credential rotation.
+
 These controls reduce risk. They do not prove that the repository has no
 secrets. Contributors must not commit credentials.
 
@@ -90,7 +96,7 @@ The following controls are not complete:
 
 - Observed OpenSSF Scorecard run and finding review.
 - Official OpenSSF Best Practices submission and badge.
-- Non-provider secret pattern scanning.
+- GitHub non-provider secret pattern scanning.
 - Secret validity checks.
 - Release artifact signing.
 - Software bill of materials generation.

@@ -6,6 +6,9 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Deterministic changed-file secret scanning in every pull-request evidence
+  report, with redacted findings, fail-closed decisions, and manifest-bound
+  scan evidence.
 - Full OSV dependency scans on pushes to `main` and manual release-evidence
   runs, while preserving pull-request diff scans.
 - A revision-bound pull-request report manifest with byte sizes and SHA-256

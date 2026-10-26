@@ -58,6 +58,9 @@ The workflow:
 - Derives the changed-file risk mode and review requirements. Content
   heuristics inspect only added production lines, not unchanged code,
   documentation, tests, fixtures, or GitHub configuration.
+- Runs Rivet's deterministic secret patterns against each bounded, regular
+  changed file. A finding fails the report. The retained result contains a
+  fingerprint and `[REDACTED]`, not the matched value.
 - Runs the checks that Rivet detects in the checked-out project.
 - Lists detected security and dependency adapters that it does not run
   automatically, with the safety reason and explicit workflow to use.
@@ -80,7 +83,8 @@ GitHub reported the check under the GitHub Actions application after the
 protection update on 2026-10-26.
 
 Implementation tests cover exact revision binding, unusual UTF-8 filenames,
-report composition, read-only permissions, and the absence of the privileged
+secret redaction, secret-driven failure, report composition, manifest
+verification, read-only permissions, and the absence of the privileged
 pull-request trigger.
 
 Native pull-request run:

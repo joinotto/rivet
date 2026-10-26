@@ -226,6 +226,41 @@ try {
   fail("Rivet produced an invalid impact report.");
 }
 
+const secretScanPath = path.join(outputRoot, "secret-scan.json");
+const secretScan = run(process.execPath, [
+  cli,
+  "secrets",
+  "--files-from",
+  relativeFilesPath,
+  "--json",
+]);
+if (![0, 2].includes(secretScan.status)) {
+  process.stderr.write(secretScan.stderr || "");
+  fail("Rivet could not scan pull-request files for secrets.");
+}
+let secretScanReport;
+try {
+  secretScanReport = JSON.parse(secretScan.stdout);
+} catch {
+  fail("Rivet produced an invalid secret scan report.");
+}
+if (
+  !["pass", "fail"].includes(secretScanReport.decision) ||
+  !Array.isArray(secretScanReport.findings)
+) {
+  fail("Rivet produced an unsupported secret scan report.");
+}
+fs.writeFileSync(
+  secretScanPath,
+  `${JSON.stringify(secretScanReport, null, 2)}\n`,
+  { mode: 0o600 },
+);
+if (secretScanReport.decision === "fail") {
+  console.error(
+    `::error title=Changed-file secret scan failed::Rivet found ${secretScanReport.findings.length} potential secret(s). Review the report and rotate any exposed credential.`,
+  );
+}
+
 const receiptPath = path.join(outputRoot, "verification-receipt.json");
 const verificationSummaryPath = path.join(outputRoot, "verification.md");
 const verifyArgs = [
@@ -262,13 +297,17 @@ const report = {
   merge_base_revision: mergeBase,
   head_revision: head,
   impact: impactReport,
+  secret_scan: secretScanReport,
   verification: receipt,
   decision:
-    receipt.decision === "pass"
+    secretScanReport.decision === "fail"
+      ? "fail"
+      : receipt.decision === "pass"
       ? "pass-with-limitations"
       : receipt.decision,
   limitations: [
     ...impactReport.limitations,
+    ...secretScanReport.limitations,
     ...receipt.limitations,
     "The report inspects the checked-out head revision. It does not inspect deployment state or production behavior.",
   ],
@@ -302,6 +341,16 @@ for (const signal of impactReport.signals) {
   );
 }
 lines.push(
+  "",
+  "## Secret scan",
+  "",
+  `Decision: **${secretScanReport.decision}**`,
+  "",
+  `Files checked: ${secretScanReport.files_checked}`,
+  "",
+  `Potential secrets: ${secretScanReport.findings.length}`,
+  "",
+  ...secretScanReport.limitations.map((item) => `- ${markdownCell(item)}`),
   "",
   "## Required review",
   "",
@@ -349,6 +398,7 @@ if (process.env.GITHUB_STEP_SUMMARY) {
 
 const evidenceFiles = [
   filesPath,
+  secretScanPath,
   receiptPath,
   verificationSummaryPath,
   reportPath,
@@ -370,4 +420,5 @@ fs.writeFileSync(
 
 console.log(`Rivet PR report: ${path.relative(cwd, summaryPath)}`);
 if (verification.status !== 0) process.exit(verification.status || 1);
+if (secretScanReport.decision === "fail") process.exit(2);
 }
