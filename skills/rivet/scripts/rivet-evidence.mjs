@@ -1298,7 +1298,50 @@ function configRiskSignals(files) {
   return signals;
 }
 
-function contentRiskSignals(files) {
+function contentRiskEligible(file) {
+  const normalized = file.replaceAll("\\", "/").toLowerCase();
+  const segments = normalized.split("/");
+  if (
+    segments.some((segment) =>
+      ["docs", "doc", "test", "tests", "__tests__", "fixtures", ".github"].includes(segment),
+    )
+  ) {
+    return false;
+  }
+  if (
+    /^(readme|changelog|license|contributing|code_of_conduct|security)(\.[^.]+)?$/i.test(
+      path.posix.basename(normalized),
+    ) &&
+    (!normalized.includes(".") || /\.(md|mdx|rst|txt)$/i.test(normalized))
+  ) {
+    return false;
+  }
+  return /\.(c|cc|cpp|cs|go|java|js|jsx|kt|kts|mjs|php|py|rb|rs|sh|sql|swift|ts|tsx|ya?ml|json|toml|tf|proto|graphql|prisma)$/i.test(
+    normalized,
+  );
+}
+
+function addedContent(file, baseRevision, headRevision) {
+  const result = run("git", [
+    "diff",
+    "--unified=0",
+    "--no-ext-diff",
+    baseRevision,
+    headRevision,
+    "--",
+    file,
+  ]);
+  if (result.status !== 0) {
+    throw new Error(`Git could not inspect changed content for '${file}'.`);
+  }
+  return result.stdout
+    .split("\n")
+    .filter((line) => line.startsWith("+") && !line.startsWith("+++"))
+    .map((line) => line.slice(1))
+    .join("\n");
+}
+
+function contentRiskSignals(files, revisions = null) {
   const patterns = [
     {
       mode: "critical",
@@ -1322,19 +1365,24 @@ function contentRiskSignals(files) {
   const signals = [];
 
   for (const file of files) {
+    if (!contentRiskEligible(file)) continue;
     const absolute = path.resolve(cwd, file);
     if (!absolute.startsWith(`${cwd}${path.sep}`) || !fs.existsSync(absolute)) {
       continue;
     }
     const stat = fs.statSync(absolute);
     if (!stat.isFile() || stat.size > 1024 * 1024) continue;
-    const body = fs.readFileSync(absolute, "utf8");
+    const body = revisions
+      ? addedContent(file, revisions.base, revisions.head)
+      : fs.readFileSync(absolute, "utf8");
     for (const rule of patterns) {
       if (rule.pattern.test(body)) {
         signals.push({
           file,
           mode: rule.mode,
-          source: "content-heuristic",
+          source: revisions
+            ? "added-content-heuristic"
+            : "content-heuristic",
           reason: rule.reason,
         });
       }
@@ -1343,7 +1391,7 @@ function contentRiskSignals(files) {
   return signals;
 }
 
-function classifyRisk(files) {
+function classifyRisk(files, revisions = null) {
   const rules = [
     {
       mode: "critical",
@@ -1383,7 +1431,10 @@ function classifyRisk(files) {
     }
   }
 
-  signals.push(...configRiskSignals(files), ...contentRiskSignals(files));
+  signals.push(
+    ...configRiskSignals(files),
+    ...contentRiskSignals(files, revisions),
+  );
   for (const signal of signals) {
     if (rank[signal.mode] > rank[mode]) mode = signal.mode;
   }
@@ -1393,7 +1444,22 @@ function classifyRisk(files) {
 
 function changeAnalysis() {
   const files = changedFiles();
-  const risk = classifyRisk(files);
+  const baseRevision = value("--base-revision");
+  const headRevision = value("--head-revision");
+  if (Boolean(baseRevision) !== Boolean(headRevision)) {
+    throw new Error(
+      "Use --base-revision and --head-revision together.",
+    );
+  }
+  for (const revision of [baseRevision, headRevision].filter(Boolean)) {
+    if (!/^[a-f0-9]{40,64}$/.test(revision)) {
+      throw new Error("Risk-analysis revisions must be full lowercase commit identifiers.");
+    }
+  }
+  const revisions = baseRevision
+    ? { base: baseRevision, head: headRevision }
+    : null;
+  const risk = classifyRisk(files, revisions);
   const impact = topologyImpact(discoverTopology(cwd), files);
   const report = {
     schema: 1,
@@ -1422,7 +1488,10 @@ function changeAnalysis() {
               ]
             : ["Run focused tests and static checks."],
     limitations: [
-      "Risk classification uses paths, changed content, configuration, and declared component dependencies.",
+      revisions
+        ? "Risk classification uses paths, added production content, configuration, and declared component dependencies."
+        : "Risk classification uses paths, current production content, configuration, and declared component dependencies.",
+      "Content heuristics exclude documentation, tests, fixtures, and GitHub configuration.",
       "Declared dependencies do not prove runtime behavior or business impact.",
       "A user or reviewer must increase the risk mode when project context requires it.",
     ],
@@ -2933,7 +3002,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list | --files-from nul-file] [--json] | shape [--title value] [--files list | --files-from nul-file] [--output path] [--force] | secrets [--files list | --files-from nul-file] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id] | --index-evidence file) | test [--files list | --files-from nul-file] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | quality-ratchet --file file [--observed-at date] | stateful (init | validate) | fuzz --report file | chaos (init | validate | result) | formalize (init | validate | result) | privacy (init | validate) | capacity (init | evaluate) | advanced-review (packet | init | validate) | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security-review (packet | init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file [--enrich findings --kev snapshot --epss snapshot --retrieved-at date] [--reachability findings --evidence record]) | sbom --file file --revision value [--validate-schema] [--signature embedded|sigstore|cosign-key] | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate (--campaign file | --fixtures dir --findings file) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
+    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list | --files-from nul-file] [--base-revision sha --head-revision sha] [--json] | shape [--title value] [--files list | --files-from nul-file] [--output path] [--force] | secrets [--files list | --files-from nul-file] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id] | --index-evidence file) | test [--files list | --files-from nul-file] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | quality-ratchet --file file [--observed-at date] | stateful (init | validate) | fuzz --report file | chaos (init | validate | result) | formalize (init | validate | result) | privacy (init | validate) | capacity (init | evaluate) | advanced-review (packet | init | validate) | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security-review (packet | init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file [--enrich findings --kev snapshot --epss snapshot --retrieved-at date] [--reachability findings --evidence record]) | sbom --file file --revision value [--validate-schema] [--signature embedded|sigstore|cosign-key] | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate (--campaign file | --fixtures dir --findings file) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
   );
   process.exitCode = 1;
 }

@@ -53,7 +53,9 @@ format preserves commas and line breaks in valid UTF-8 paths.
 
 The workflow:
 
-- Derives the changed-file risk mode and review requirements.
+- Derives the changed-file risk mode and review requirements. Content
+  heuristics inspect only added production lines, not unchanged code,
+  documentation, tests, fixtures, or GitHub configuration.
 - Runs the checks that Rivet detects in the checked-out project.
 - Writes the machine-readable impact, verification receipt, combined report,
   and Markdown summary.
