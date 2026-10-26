@@ -34,12 +34,34 @@ action. No other write permission is granted.
 
 ## Evidence status
 
-The workflow configuration is present and the YAML is valid. This fact does
-not prove that a GitHub-hosted run passes.
+The first GitHub-hosted run passed:
 
-Record the workflow run identifier, action revisions, result, and important
-findings after the first run on `main`. Do not claim an OpenSSF score until the
-run supplies it.
+- Run: `40362452737`.
+- Revision: `021c5fee7985701bcc5b46d6ff0bb2027a1dfc22`.
+- Event: push to `main`.
+- Result: success.
+- Started: 2026-10-26 16:47:15 UTC.
+- Completed: 2026-10-26 16:47:50 UTC.
+
+The run uploaded its SARIF artifact and code-scanning result.
+
+## First finding review
+
+| Check | Reported score | Review |
+| --- | ---: | --- |
+| Security Policy | 4 | The policy had no machine-detected link. Add the private advisory link. |
+| Fuzzing | 0 | Valid gap. Keep open until a suitable parser or trust-boundary target exists. |
+| SAST | 7 | Partial control. Add repository-wide CodeQL on pull requests and `main`. |
+| Vulnerabilities | 1 | The scanner found the intentional Log4j 2.14.1 evaluation fixture. It is not a runtime dependency. Add a fixture-local OSV exception with the reported advisory identifiers. |
+| Maintained | 0 | Expected for a repository created less than 90 days ago. Do not bypass it. |
+| Code Review | 0 | Valid governance gap. One maintainer cannot supply independent human approval. |
+| OpenSSF Best Practices | 0 | Valid gap. Complete the project assessment before a public release. |
+
+The SARIF artifact did not include a reliable overall score. This document does
+not claim one.
+
+Run Scorecard again after the remediation changes reach `main`. Keep the
+original result in this record.
 
 ## Review rule
 

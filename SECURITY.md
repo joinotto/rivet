@@ -10,7 +10,7 @@ The project is in an early development stage. Only the current main branch recei
 
 Do not open a public issue for a new vulnerability.
 
-Use GitHub private vulnerability reporting:
+Use [GitHub private vulnerability reporting](https://github.com/joinotto/rivet/security/advisories/new):
 
 1. Open the repository **Security** page.
 2. Select **Advisories**.
