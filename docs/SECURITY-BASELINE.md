@@ -94,7 +94,6 @@ organization policy make these controls available.
 
 The following controls are not complete:
 
-- Observed OpenSSF Scorecard run and finding review.
 - Official OpenSSF Best Practices submission and badge.
 - GitHub non-provider secret pattern scanning.
 - Secret validity checks.
