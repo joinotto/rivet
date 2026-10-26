@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Commit-pinned OpenSSF Scorecard analysis with SARIF artifact and code
+  scanning uploads.
 - Complete vulnerability disclosure policy, weekly GitHub Actions dependency
   updates, and a repository security baseline record.
 - Enforced `main` branch protection with required Node.js 16 and 22 checks,

@@ -35,8 +35,10 @@ The repository uses:
 - Read-only default workflow permissions.
 - Commit-pinned third-party GitHub Actions.
 - Native static-analysis and signature workflows.
+- OpenSSF Scorecard analysis with SARIF upload.
 
-See `docs/BRANCH-PROTECTION.md` and `docs/CI-CONFORMANCE.md`.
+See `docs/BRANCH-PROTECTION.md`, `docs/CI-CONFORMANCE.md`, and
+`docs/OPENSSF-SCORECARD.md`.
 
 ## Dependency controls
 
@@ -65,7 +67,7 @@ organization policy make these controls available.
 
 The following controls are not complete:
 
-- OpenSSF Scorecard workflow and review.
+- Observed OpenSSF Scorecard run and finding review.
 - OpenSSF Best Practices badge assessment.
 - Non-provider secret pattern scanning.
 - Secret validity checks.
