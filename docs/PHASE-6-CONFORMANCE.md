@@ -42,6 +42,12 @@ The first campaign found reproducible type errors for malformed nested
 structures. The normalizers now reject those structures with stable validation
 errors. The same 3,000-execution campaign then completed with no crash.
 
+Native pull-request run `40397906774` retained separate Node.js 16 and Node.js
+22 reports for revision `751c68e64b64a377f7006f8beea5b0815fa6966c`.
+Both reports recorded 3,000 executions, zero crashes, and
+`no-crash-observed`. See `docs/CI-CONFORMANCE.md` for job, artifact, and digest
+identifiers.
+
 Result: pass for the published evidence contract and bounded parser campaign.
 
 Limitation: this is deterministic structure mutation, not coverage-guided

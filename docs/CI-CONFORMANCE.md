@@ -42,6 +42,27 @@ Pinned-runner verification:
 - Node.js 16: pass.
 - Node.js 22: pass.
 
+Exact-revision fuzz evidence:
+
+- Pull request: `42`.
+- Run: `40397906774`.
+- Revision: `751c68e64b64a377f7006f8beea5b0815fa6966c`.
+- Node.js 16 job: `121835744549`.
+- Node.js 16 decision: `no-crash-observed` after 3,000 executions.
+- Node.js 16 artifact: `12686598527`.
+- Node.js 16 artifact digest:
+  `sha256:1a43c34115fe3df48c4786b26f8c39e85d3c21875debe0efb2fdf8d076ce02a9`.
+- Node.js 16 report digest:
+  `sha256:73c5d04b3d08daf9e3eb783bf07405f29863b876fbc44d79a861c2bce04ba9d0`.
+- Node.js 22 job: `121835744607`.
+- Node.js 22 decision: `no-crash-observed` after 3,000 executions.
+- Node.js 22 artifact: `12686643429`.
+- Node.js 22 artifact digest:
+  `sha256:d9650b928bfe10121c7861332e5c799dac4a31dc1fc9e2250c95c9c3c9615e02`.
+- Node.js 22 report digest:
+  `sha256:d66f3e27738c8ac5ea9571d78f1105ecad42b0685d3d4c8ac491fdf8eb9f3399`.
+- Both downloaded reports recorded the selected revision.
+
 Result: pass.
 
 ## Pull-request verification report
