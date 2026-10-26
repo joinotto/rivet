@@ -72,7 +72,7 @@ Important boundaries are:
 - Generated host package to the canonical source.
 - Automated evidence to accountable human review.
 
-`THREAT-MODEL.md` describes threats and controls at these boundaries.
+The [threat model](THREAT-MODEL.md) describes threats and controls at these boundaries.
 
 ## Permission model
 

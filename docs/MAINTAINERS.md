@@ -9,7 +9,7 @@
 ## Maintainer authority
 
 Maintainers can triage issues, review and merge changes, prepare releases, and
-respond to private vulnerability reports. `GOVERNANCE.md` defines decision
+respond to private vulnerability reports. [Governance](GOVERNANCE.md) defines decision
 and nomination rules.
 
 A maintainer must record a conflict of interest and must not approve a change

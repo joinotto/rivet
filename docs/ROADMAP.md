@@ -19,7 +19,7 @@ performance, and recoverable project-local installation.
   software bill of materials, provenance, and required independent approvals.
 
 The current version is a development preview, not a supported production
-release. Follow `RELEASING.md` before publication.
+release. Follow the [release policy](RELEASING.md) before publication.
 
 ## Subsequent improvements
 

@@ -13,7 +13,7 @@
   <a href="#quick-start">Quick Start</a> ·
   <a href="#supported-hosts">Supported Hosts</a> ·
   <a href="#features">Features</a> ·
-  <a href="./ROADMAP.md">Roadmap</a> ·
+  <a href="./docs/ROADMAP.md">Roadmap</a> ·
   <a href="./CONTRIBUTING.md">Contributing</a> ·
   <a href="./SECURITY.md">Security</a>
 </p>
@@ -24,7 +24,7 @@ repository checks, and evidence receipts. Your project owns its tools, data,
 permissions, and model-provider configuration.
 
 Status: development preview. No public release. Publication remains on hold
-until the [release requirements](RELEASING.md) pass.
+until the [release requirements](docs/RELEASING.md) pass.
 
 ## Why Rivet
 
@@ -67,7 +67,7 @@ installation, upgrade, removal, and rollback.
 | Claude Code | `.claude/skills/rivet` | Existing provider settings are preserved |
 
 These are the only active distributions. Other hosts are deferred in the
-[roadmap](ROADMAP.md). See [host integrations](docs/HOST-INTEGRATIONS.md) for
+[roadmap](docs/ROADMAP.md). See [host integrations](docs/HOST-INTEGRATIONS.md) for
 permission boundaries and platform limitations.
 
 ## Features
@@ -122,28 +122,15 @@ Use the check identifiers detected in your project.
 
 ## Documentation
 
+- [Documentation index](docs/README.md): usage, engineering references, and
+  project policies.
 - [Getting started](docs/getting-started.md)
 - [Installation and recovery](docs/INSTALLATION.md)
-- [Commands and workflows](COMMAND-CATALOG.md)
-- [Engineering reasoning](ENGINEERING-REASONING.md)
-- [Database design](DATABASE-DESIGN.md)
-- [Evidence schema](docs/EVIDENCE-SCHEMA.md)
-- [Adapter contract](docs/ADAPTER-CONTRACT.md)
-- [Host integrations](docs/HOST-INTEGRATIONS.md)
-- [Architecture](docs/architecture.md)
-- [Security and evidence](SECURITY-MODEL.md)
-- [Technical writing](TECHNICAL-WRITING.md)
-- [Roadmap](ROADMAP.md)
+- [Commands and workflows](docs/COMMAND-CATALOG.md)
+- [Roadmap](docs/ROADMAP.md)
 - [Contributing](CONTRIBUTING.md)
-- [Testing](TESTING.md)
-- [Code of conduct](CODE_OF_CONDUCT.md)
-- [Security policy](SECURITY.md)
-- [Threat model](THREAT-MODEL.md)
-- [Governance](GOVERNANCE.md)
-- [Maintainers](MAINTAINERS.md)
 - [Support](SUPPORT.md)
 - [Changelog](CHANGELOG.md)
-- [Releasing](RELEASING.md)
 
 ## Compatibility
 

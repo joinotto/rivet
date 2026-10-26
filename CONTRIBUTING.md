@@ -18,8 +18,10 @@ Requirements:
 
 - Node.js 16 or later.
 
-Read `TESTING.md` for test scope, CI behavior, result interpretation, and the
-policy for material changes.
+Read the [testing policy](docs/TESTING.md) for test scope, CI behavior, result
+interpretation, and the policy for material changes.
+See the [documentation index](docs/README.md) for architecture, secure
+development, governance, and release requirements.
 
 Run:
 

@@ -21,7 +21,7 @@ It also creates SHA-256 sums, a CycloneDX software bill of materials, an
 unsigned in-toto Statement with the SLSA v1 provenance predicate, and a
 manifest. The build uses normalized timestamps, owners, and file modes.
 
-See [release build type](docs/RELEASE-BUILD-TYPE.md).
+See [release build type](RELEASE-BUILD-TYPE.md).
 
 ## Verify
 

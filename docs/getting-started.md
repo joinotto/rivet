@@ -13,7 +13,8 @@ promise from the Node.js project.
 ## 1. Obtain the source
 
 Review the source revision before installation. For a signed release, verify
-the publisher identity and artifact digests according to `RELEASING.md`.
+the publisher identity and artifact digests according to the
+[release policy](RELEASING.md).
 The current candidates are unsigned. A local receipt does not authenticate
 their publisher.
 
@@ -128,4 +129,4 @@ backups, lock recovery, and modified-file handling.
 
 Rivet remains a development preview until the real-project pilot, qualified
 security review, signatures, and independent release approvals pass. See
-[release policy](../RELEASING.md).
+[release policy](RELEASING.md).
