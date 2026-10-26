@@ -16,6 +16,7 @@ Run the full deterministic project gates:
 ```sh
 npm run test:hosts
 npm run test:evaluation
+npm run test:fuzz
 npm run validate:skill
 npm run validate:rejections
 npm run validate:openssf
@@ -34,6 +35,7 @@ Pull requests run:
 - The deterministic gates on Node.js 16 and Node.js 22.
 - Repository-wide CodeQL.
 - OSV dependency-difference scanning.
+- A bounded deterministic parser-fuzz campaign.
 - DCO sign-off verification.
 
 The protected branch requires the configured checks to pass on the current

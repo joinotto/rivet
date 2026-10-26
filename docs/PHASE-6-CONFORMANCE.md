@@ -25,16 +25,26 @@ the model matches the implementation.
 Evidence:
 
 - `skills/rivet/scripts/lib/fuzz.mjs`
+- `scripts/run-parser-fuzz.mjs`
 - `test/rivet-evidence.test.mjs`
 
 The normalizer binds the source revision, tool, version, command digest,
 configuration digest, corpus digest, dictionary digest, sanitizers, execution
 time, and reproducible crash artifacts.
 
-Result: pass for the published evidence contract.
+The bounded deterministic campaign mutates SARIF, Trivy, CycloneDX, and SPDX
+structures. It rejects malformed input, compares repeated results, limits
+serialized output, and treats unexpected exceptions as crashes.
 
-Limitation: normalized evidence does not prove adequate corpus quality,
-coverage, target selection, or absence of defects.
+The first campaign found reproducible type errors for malformed nested
+structures. The normalizers now reject those structures with stable validation
+errors. The same 3,000-execution campaign then completed with no crash.
+
+Result: pass for the published evidence contract and bounded parser campaign.
+
+Limitation: this is deterministic structure mutation, not coverage-guided
+continuous fuzzing. It does not prove adequate corpus quality, path coverage,
+target selection, or absence of defects.
 
 ## Chaos controls
 
