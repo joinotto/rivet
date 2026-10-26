@@ -15,7 +15,12 @@ assert.strictEqual(valid.required_files, 14);
 
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-foundation-"));
 try {
-  for (const relative of [...requiredFoundationFiles, "package.json"]) {
+  for (const relative of [
+    ...requiredFoundationFiles,
+    "REUSE.toml",
+    "LICENSES/Apache-2.0.txt",
+    "package.json"
+  ]) {
     const target = path.join(temporary, relative);
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.copyFileSync(path.join(repository, relative), target);

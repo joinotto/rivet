@@ -24,6 +24,8 @@ export const requiredFoundationFiles = [
   "docs/architecture.md"
 ];
 
+const requiredLicenseMetadata = ["REUSE.toml", "LICENSES/Apache-2.0.txt"];
+
 const navigatedFoundationFiles = requiredFoundationFiles.filter(
   (relative) => !["LICENSE", "NOTICE", "README.md"].includes(relative)
 );
@@ -60,7 +62,7 @@ function read(root, relative, faults) {
 export function validateOpenSourceFoundation(root) {
   const faults = [];
   const documents = Object.fromEntries(
-    requiredFoundationFiles.map((relative) => [
+    [...requiredFoundationFiles, ...requiredLicenseMetadata].map((relative) => [
       relative,
       read(root, relative, faults)
     ])
@@ -77,6 +79,15 @@ export function validateOpenSourceFoundation(root) {
   }
   if (!documents.LICENSE.includes("Apache License") || !documents.LICENSE.includes("Version 2.0")) {
     faults.push("LICENSE must contain the Apache License 2.0 text.");
+  }
+  if (documents["LICENSES/Apache-2.0.txt"] !== documents.LICENSE) {
+    faults.push("LICENSES/Apache-2.0.txt must match the root Apache license text.");
+  }
+  if (
+    !documents["REUSE.toml"].includes('SPDX-FileCopyrightText = "2026 Otto"') ||
+    !documents["REUSE.toml"].includes('SPDX-License-Identifier = "Apache-2.0"')
+  ) {
+    faults.push("REUSE.toml must declare the project copyright and Apache-2.0 license.");
   }
   if (!/^Copyright \d{4} .+/m.test(documents.NOTICE)) {
     faults.push("NOTICE must contain a copyright statement.");

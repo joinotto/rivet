@@ -10,6 +10,8 @@ This file records notable changes to Rivet.
   license, maintainer, support, and security-reporting artifacts.
 - OpenSSF assessment validation for missing, duplicate, escaping, symbolic-link,
   and unsupported local evidence references.
+- Repository-wide SPDX copyright and license metadata with official REUSE
+  compliance checks in CI.
 - Deterministic unsigned release-candidate archives with checksums, CycloneDX
   SBOM, source-bound provenance, and byte-reproducibility tests.
 - Offline, fail-closed verification for candidate inventory, archive metadata,

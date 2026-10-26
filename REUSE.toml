@@ -1,0 +1,9 @@
+version = 1
+SPDX-PackageName = "Rivet"
+SPDX-PackageSupplier = "Otto"
+
+[[annotations]]
+path = ["**"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Otto"
+SPDX-License-Identifier = "Apache-2.0"
