@@ -4,6 +4,12 @@ This file records notable changes to Rivet.
 
 ## Unreleased
 
+### Changed
+
+- Security baseline status now reflects the completed OpenSSF Scorecard run
+  and finding review. Pull-request secret-scan conformance records the native
+  artifact and offline manifest verification.
+
 ### Added
 
 - Deterministic changed-file secret scanning in every pull-request evidence

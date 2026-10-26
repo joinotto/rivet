@@ -116,6 +116,30 @@ file-read race. The implementation changed to open the file once, validate
 the open descriptor, and read from the same descriptor. The corrected head
 revision passed the CodeQL workflow and the GitHub code-scanning status.
 
+Changed-file secret-scan run:
+
+- Pull request: `40`.
+- Run: `40396171897`.
+- Job: `121829695402`.
+- Base and merge-base revision:
+  `629e174aad5aa2cd4996053be54259b428a49cfc`.
+- Head revision: `846ed6c089e28ab4b588907dbf4bc99a5c4402aa`.
+- Secret-scan decision: pass.
+- Potential secrets: `0`.
+- Combined decision: `pass-with-limitations`.
+- Workflow result: pass.
+- Artifact: `rivet-pr-40-report`.
+- Artifact identifier: `12685074163`.
+- GitHub artifact digest:
+  `sha256:ce1a34a2b3a6ea873202a0533b24a76a2436da6a319c3ccd8424774366d4f236`.
+- Manifest digest:
+  `sha256:5f40ba46bf55ee6c535b302bc8361c92c25ef31e4bbf1ddfe7b8d2f7fc8238fe`.
+- Report digest:
+  `sha256:f8784c7637f7531db23eaa003fcb6359748a4d1b2234d8aeeda2850cf44ca3ab`.
+- Secret-scan digest:
+  `sha256:f1fca5739d6fba6cf70302ffa81c1cd62efe356070c2a8e9c32d5f981e386276`.
+- Offline manifest verification: pass for all six retained evidence files.
+
 Result: observed pass with stated limitations.
 
 Manifest verification run:
