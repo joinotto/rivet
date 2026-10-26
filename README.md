@@ -245,6 +245,7 @@ The product must not present an inferred result as an observed result.
 - [Phase 6 conformance](docs/PHASE-6-CONFORMANCE.md)
 - [Open-source foundation](OPEN-SOURCE-FOUNDATION.md)
 - [Architecture](docs/architecture.md)
+- [Continuous-integration conformance](docs/CI-CONFORMANCE.md)
 - [Maintainers](MAINTAINERS.md)
 - [Support](SUPPORT.md)
 - [Releasing](RELEASING.md)
