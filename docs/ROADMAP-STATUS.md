@@ -1,6 +1,6 @@
 # Roadmap status
 
-Observed on 2026-10-25.
+Observed on 2026-10-26.
 
 Release-candidate build and verification conformance was observed on
 2026-10-26. See `docs/RELEASE-CANDIDATE-CONFORMANCE.md`.
@@ -15,6 +15,17 @@ Release-candidate build and verification conformance was observed on
 
 These decisions apply to the exit criteria in the current roadmap. They do not
 claim production certification or universal backend coverage.
+
+## First public milestone
+
+The implementation is complete. The product is not publicly released.
+
+Rivet can inspect an exact pull-request revision range, classify backend risk,
+run detected repository checks, emit GitHub annotations, and retain
+machine-readable and human-readable reports. The portable runner ships in the
+Codex, Claude Code, Cursor, and generic host packages.
+
+Native workflow evidence is recorded in `docs/CI-CONFORMANCE.md`.
 
 ## Open Phase 1 evidence
 

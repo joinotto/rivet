@@ -183,6 +183,8 @@ This file records notable changes to Rivet.
 
 ### Changed
 
+- Updated the roadmap to distinguish the completed pull-request milestone
+  implementation from the unreleased public product.
 - Limited pull-request content-risk signals to added production lines. The
   classifier excludes unchanged code, documentation, tests, fixtures, and
   GitHub configuration from content heuristics.
