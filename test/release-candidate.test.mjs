@@ -123,6 +123,21 @@ try {
   assert.strictEqual(sbom.bomFormat, "CycloneDX");
   assert.strictEqual(sbom.components.length, 4);
 
+  const provenance = JSON.parse(
+    fs.readFileSync(path.join(first, "provenance.json"), "utf8")
+  );
+  assert.strictEqual(provenance._type, "https://in-toto.io/Statement/v1");
+  assert.strictEqual(
+    provenance.predicateType,
+    "https://slsa.dev/provenance/v1"
+  );
+  assert.strictEqual(provenance.subject.length, 4);
+  assert.strictEqual(
+    provenance.predicate.buildDefinition.externalParameters.revision,
+    manifest.revision
+  );
+  assert.strictEqual(provenance.predicate.rivetMetadata.unsigned, true);
+
   for (const host of ["portable", "codex", "claude-code", "cursor"]) {
     const archive = path.join(first, `rivet-0.1.0-${host}.tar`);
     assert.ok(fs.statSync(archive).size > 1024);

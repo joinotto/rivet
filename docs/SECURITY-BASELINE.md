@@ -104,8 +104,10 @@ The following controls are not complete:
 Add each control only when Rivet has the related code or release artifact.
 
 The unsigned candidate already includes a revision-bound CycloneDX SBOM. The
-candidate verifier checks its host-package digests and source binding. This
-does not replace a signed SBOM for a public release.
+candidate verifier checks its host-package digests and source binding. The
+candidate also includes an unsigned in-toto Statement with the SLSA v1
+provenance predicate. These records do not replace a signed SBOM or
+authenticated provenance for a public release.
 
 The local baseline-1, baseline-2, and baseline-3 evidence assessments are in
 `docs/openssf-baseline-assessment.json` and

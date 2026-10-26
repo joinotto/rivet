@@ -99,7 +99,8 @@ try {
   const changedBinding = copyCandidate(candidate, "changed-binding");
   const provenanceFile = path.join(changedBinding, "provenance.json");
   const provenance = JSON.parse(fs.readFileSync(provenanceFile, "utf8"));
-  provenance.source.revision = "0".repeat(40);
+  provenance.predicate.buildDefinition.resolvedDependencies[0].digest.gitCommit =
+    "0".repeat(40);
   fs.writeFileSync(provenanceFile, `${JSON.stringify(provenance, null, 2)}\n`);
   const changedProvenance = fs.readFileSync(provenanceFile);
   const manifestFile = path.join(changedBinding, "manifest.json");

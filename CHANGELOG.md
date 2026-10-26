@@ -19,6 +19,9 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Deterministic unsigned in-toto Statements with the SLSA v1 provenance
+  predicate, explicit local-builder trust limits, resolved source identity,
+  subjects, and byproducts for release candidates.
 - Retained exact-revision bounded parser-fuzz evidence for both supported
   Node.js CI jobs, including failed campaigns. CI verifies the explicit
   pull-request head or push revision before it creates evidence.

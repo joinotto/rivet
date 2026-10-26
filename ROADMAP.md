@@ -218,6 +218,8 @@ Implemented:
 - Tool-backed CycloneDX and SPDX schema validation with embedded RSA or identity-constrained Sigstore verification.
 - Pinned native Cosign signed-artifact fixture with recorded ephemeral-key
   verification conformance.
+- Deterministic unsigned in-toto Statements with the SLSA v1 provenance
+  predicate for release candidates.
 
 Commands:
 

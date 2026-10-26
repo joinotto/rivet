@@ -238,13 +238,31 @@ export function verifyReleaseCandidate(input, expected = {}) {
     if (sbomDigests.get(file) !== digest) faults.push(`SBOM does not verify ${file}.`);
   }
 
+  const buildDefinition = provenance.predicate?.buildDefinition;
+  const runDetails = provenance.predicate?.runDetails;
+  const sourceDependency = buildDefinition?.resolvedDependencies?.find(
+    (dependency) =>
+      dependency.uri === "git+https://github.com/joinotto/rivet"
+  );
   if (
-    provenance.kind !== "rivet-release-candidate-provenance" ||
-    provenance.version !== manifest.version ||
-    provenance.source?.revision !== manifest.revision ||
-    provenance.source?.state !== "clean"
+    provenance._type !== "https://in-toto.io/Statement/v1" ||
+    provenance.predicateType !== "https://slsa.dev/provenance/v1" ||
+    buildDefinition?.buildType !==
+      "https://github.com/joinotto/rivet/blob/main/docs/RELEASE-BUILD-TYPE.md#v1" ||
+    buildDefinition?.externalParameters?.version !== manifest.version ||
+    buildDefinition?.externalParameters?.revision !== manifest.revision ||
+    buildDefinition?.internalParameters?.sourceState !== "clean" ||
+    sourceDependency?.digest?.gitCommit !== manifest.revision ||
+    runDetails?.builder?.id !==
+      "https://github.com/joinotto/rivet/blob/main/docs/RELEASE-BUILD-TYPE.md#local-builder" ||
+    provenance.predicate?.rivetMetadata?.unsigned !== true
   ) faults.push("Provenance is not bound to the clean manifest source.");
-  const subjects = new Map((provenance.subjects || []).map((subject) => [subject.name, subject.digest?.sha256]));
+  const subjects = new Map(
+    (provenance.subject || []).map((subject) => [
+      subject.name,
+      subject.digest?.sha256
+    ])
+  );
   for (const [file, digest] of archiveDigests) {
     if (subjects.get(file) !== digest) faults.push(`Provenance does not verify ${file}.`);
   }

@@ -237,38 +237,74 @@ try {
   );
 
   const builderFile = fileURLToPath(import.meta.url);
+  const builderDigest = sha256(fs.readFileSync(builderFile));
   const provenance = {
-    schema: 1,
-    kind: "rivet-release-candidate-provenance",
-    version,
-    source: {
-      repository: "https://github.com/joinotto/rivet",
-      revision,
-      state: status.stdout.trim() ? "dirty-allowed" : "clean"
-    },
-    builder: {
-      script: "scripts/build-release-candidate.mjs",
-      script_sha256: sha256(fs.readFileSync(builderFile)),
-      node: process.version,
-      platform: process.platform,
-      architecture: process.arch
-    },
-    parameters: {
-      source_date_epoch: 0,
-      archive_format: "ustar",
-      normalized_mode: "0644",
-      normalized_owner: "rivet",
-      normalized_group: "rivet"
-    },
-    subjects: artifactRecords.map((artifact) => ({
+    _type: "https://in-toto.io/Statement/v1",
+    subject: artifactRecords.map((artifact) => ({
       name: artifact.file,
       digest: { sha256: artifact.sha256 }
     })),
-    limitations: [
-      "This provenance is an unsigned Rivet record, not a SLSA attestation.",
-      "A reproducible archive does not prove that its source or builder is trusted.",
-      "Release publication requires signatures, reviewer approval, and retained CI evidence."
-    ]
+    predicateType: "https://slsa.dev/provenance/v1",
+    predicate: {
+      buildDefinition: {
+        buildType:
+          "https://github.com/joinotto/rivet/blob/main/docs/RELEASE-BUILD-TYPE.md#v1",
+        externalParameters: { version, revision },
+        internalParameters: {
+          sourceState: status.stdout.trim() ? "dirty-allowed" : "clean",
+          node: process.version,
+          platform: process.platform,
+          architecture: process.arch,
+          sourceDateEpoch: 0,
+          archiveFormat: "ustar",
+          normalizedMode: "0644",
+          normalizedOwner: "rivet",
+          normalizedGroup: "rivet"
+        },
+        resolvedDependencies: [
+          {
+            uri: "git+https://github.com/joinotto/rivet",
+            digest: { gitCommit: revision }
+          }
+        ]
+      },
+      runDetails: {
+        builder: {
+          id:
+            "https://github.com/joinotto/rivet/blob/main/docs/RELEASE-BUILD-TYPE.md#local-builder",
+          version: { "build-release-candidate.mjs": builderDigest }
+        },
+        metadata: {
+          invocationId: `urn:uuid:${deterministicUuid(
+            `local-builder:${version}:${revision}:${builderDigest}`
+          )}`
+        },
+        byproducts: [
+          {
+            name: "SHA256SUMS",
+            digest: {
+              sha256: sha256(fs.readFileSync(path.join(output, "SHA256SUMS")))
+            }
+          },
+          {
+            name: "bom.cdx.json",
+            digest: {
+              sha256: sha256(
+                fs.readFileSync(path.join(output, "bom.cdx.json"))
+              )
+            }
+          }
+        ]
+      },
+      rivetMetadata: {
+        unsigned: true,
+        limitations: [
+          "This statement is unsigned and does not authenticate the builder.",
+          "A reproducible archive does not prove that its source or builder is trusted.",
+          "Release publication requires signatures, reviewer approval, and retained CI evidence."
+        ]
+      }
+    }
   };
   fs.writeFileSync(
     path.join(output, "provenance.json"),
