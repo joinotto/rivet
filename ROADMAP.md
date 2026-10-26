@@ -362,6 +362,8 @@ Implemented:
 - Workload-bound cost and capacity planning with measured resource limits,
   project-selected utilization thresholds, dated prices, headroom, and demand
   scenarios.
+- Digest-bound independent-review packets and human-review records for formal,
+  privacy, and chaos evidence.
 
 Exit criteria:
 

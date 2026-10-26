@@ -326,6 +326,22 @@ declared headroom and monthly cost. It does not invent a universal utilization
 target or treat a provider price as permanent. Test quotas, queues, failover,
 and correlated bottlenecks separately.
 
+Prepare independent review for a formal, privacy, or chaos artifact:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" advanced-review packet \
+  --type formal \
+  --artifact reports/formal-model.json \
+  --output .rivet/reviews/formal-packet.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" advanced-review init \
+  --packet .rivet/reviews/formal-packet.json \
+  --output .rivet/reviews/formal-review.json
+```
+
+Use `advanced-review validate` after the independent reviewer completes the
+record. Do not fill reviewer identity, qualifications, independence,
+findings, conclusion, or signature fields for the reviewer.
+
 Score a saved blinded evaluation campaign:
 
 ```sh

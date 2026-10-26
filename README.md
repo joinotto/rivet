@@ -69,6 +69,8 @@ Version `0.1.0` contains:
 - Deterministic seeded-defect precision and recall evaluation.
 - Seed-free experienced-human baseline packets with qualification, blindness,
   timing, and signature records.
+- Digest-bound independent-review records for formal, privacy, and chaos
+  evidence.
 
 Run the tests:
 

@@ -18,6 +18,11 @@ import {
 import { validatePrivacyAnalysis } from "../skills/rivet/scripts/lib/privacy.mjs";
 import { evaluateCapacityPlan } from "../skills/rivet/scripts/lib/capacity.mjs";
 import { evaluateQualityRatchet } from "../skills/rivet/scripts/lib/quality-ratchet.mjs";
+import {
+  advancedReviewTemplate,
+  createAdvancedReviewPacket,
+  validateAdvancedReview,
+} from "../skills/rivet/scripts/lib/advanced-review.mjs";
 import { evaluateCampaign } from "../skills/rivet/scripts/lib/evaluate.mjs";
 import {
   prepareBlindWorkspace,
@@ -546,6 +551,88 @@ const privacyAnalysis = {
 assert.strictEqual(
   validatePrivacyAnalysis(privacyAnalysis).decision,
   "ready-for-qualified-review",
+);
+for (const [type, artifact] of [
+  ["formal", formalModel],
+  ["privacy", privacyAnalysis],
+  ["chaos", chaosExperiment],
+]) {
+  const artifactFile = path.join(fixture, `${type}-review-artifact.json`);
+  fs.writeFileSync(artifactFile, JSON.stringify(artifact));
+  const packet = createAdvancedReviewPacket({
+    artifactFile,
+    type,
+    createdAt: "2026-10-26",
+  });
+  assert.strictEqual(packet.review_type, type);
+  assert.match(packet.artifact.sha256, /^[a-f0-9]{64}$/);
+  const review = advancedReviewTemplate(packet, "2026-10-26");
+  Object.assign(review.reviewer, {
+    name: "Independent Reviewer",
+    role: `${type} reviewer`,
+    organization: "Independent Review Group",
+    qualifications: [`Relevant ${type} review experience.`],
+    independence: "Did not author the artifact.",
+    conflicts: "None declared.",
+  });
+  review.reviewed_at = "2026-10-26";
+  review.scope_complete = true;
+  review.conclusion = "approved";
+  review.limitations = ["Review covers the supplied bounded artifact only."];
+  review.signature = {
+    method: "signed review record",
+    identity: `reviewer:${type}`,
+    artifact: `${type}-review.sig`,
+  };
+  assert.strictEqual(
+    validateAdvancedReview(packet, review).decision,
+    "recorded-human-review",
+  );
+  review.packet.artifact_sha256 = "0".repeat(64);
+  assert.strictEqual(
+    validateAdvancedReview(packet, review).decision,
+    "invalid-review",
+  );
+}
+const advancedArtifactFile = path.join(fixture, "advanced-formal.json");
+fs.writeFileSync(advancedArtifactFile, JSON.stringify(formalModel));
+const advancedPacketCommand = invoke(fixture, [
+  "advanced-review",
+  "packet",
+  "--type",
+  "formal",
+  "--artifact",
+  "advanced-formal.json",
+  "--created-at",
+  "2026-10-26",
+  "--output",
+  "advanced-formal-packet.json",
+]);
+assert.strictEqual(
+  advancedPacketCommand.status,
+  0,
+  advancedPacketCommand.stderr,
+);
+assert.strictEqual(
+  JSON.parse(advancedPacketCommand.stdout).review_type,
+  "formal",
+);
+const advancedInitCommand = invoke(fixture, [
+  "advanced-review",
+  "init",
+  "--packet",
+  "advanced-formal-packet.json",
+  "--created-at",
+  "2026-10-26",
+  "--output",
+  "advanced-formal-review.json",
+]);
+assert.strictEqual(advancedInitCommand.status, 0, advancedInitCommand.stderr);
+assert.strictEqual(
+  JSON.parse(
+    fs.readFileSync(path.join(fixture, "advanced-formal-review.json"), "utf8"),
+  ).scope_complete,
+  false,
 );
 const capacityPlan = {
   schema: 1,

@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Digest-bound independent-review packets and human-review validation for
+  formal, privacy, and chaos evidence.
 - Seed-excluding experienced-human baseline packet preparation and signed
   result ingestion for evaluation campaigns.
 - Phase 3 criterion-by-criterion conformance record with the qualified-review

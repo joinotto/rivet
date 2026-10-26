@@ -351,6 +351,16 @@ measured capacity, a project-selected utilization limit, and a dated price
 snapshot. It does not set universal thresholds or predict unmodeled
 bottlenecks.
 
+### `advanced-review`
+
+Purpose: Prepare and validate independent human review for formal, privacy,
+and chaos evidence.
+
+Bind the artifact type, revision, content, and SHA-256 digest. Record reviewer
+qualifications, independence, conflicts, scope, findings, dispositions,
+residual risks, limitations, conclusion, and signature identity. Structural
+validation must not claim reviewer competence or artifact correctness.
+
 ### `evaluate`
 
 Purpose: Score seeded findings or a blinded multi-condition evaluation
