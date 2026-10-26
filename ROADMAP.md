@@ -83,12 +83,17 @@ Implemented:
 - Native Codex workspace-write boundary conformance.
 - Observed Claude Code `acceptEdits` outside-workspace write failure with a
   required external-sandbox mitigation.
+- Passing Claude Code workspace-write confinement through the explicit,
+  fail-closed macOS external-sandbox profile.
 - Canonical `shape` and `impact` commands with compatibility aliases.
+- Exact-revision pull-request risk and evidence reports with retained
+  machine-readable artifacts.
+- Diff-scoped production-content signals and NUL-delimited changed-file input.
+- A portable pull-request verifier in every generated host package.
 
 Not implemented:
 
 - Native Cursor skill discovery.
-- Passing Claude Code workspace-write boundary conformance.
 
 Commands:
 
@@ -452,9 +457,14 @@ Do not make the security engineer a late reviewer.
 
 ## 5. First public milestone
 
+Implementation status: Complete. Public release status: Not released.
+
 The first public release should do one task well:
 
 > Inspect a pull request, identify its backend risks, run the available evidence, and produce a truthful verification report.
+
+The portable runner and GitHub workflow implement this task. Native
+pull-request conformance is recorded in `docs/CI-CONFORMANCE.md`.
 
 This milestone is more valuable than 30 shallow commands.
 
