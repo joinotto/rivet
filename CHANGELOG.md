@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Changed
 
+- Release-candidate verification rejects symbolic-link roots and reads each
+  retained artifact once through a bounded, no-follow file descriptor.
 - Release-candidate output is restricted to a non-symbolic directory inside
   the project, including when forced replacement is requested. The security
   baseline now reflects existing revision-bound CycloneDX generation.

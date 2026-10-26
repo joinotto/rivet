@@ -38,6 +38,10 @@ The verifier fails when the inventory, digests, normalized archive structure,
 host metadata, SBOM binding, or provenance binding is inconsistent. It does not
 verify a publisher identity or authorize publication.
 
+The verifier reads each retained artifact once through a bounded, no-follow
+file descriptor. It rejects a symbolic-link candidate root and non-file
+inventory entries.
+
 An authorized maintainer can run the `Unsigned release candidate` workflow
 with a full commit identifier from `main` and the matching package version.
 The workflow has read-only repository permission. It builds and verifies the
