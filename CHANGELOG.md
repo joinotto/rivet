@@ -14,6 +14,8 @@ This file records notable changes to Rivet.
   compliance checks in CI.
 - A manual, read-only workflow that builds, verifies, and temporarily retains
   an unsigned candidate for an exact default-branch revision.
+- Revision-bound release evidence drafts that fail closed on missing gates,
+  signatures, risks, or independent approvals.
 - Deterministic unsigned release-candidate archives with checksums, CycloneDX
   SBOM, source-bound provenance, and byte-reproducibility tests.
 - Offline, fail-closed verification for candidate inventory, archive metadata,
