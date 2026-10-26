@@ -76,6 +76,9 @@ Required:
 Current branch settings and limitations are recorded in
 `docs/BRANCH-PROTECTION.md`.
 
+Current repository security settings and limitations are recorded in
+`docs/SECURITY-BASELINE.md`.
+
 Use SLSA as the incremental provenance model.
 
 Source: [SLSA specification](https://slsa.dev/spec/)
