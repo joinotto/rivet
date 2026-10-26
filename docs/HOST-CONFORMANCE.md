@@ -4,6 +4,9 @@
 
 This document records observed native host checks.
 
+Current support is limited to Codex and Claude Code. Other hosts are future
+roadmap work and have no generated package in the initial distribution.
+
 Package conformance remains automated by:
 
 ```sh
@@ -44,13 +47,6 @@ Result: pass for the tested macOS compatibility profile.
 
 Apple marks `sandbox-exec` as deprecated. The profile is not portable and does
 not change the failed result for unsandboxed `acceptEdits`.
-
-Cursor status:
-
-- Installed Cursor version: `2.2.36`.
-- `cursor agent status` returned `Not logged in`.
-
-Result: native Cursor model probes remain unavailable.
 
 ## 2026-10-25
 
@@ -182,18 +178,6 @@ Not tested:
 - Approval mapping.
 - Host hooks.
 
-### Cursor
-
-Cursor application version: `2.2.36`
-
-Cursor agent version: `2026.10.22-27dcf5f`
-
-Result: blocked by external account state.
-
-The native agent is installed, but it is not logged in and has no stored
-Bedrock credentials. Package-level conformance passed, but native runtime
-behavior was not tested.
-
 ## Interpretation
 
 These checks prove that the tested Codex and Claude Code versions can load the canonical Rivet skill from their project discovery paths.
@@ -222,6 +206,6 @@ Claude Code print mode did not emit a `PermissionRequest` hook event. This
 event depends on an interactive approval request, so Rivet records the
 structured denial instead of claiming that the event fired.
 
-These checks do not prove full host conformance. Claude Code requires the
-explicit macOS compatibility profile for mutating automation. Cursor native
-discovery, approval, and hook behavior also remain open.
+These checks apply only to the tested host versions and operating profiles.
+Claude Code requires the explicit macOS compatibility profile for mutating
+automation.

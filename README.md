@@ -1,6 +1,6 @@
 # Rivet
 
-Status: active Phase 1 implementation; published Phases 0, 2, 4, and 5 complete
+Status: initial host support is Codex and Claude Code; no public release
 Date: 2026-10-26
 Product name: Rivet
 
@@ -27,7 +27,7 @@ Version `0.1.0` contains:
 - Secret-pattern scanning with redacted findings.
 - Dependency-audit adapter discovery.
 - A stable tool-adapter schema.
-- A host-integration contract for Codex, Claude Code, Cursor, and compatible tools.
+- A host-integration contract for Codex and Claude Code.
 - Topology discovery for components, internal dependency edges, data-store artifacts, and messaging dependencies.
 - Reverse dependency impact for changed workspace components.
 - Normalized npm, Cargo, Go, and Python dependency-audit results.
@@ -176,7 +176,8 @@ Generate host packages:
 npm run package:hosts
 ```
 
-This command creates packages for Codex, Claude Code, Cursor, and portable skill hosts from the canonical `skills/rivet/` source.
+This command creates only Codex and Claude Code packages from the canonical
+`skills/rivet/` source. Other host integrations are future roadmap work.
 
 Run package conformance:
 
@@ -246,6 +247,7 @@ The product must not present an inferred result as an observed result.
 - [Security and evidence model](SECURITY-MODEL.md)
 - [Roadmap](ROADMAP.md)
 - [Roadmap status and open evidence](docs/ROADMAP-STATUS.md)
+- [Initial release plan](docs/INITIAL-RELEASE-PLAN.md)
 - [Phase 1 conformance](docs/PHASE-1-CONFORMANCE.md)
 - [Phase 3 conformance](docs/PHASE-3-CONFORMANCE.md)
 - [Phase 6 conformance](docs/PHASE-6-CONFORMANCE.md)

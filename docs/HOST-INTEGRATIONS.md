@@ -16,7 +16,10 @@ The portable core contains:
 
 A host integration only connects this core to an agent product.
 
-## Supported hosts
+## Initial supported hosts
+
+The initial distribution supports Codex and Claude Code only. Future host
+expansion is recorded in `ROADMAP.md`.
 
 ### Codex
 
@@ -43,24 +46,6 @@ resolution is not sufficient.
 Apple marks the underlying `sandbox-exec` command as deprecated. This profile
 is not portable and is not a long-term product boundary. Do not silently fall
 back to unsandboxed execution when the launcher is unavailable.
-
-### Cursor
-
-Use Cursor project skills for reusable Rivet instructions.
-
-Keep Cursor rules or compatibility files as generated wrappers. Do not duplicate the engineering guidance in a separate Cursor source.
-
-### Other hosts
-
-Add a host when it can:
-
-- Load project instructions or skills.
-- Execute local commands with visible permissions.
-- Return command status and output.
-- Preserve project context.
-- Support explicit approval for consequential actions.
-
-If a host lacks one capability, the integration must report the limitation. It must not simulate evidence that the host cannot collect.
 
 ## Integration contract
 
@@ -131,14 +116,12 @@ Read [Host conformance](HOST-CONFORMANCE.md) for observed native host checks and
 
 The first distribution target is a repository-local installation.
 
-Planned packages:
+Generated packages:
 
 ```text
 dist/
 ├── codex/
-├── claude-code/
-├── cursor/
-└── portable/
+└── claude-code/
 ```
 
 These directories are build outputs. The source remains in `skills/rivet/`.

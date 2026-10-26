@@ -13,7 +13,8 @@ npm run package:release-candidate -- \
   --output dist/release
 ```
 
-The builder creates deterministic uncompressed host archives, SHA-256 sums, a
+The builder creates deterministic uncompressed Codex and Claude Code archives,
+SHA-256 sums, a
 CycloneDX SBOM, an unsigned in-toto Statement with the SLSA v1 provenance
 predicate, and a manifest. CI builds the candidate twice and requires
 byte-identical output. `docs/RELEASE-BUILD-TYPE.md` defines the build type and
@@ -26,6 +27,11 @@ directory when `--force` is set.
 The candidate is not a release. Do not publish it until the signing,
 independent approval, support, verification, and publication requirements in
 this document are complete.
+
+The candidate must contain exactly the Codex and Claude Code archives. Its
+manifest records both supported hosts. The verifier rejects other host
+inventories. Earlier unsigned four-host candidates are historical evidence;
+rebuild them from the current source before release review.
 
 Verify a received candidate before review or signing:
 

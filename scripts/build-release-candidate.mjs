@@ -320,6 +320,7 @@ try {
     kind: "rivet-release-candidate",
     version,
     revision,
+    hosts: artifactRecords.map((artifact) => artifact.host).sort(),
     source_state: status.stdout.trim() ? "dirty-allowed" : "clean",
     files: manifestFiles,
     decision: status.stdout.trim() ? "test-candidate" : "unsigned-candidate",

@@ -138,6 +138,10 @@ export function verifyReleaseCandidate(input, expected = {}) {
   if (manifest.decision !== "unsigned-candidate") faults.push("Candidate was not built from a clean source revision.");
   if (expected.version && manifest.version !== expected.version) faults.push("Manifest version does not match --version.");
   if (expected.revision && manifest.revision !== expected.revision) faults.push("Manifest revision does not match --revision.");
+  const supportedHosts = ["claude-code", "codex"];
+  if (JSON.stringify(manifest.hosts) !== JSON.stringify(supportedHosts)) {
+    faults.push("Manifest hosts must be exactly claude-code and codex.");
+  }
 
   const recorded = Array.isArray(manifest.files) ? manifest.files : [];
   const actualFiles = fs.readdirSync(root, { withFileTypes: true });
@@ -191,7 +195,15 @@ export function verifyReleaseCandidate(input, expected = {}) {
       typeof entry.file === "string" &&
       /^rivet-.+-[^/]+[.]tar$/.test(entry.file)
   );
-  if (archives.length !== 4) faults.push("Manifest must contain four host archives.");
+  const expectedArchiveNames = supportedHosts
+    .map((host) => `rivet-${manifest.version}-${host}.tar`)
+    .sort();
+  if (
+    JSON.stringify(archives.map((archive) => archive.file).sort()) !==
+    JSON.stringify(expectedArchiveNames)
+  ) {
+    faults.push("Manifest must contain exactly the Codex and Claude Code host archives.");
+  }
   const archiveDigests = new Map();
   for (const archive of archives) {
     const content = contents.get(archive.file);
@@ -325,6 +337,7 @@ export function verifyReleaseCandidate(input, expected = {}) {
     input: root,
     version: manifest.version,
     revision: manifest.revision,
+    hosts: supportedHosts,
     archives: archives.length,
     signature: "not-checked",
     decision: faults.length ? "fail" : "pass",

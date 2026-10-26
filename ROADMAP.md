@@ -6,6 +6,17 @@ Build the evidence loop before the command catalog.
 
 Do not build all commands at the same time.
 
+## Initial host scope
+
+Product-owner decision on 2026-10-26: support Codex and Claude Code only.
+
+Generate, test, document, and release packages for these two hosts. Do not
+ship a Cursor package or a generic host package in the initial distribution.
+The canonical skill source remains in `skills/rivet/`.
+
+The initial-use and production-release gates are in
+`docs/INITIAL-RELEASE-PLAN.md`.
+
 ## Phase 0: Foundation
 
 Duration: 4 to 6 weeks
@@ -44,7 +55,7 @@ Conformance evidence: `docs/PHASE-0-CONFORMANCE.md`.
 
 Duration: 8 to 10 weeks
 
-Status: In progress.
+Status: Complete for the published initial two-host scope.
 
 Implemented:
 
@@ -91,10 +102,6 @@ Implemented:
 - Diff-scoped production-content signals and NUL-delimited changed-file input.
 - A portable pull-request verifier in every generated host package.
 
-Not implemented:
-
-- Native Cursor skill discovery.
-
 Commands:
 
 - `init`
@@ -123,7 +130,7 @@ Deliver:
 - Evidence receipt.
 - Human summary.
 - CI output.
-- Repository-local packages for Codex, Claude Code, and Cursor.
+- Repository-local packages for Codex and Claude Code.
 
 Exit criteria:
 
@@ -132,9 +139,29 @@ Exit criteria:
 - A failed tool cannot produce a pass.
 - Results are reproducible from the receipt.
 - Index recommendations identify the target query and measured baseline.
-- Codex, Claude Code, and Cursor pass package and native-runtime conformance suites.
+- Codex and Claude Code pass package and native-runtime conformance suites
+  for their declared operating profiles.
 
 Conformance evidence: `docs/PHASE-1-CONFORMANCE.md`.
+
+## Future host expansion
+
+Status: deferred. No active distribution or support.
+
+Consider Cursor and other coding tools only after the Codex and Claude Code
+installation and release workflows are established.
+
+Before adding a host:
+
+- Confirm demand and select a maintained host version.
+- Validate native skill discovery, script execution, session behavior,
+  approval behavior, and filesystem boundaries.
+- Declare the tested operating profile and unsupported capabilities.
+- Generate its package from the canonical skill source.
+- Publish installation, upgrade, removal, and recovery evidence.
+
+Package generation alone does not satisfy this gate. A future host requires
+a separate scope decision and passing native evidence before support begins.
 
 ## Phase 2: Test intelligence
 

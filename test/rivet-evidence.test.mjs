@@ -3360,7 +3360,8 @@ const packageResult = spawnSync(
   { encoding: "utf8" },
 );
 assert.strictEqual(packageResult.status, 0, packageResult.stderr);
-for (const host of ["portable", "codex", "claude-code", "cursor"]) {
+assert.deepStrictEqual(fs.readdirSync(packages).sort(), ["claude-code", "codex"]);
+for (const host of ["codex", "claude-code"]) {
   const hostSkill = path.join(packages, host, "rivet", "SKILL.md");
   assert.ok(fs.existsSync(hostSkill), `${host} package has no SKILL.md`);
   assert.strictEqual(

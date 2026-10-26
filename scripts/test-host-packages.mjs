@@ -18,20 +18,12 @@ const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-conformance-"));
 const packages = path.join(temporary, "packages");
 const fixture = path.join(temporary, "fixture");
 const hosts = {
-  portable: {
-    install_path: "Choose a skill directory supported by the host.",
-    includes_agent_metadata: false,
-  },
   codex: {
     install_path: ".agents/skills/rivet or the configured Codex skills directory",
     includes_agent_metadata: true,
   },
   "claude-code": {
     install_path: ".claude/skills/rivet",
-    includes_agent_metadata: false,
-  },
-  cursor: {
-    install_path: ".cursor/skills/rivet",
     includes_agent_metadata: false,
   },
 };
@@ -63,6 +55,7 @@ try {
     packages,
   ]);
   assert.strictEqual(packaged.status, 0, packaged.stderr);
+  assert.deepStrictEqual(fs.readdirSync(packages).sort(), Object.keys(hosts).sort());
 
   fs.mkdirSync(fixture);
   fs.writeFileSync(
