@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Phase 6 criterion-by-criterion conformance record with independent-review
+  gates kept explicit.
 - Digest-bound independent-review packets and human-review validation for
   formal, privacy, and chaos evidence.
 - Seed-excluding experienced-human baseline packet preparation and signed

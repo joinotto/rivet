@@ -56,6 +56,8 @@ Use `npm run evaluate:human -- prepare` to create a seed-free packet and
 
 ## Advanced verification
 
+See `docs/PHASE-6-CONFORMANCE.md` for the criterion-by-criterion record.
+
 Phase 6 has implementations for stateful models, fuzz evidence, bounded chaos,
 formal-model evidence, privacy analysis, and capacity planning. Product demand
 and explicit exit criteria are now recorded in `ROADMAP.md`.

@@ -383,6 +383,8 @@ Exit criteria:
 - An independent reviewer validates at least one representative artifact for
   the formal, privacy, and chaos workflows.
 
+Conformance evidence: `docs/PHASE-6-CONFORMANCE.md`.
+
 ## 2. Reference repositories
 
 Create small, real systems with seeded defects:
