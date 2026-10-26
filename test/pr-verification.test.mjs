@@ -77,6 +77,7 @@ assert.strictEqual(report.head_revision, head);
 assert.strictEqual(report.impact.risk_mode, "service");
 assert.deepStrictEqual(report.impact.files, ["src/api/orders,\nreport.js"]);
 assert.strictEqual(report.verification.decision, "pass");
+assert.deepStrictEqual(report.verification.available_evidence, []);
 assert.strictEqual(report.decision, "pass-with-limitations");
 assert.match(
   fs.readFileSync(path.join(fixture, ".rivet/ci/summary.md"), "utf8"),

@@ -59,6 +59,8 @@ The workflow:
   heuristics inspect only added production lines, not unchanged code,
   documentation, tests, fixtures, or GitHub configuration.
 - Runs the checks that Rivet detects in the checked-out project.
+- Lists detected security and dependency adapters that it does not run
+  automatically, with the safety reason and explicit workflow to use.
 - Writes the machine-readable impact, verification receipt, combined report,
   and Markdown summary.
 - Adds GitHub workflow annotations for pass, fail, incomplete, and unavailable

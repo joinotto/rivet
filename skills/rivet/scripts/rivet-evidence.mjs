@@ -2734,6 +2734,14 @@ function evaluationEvidence() {
 }
 
 function markdownSummary(receipt) {
+  const cell = (input) =>
+    String(input)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll("|", "\\|")
+      .replaceAll("\r", " ")
+      .replaceAll("\n", " ");
   const lines = [
     "# Rivet verification",
     "",
@@ -2751,11 +2759,18 @@ function markdownSummary(receipt) {
   }
   for (const result of receipt.results) {
     lines.push(
-      `| ${result.id} | ${result.ecosystem || "—"} | ${result.result} | ${result.exit_code ?? "—"} | ${result.duration_ms ?? "—"} ms |`,
+      `| ${cell(result.id)} | ${cell(result.ecosystem || "—")} | ${cell(result.result)} | ${result.exit_code ?? "—"} | ${result.duration_ms ?? "—"} ms |`,
     );
   }
+  lines.push("", "## Specialized evidence not run", "");
+  if (!receipt.available_evidence.length) {
+    lines.push("- No specialized security or dependency adapter was detected.");
+  }
+  for (const item of receipt.available_evidence) {
+    lines.push(`- ${cell(item.id)} (${cell(item.kind)}): ${cell(item.reason)}`);
+  }
   lines.push("", "## Limitations", "");
-  for (const limitation of receipt.limitations) lines.push(`- ${limitation}`);
+  for (const limitation of receipt.limitations) lines.push(`- ${cell(limitation)}`);
   return `${lines.join("\n")}\n`;
 }
 
@@ -2784,6 +2799,11 @@ function githubOutput(receipt) {
       );
     }
   }
+  if (receipt.available_evidence.length) {
+    console.log(
+      `::warning title=Rivet specialized evidence::${receipt.available_evidence.length} detected adapter(s) were not run`,
+    );
+  }
   console.log(
     `::${receipt.decision === "pass" ? "notice" : receipt.decision === "fail" ? "error" : "warning"} title=Rivet verification::Decision ${githubEscape(receipt.decision)}`,
   );
@@ -2791,6 +2811,24 @@ function githubOutput(receipt) {
 
 function verify() {
   const project = detectProject();
+  const specialized = [
+    ...project.security_checks,
+    ...project.dependency_checks,
+  ];
+  const availableEvidence = specialized.map((check) => ({
+    adapter_schema: check.schema,
+    id: check.id,
+    ecosystem: check.ecosystem,
+    kind: check.kind,
+    source: check.source,
+    executable: check.executable,
+    network: check.network ?? false,
+    status: "not-run",
+    reason:
+      check.kind === "dependency-audit"
+        ? "Run the explicit dependencies workflow because the adapter can use network advisory data."
+        : "Run the explicit security workflow with the required authorization for repository-declared security commands.",
+  }));
   const requested = (value("--checks") || "")
     .split(",")
     .map((item) => item.trim())
@@ -2819,6 +2857,12 @@ function verify() {
     }
     if (unavailable.length) {
       console.log(`Unavailable: ${unavailable.join(", ")}`);
+    }
+    if (availableEvidence.length) {
+      console.log("Specialized evidence not run:");
+      for (const item of availableEvidence) {
+        console.log(`- ${item.id}: ${item.reason}`);
+      }
     }
     return;
   }
@@ -2882,8 +2926,12 @@ function verify() {
     started_at: startedAt,
     finished_at: new Date().toISOString(),
     results,
+    available_evidence: availableEvidence,
     limitations: [
       "Only detected repository checks were run.",
+      ...(availableEvidence.length
+        ? ["Detected specialized security or dependency adapters were not run automatically."]
+        : []),
       "A passing generic check does not prove security, migration safety, authorization, or production behavior.",
     ],
     decision:
@@ -2893,6 +2941,8 @@ function verify() {
           ? "fail"
           : results.some((item) => item.result === "unavailable")
             ? "incomplete"
+          : availableEvidence.length
+            ? "pass-with-limitations"
             : "pass",
   };
 
