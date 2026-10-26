@@ -14,7 +14,8 @@ function requestedRange() {
   }
 
   if (process.env.GITHUB_BASE_REF) {
-    return `origin/${process.env.GITHUB_BASE_REF}..HEAD`;
+    const head = process.env.DCO_HEAD_SHA || "HEAD";
+    return `origin/${process.env.GITHUB_BASE_REF}..${head}`;
   }
   return "HEAD^..HEAD";
 }
