@@ -158,6 +158,30 @@ behavior was not tested.
 
 These checks prove that the tested Codex and Claude Code versions can load the canonical Rivet skill from their project discovery paths.
 
-They do not prove full host conformance. Approval and hook tests remain open.
-Claude Code does not pass the workspace boundary probe. Cursor native discovery
-also remains open.
+## 2026-10-26
+
+### Codex approval and hooks
+
+- Loaded invocation-scoped `SessionStart` and `PermissionRequest` hooks.
+- Requested automatic approval for `node command-probe.mjs`.
+- The permission-request hook denied the Bash mutation before review.
+- Rivet independently confirmed that the marker file was absent.
+
+Result: native approval-policy and hook conformance passed.
+
+### Claude Code approval and hooks
+
+- Loaded an isolated settings file with a `SessionStart` hook.
+- Added an exact ask rule for `Bash(node command-probe.mjs)`.
+- Claude Code print mode returned one structured Bash permission denial.
+- Rivet independently confirmed that the marker file was absent.
+
+Result: native approval-policy and lifecycle-hook conformance passed.
+
+Claude Code print mode did not emit a `PermissionRequest` hook event. This
+event depends on an interactive approval request, so Rivet records the
+structured denial instead of claiming that the event fired.
+
+These checks do not prove full host conformance. Claude Code does not pass the
+workspace boundary probe. Cursor native discovery, approval, and hook behavior
+also remain open.

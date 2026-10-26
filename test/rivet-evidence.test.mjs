@@ -164,6 +164,28 @@ for (const provider of ["codex", "claude"]) {
     context_retained_after_resume: true,
   });
 }
+for (const provider of ["codex", "claude"]) {
+  const approvalHooks = JSON.parse(
+    fs.readFileSync(
+      path.join(
+        repository,
+        `fixtures/host-conformance/${provider}-approval-hooks.json`,
+      ),
+      "utf8",
+    ),
+  );
+  assert.strictEqual(approvalHooks.provider, provider);
+  assert.strictEqual(approvalHooks.decision, "pass");
+  assert.strictEqual(
+    approvalHooks.checks.session_start_hook_observed,
+    true,
+  );
+  assert.strictEqual(
+    approvalHooks.checks.approval_policy_denial_observed,
+    true,
+  );
+  assert.strictEqual(approvalHooks.checks.denied_mutation_absent, true);
+}
 const codexWorkspaceBoundary = JSON.parse(
   fs.readFileSync(
     path.join(

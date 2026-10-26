@@ -16,7 +16,8 @@ claim production certification or universal backend coverage.
 
 - Run native Cursor skill discovery after Cursor agent authentication is
   available.
-- Test native approval and hook behavior in Codex, Claude Code, and Cursor.
+- Test native approval and hook behavior in Cursor after authentication is
+  available.
 - Obtain a passing Claude Code workspace-write boundary result, or define an
   enforced operating profile that uses plan mode or an external operating
   system sandbox for mutations.

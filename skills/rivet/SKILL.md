@@ -420,6 +420,21 @@ The probe creates persistent host session metadata and resumes it by
 identifier. It does not test long sessions, compaction, concurrency, or
 credential expiry.
 
+Test native approval and hook behavior:
+
+```sh
+npm run test:host-approval-hooks -- \
+  --provider codex \
+  --output reports/codex-approval-hooks.json \
+  --allow-network
+```
+
+The probe records a session-start hook, requests one shell mutation, denies
+the request through the host approval configuration, and confirms that the
+mutation is absent. Codex also exercises its permission-request hook. Claude
+Code print mode supplies a structured permission denial but does not emit its
+interactive permission-request hook event.
+
 Do not use Claude Code `acceptEdits` as a workspace sandbox. Native testing
 observed an outside-workspace file write through the Write/Edit tool set. Keep
 Claude Code automation in plan mode for read-only work. For mutations, require
