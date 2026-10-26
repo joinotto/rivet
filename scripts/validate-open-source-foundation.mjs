@@ -30,18 +30,31 @@ const navigatedFoundationFiles = requiredFoundationFiles.filter(
 
 function read(root, relative, faults) {
   const file = path.join(root, relative);
-  if (!fs.existsSync(file)) {
-    faults.push(`Required file is missing: ${relative}`);
+  let descriptor;
+  try {
+    descriptor = fs.openSync(
+      file,
+      fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW
+    );
+  } catch (error) {
+    faults.push(
+      error.code === "ENOENT"
+        ? `Required file is missing: ${relative}`
+        : `Required file cannot be opened safely: ${relative}`
+    );
     return "";
   }
-  const stat = fs.lstatSync(file);
-  if (!stat.isFile() || stat.isSymbolicLink()) {
-    faults.push(`Required path must be a regular file: ${relative}`);
-    return "";
+  try {
+    if (!fs.fstatSync(descriptor).isFile()) {
+      faults.push(`Required path must be a regular file: ${relative}`);
+      return "";
+    }
+    const content = fs.readFileSync(descriptor, "utf8");
+    if (!content.trim()) faults.push(`Required file is empty: ${relative}`);
+    return content;
+  } finally {
+    fs.closeSync(descriptor);
   }
-  const content = fs.readFileSync(file, "utf8");
-  if (!content.trim()) faults.push(`Required file is empty: ${relative}`);
-  return content;
 }
 
 export function validateOpenSourceFoundation(root) {
