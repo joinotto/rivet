@@ -22,6 +22,25 @@ function copyCandidate(source, name) {
   return target;
 }
 
+function rewriteProvenance(candidate, mutate) {
+  const provenanceFile = path.join(candidate, "provenance.json");
+  const provenance = JSON.parse(fs.readFileSync(provenanceFile, "utf8"));
+  mutate(provenance);
+  fs.writeFileSync(provenanceFile, `${JSON.stringify(provenance, null, 2)}\n`);
+  const changedProvenance = fs.readFileSync(provenanceFile);
+  const manifestFile = path.join(candidate, "manifest.json");
+  const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
+  const provenanceRecord = manifest.files.find(
+    (entry) => entry.file === "provenance.json"
+  );
+  provenanceRecord.bytes = changedProvenance.length;
+  provenanceRecord.sha256 = crypto
+    .createHash("sha256")
+    .update(changedProvenance)
+    .digest("hex");
+  fs.writeFileSync(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`);
+}
+
 try {
   const source = path.join(temporary, "source");
   fs.cpSync(repository, source, {
@@ -97,26 +116,43 @@ try {
   assert.deepStrictEqual(linkedRootResult.faults, ["Input is not a directory."]);
 
   const changedBinding = copyCandidate(candidate, "changed-binding");
-  const provenanceFile = path.join(changedBinding, "provenance.json");
-  const provenance = JSON.parse(fs.readFileSync(provenanceFile, "utf8"));
-  provenance.predicate.buildDefinition.resolvedDependencies[0].digest.gitCommit =
-    "0".repeat(40);
-  fs.writeFileSync(provenanceFile, `${JSON.stringify(provenance, null, 2)}\n`);
-  const changedProvenance = fs.readFileSync(provenanceFile);
-  const manifestFile = path.join(changedBinding, "manifest.json");
-  const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
-  const provenanceRecord = manifest.files.find(
-    (entry) => entry.file === "provenance.json"
+  rewriteProvenance(
+    changedBinding,
+    (provenance) =>
+      (provenance.predicate.buildDefinition.resolvedDependencies[0].digest.gitCommit =
+        "0".repeat(40))
   );
-  provenanceRecord.bytes = changedProvenance.length;
-  provenanceRecord.sha256 = crypto
-    .createHash("sha256")
-    .update(changedProvenance)
-    .digest("hex");
-  fs.writeFileSync(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`);
   const bindingResult = verifyReleaseCandidate(changedBinding);
   assert.strictEqual(bindingResult.decision, "fail");
   assert.ok(bindingResult.faults.some((fault) => /Provenance is not bound/.test(fault)));
+
+  const changedByproduct = copyCandidate(candidate, "changed-byproduct");
+  rewriteProvenance(
+    changedByproduct,
+    (provenance) =>
+      (provenance.predicate.runDetails.byproducts[0].digest.sha256 =
+        "0".repeat(64))
+  );
+  const byproductResult = verifyReleaseCandidate(changedByproduct);
+  assert.strictEqual(byproductResult.decision, "fail");
+  assert.ok(
+    byproductResult.faults.some((fault) =>
+      /does not verify byproduct SHA256SUMS/.test(fault)
+    )
+  );
+
+  const extraSubject = copyCandidate(candidate, "extra-subject");
+  rewriteProvenance(extraSubject, (provenance) =>
+    provenance.subject.push({
+      name: "unexpected.tar",
+      digest: { sha256: "0".repeat(64) }
+    })
+  );
+  const subjectResult = verifyReleaseCandidate(extraSubject);
+  assert.strictEqual(subjectResult.decision, "fail");
+  assert.ok(
+    subjectResult.faults.some((fault) => /subject inventory/.test(fault))
+  );
 
   console.log("release candidate verification tests passed");
 } finally {

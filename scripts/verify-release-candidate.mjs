@@ -240,10 +240,14 @@ export function verifyReleaseCandidate(input, expected = {}) {
 
   const buildDefinition = provenance.predicate?.buildDefinition;
   const runDetails = provenance.predicate?.runDetails;
-  const sourceDependency = buildDefinition?.resolvedDependencies?.find(
-    (dependency) =>
-      dependency.uri === "git+https://github.com/joinotto/rivet"
+  const dependencies = Array.isArray(buildDefinition?.resolvedDependencies)
+    ? buildDefinition.resolvedDependencies
+    : [];
+  const sourceDependency = dependencies.find(
+    (dependency) => dependency.uri === "git+https://github.com/joinotto/rivet"
   );
+  const internal = buildDefinition?.internalParameters;
+  const builderVersions = runDetails?.builder?.version;
   if (
     provenance._type !== "https://in-toto.io/Statement/v1" ||
     provenance.predicateType !== "https://slsa.dev/provenance/v1" ||
@@ -251,20 +255,68 @@ export function verifyReleaseCandidate(input, expected = {}) {
       "https://github.com/joinotto/rivet/blob/main/docs/RELEASE-BUILD-TYPE.md#v1" ||
     buildDefinition?.externalParameters?.version !== manifest.version ||
     buildDefinition?.externalParameters?.revision !== manifest.revision ||
-    buildDefinition?.internalParameters?.sourceState !== "clean" ||
+    internal?.sourceState !== "clean" ||
+    typeof internal?.node !== "string" ||
+    typeof internal?.platform !== "string" ||
+    typeof internal?.architecture !== "string" ||
+    internal?.sourceDateEpoch !== 0 ||
+    internal?.archiveFormat !== "ustar" ||
+    internal?.normalizedMode !== "0644" ||
+    internal?.normalizedOwner !== "rivet" ||
+    internal?.normalizedGroup !== "rivet" ||
+    dependencies.length !== 1 ||
     sourceDependency?.digest?.gitCommit !== manifest.revision ||
     runDetails?.builder?.id !==
       "https://github.com/joinotto/rivet/blob/main/docs/RELEASE-BUILD-TYPE.md#local-builder" ||
+    !/^[a-f0-9]{64}$/.test(
+      builderVersions?.["build-release-candidate.mjs"] || ""
+    ) ||
+    !/^urn:uuid:[a-f0-9-]{36}$/.test(
+      runDetails?.metadata?.invocationId || ""
+    ) ||
     provenance.predicate?.rivetMetadata?.unsigned !== true
   ) faults.push("Provenance is not bound to the clean manifest source.");
+  const subjectList = Array.isArray(provenance.subject)
+    ? provenance.subject
+    : [];
   const subjects = new Map(
-    (provenance.subject || []).map((subject) => [
-      subject.name,
-      subject.digest?.sha256
+    subjectList.map((subject) => [
+      subject?.name,
+      subject?.digest?.sha256
     ])
   );
+  if (
+    subjectList.length !== archiveDigests.size ||
+    subjects.size !== archiveDigests.size
+  ) {
+    faults.push("Provenance subject inventory does not match the archives.");
+  }
   for (const [file, digest] of archiveDigests) {
     if (subjects.get(file) !== digest) faults.push(`Provenance does not verify ${file}.`);
+  }
+  const byproductList = Array.isArray(runDetails?.byproducts)
+    ? runDetails.byproducts
+    : [];
+  const byproducts = new Map(
+    byproductList.map((byproduct) => [
+      byproduct?.name,
+      byproduct?.digest?.sha256
+    ])
+  );
+  const expectedByproducts = new Map([
+    ["SHA256SUMS", contents.get("SHA256SUMS")],
+    ["bom.cdx.json", contents.get("bom.cdx.json")]
+  ]);
+  if (
+    byproductList.length !== expectedByproducts.size ||
+    byproducts.size !== expectedByproducts.size
+  ) {
+    faults.push("Provenance byproduct inventory is invalid.");
+  }
+  for (const [name, content] of expectedByproducts) {
+    if (!content || byproducts.get(name) !== sha256(content)) {
+      faults.push(`Provenance does not verify byproduct ${name}.`);
+    }
   }
 
   return {
