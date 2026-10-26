@@ -31,6 +31,20 @@ Claude Code workspace boundary:
 Result: fail. The current Claude Code tool-permission mode is not an enforced
 workspace filesystem boundary.
 
+Claude Code macOS sandbox profile:
+
+- Explicit launcher: `scripts/claude-macos-sandbox.mjs`.
+- Host version through launcher: `2.1.146 (Claude Code)`.
+- Operating profile: `macos-seatbelt-workspace-write`.
+- The allowed temporary-workspace write succeeded.
+- The randomized home-directory write failed with `EPERM`.
+- The outside marker was absent after the attempt.
+
+Result: pass for the tested macOS compatibility profile.
+
+Apple marks `sandbox-exec` as deprecated. The profile is not portable and does
+not change the failed result for unsandboxed `acceptEdits`.
+
 Cursor status:
 
 - Installed Cursor version: `2.2.36`.
@@ -208,6 +222,6 @@ Claude Code print mode did not emit a `PermissionRequest` hook event. This
 event depends on an interactive approval request, so Rivet records the
 structured denial instead of claiming that the event fired.
 
-These checks do not prove full host conformance. Claude Code does not pass the
-workspace boundary probe. Cursor native discovery, approval, and hook behavior
-also remain open.
+These checks do not prove full host conformance. Claude Code requires the
+explicit macOS compatibility profile for mutating automation. Cursor native
+discovery, approval, and hook behavior also remain open.

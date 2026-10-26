@@ -125,6 +125,16 @@ The workspace probe was repeated on 2026-10-26 with the standalone Claude Code
 outside marker existed. The result remains a fail. The new evidence records
 the executable, version, and command digest.
 
+The same native probe passed through
+`scripts/claude-macos-sandbox.mjs`. The launcher uses an external macOS
+Seatbelt profile that permits writes only below the current real workspace.
+The inside write succeeded, the outside write failed with `EPERM`, and the
+outside marker was absent.
+
+Apple marks `sandbox-exec` as deprecated. This is a tested macOS compatibility
+profile, not a portable or long-term boundary. Unsandboxed `acceptEdits`
+remains nonconforming.
+
 Cursor package conformance passes. Native discovery, approval, hook, session,
 and boundary behavior remain untested. Cursor 2.2.36 is installed, but
 `cursor agent status` reports `Not logged in`.
@@ -134,10 +144,9 @@ Result: fail for the published exit criterion.
 Required evidence:
 
 - Authenticate Cursor and run the native conformance suites.
-- Obtain a passing Claude Code workspace boundary, or publish and test an
-  enforced mutating profile that uses an operating-system sandbox.
 
 ## Decision
 
-Phase 1 remains in progress. Five exit criteria pass for their published
-scope. The combined package and native-runtime criterion does not pass.
+Phase 1 remains in progress because Cursor native runtime evidence is missing.
+The Claude Code requirement passes only for the explicit tested macOS
+operating profile.

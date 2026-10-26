@@ -24,12 +24,11 @@ See `docs/PHASE-1-CONFORMANCE.md` for the criterion-by-criterion record.
   available.
 - Test native approval and hook behavior in Cursor after authentication is
   available.
-- Obtain a passing Claude Code workspace-write boundary result, or define an
-  enforced operating profile that uses plan mode or an external operating
-  system sandbox for mutations.
 
-The observed Claude Code `acceptEdits` boundary failure prevents Phase 1
-completion.
+Claude Code now has a passing, tested macOS external-sandbox profile.
+Unsandboxed `acceptEdits` still fails, and Apple marks the compatibility
+sandbox command as deprecated. Cursor evidence is the remaining Phase 1 exit
+criterion blocker.
 
 ## Open Phase 3 evidence
 

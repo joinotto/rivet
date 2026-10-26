@@ -35,6 +35,15 @@ native conformance probe created a file outside the selected workspace. Use
 plan mode for read-only Rivet automation. Put mutating automation inside an
 independently enforced operating-system sandbox and require explicit approval.
 
+On macOS, `scripts/claude-macos-sandbox.mjs` is an optional compatibility
+launcher. It permits writes only below the current real workspace path. Set
+`RIVET_CLAUDE_EXECUTABLE` to an explicit Claude Code executable when command
+resolution is not sufficient.
+
+Apple marks the underlying `sandbox-exec` command as deprecated. This profile
+is not portable and is not a long-term product boundary. Do not silently fall
+back to unsandboxed execution when the launcher is unavailable.
+
 ### Cursor
 
 Use Cursor project skills for reusable Rivet instructions.
