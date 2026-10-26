@@ -89,25 +89,13 @@ Rivet use:
 
 Repository: <https://github.com/addyosmani/agent-skills>
 
-Useful patterns:
+The original summary was expanded into a pinned source and test audit:
+[Addy Osmani agent-skills audit](ADDY-AGENT-SKILLS-AUDIT.md).
 
-- Constraint files that persist project quality bars.
-- Threat modeling before security controls.
-- Adversarial review for non-trivial decisions.
-- Explicit cases in which a skill must not run.
-- Tool-backed constraints instead of prose-only aspirations.
-
-Risks:
-
-- Large references can overload an agent.
-- Security examples can become outdated.
-- Fixed numeric defaults can be wrong for a project.
-
-Rivet use:
-
-- Store project risk paths and future quality policy in `.rivet/`.
-- Use evidence-backed controls.
-- Keep external tool versions and standards explicit.
+The strongest additions are deterministic routing tests, a skill-change
+rejection ledger, quality ratchets, pressure cases, and host-surface drift
+checks. Rivet rejects mandatory universal workflows and fixed gates that have
+no project evidence.
 
 ## Rejected evidence
 

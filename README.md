@@ -222,6 +222,7 @@ The product must not present an inferred result as an observed result.
 - [Open-source foundation](OPEN-SOURCE-FOUNDATION.md)
 - [Technical writing rules](TECHNICAL-WRITING.md)
 - [ASD-STE100 for agent skills](docs/ASD-STE100-FOR-SKILLS.md)
+- [Addy Osmani agent-skills audit](docs/ADDY-AGENT-SKILLS-AUDIT.md)
 - [Host integration contract](docs/HOST-INTEGRATIONS.md)
 - [Native SAST conformance](docs/NATIVE-SAST-CONFORMANCE.md)
 - [Native signature conformance](docs/NATIVE-SIGNATURE-CONFORMANCE.md)
