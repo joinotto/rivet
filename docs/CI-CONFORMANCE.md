@@ -69,7 +69,36 @@ Implementation tests cover exact revision binding, unusual UTF-8 filenames,
 report composition, read-only permissions, and the absence of the privileged
 pull-request trigger.
 
-Native GitHub Actions conformance is not yet recorded for this workflow.
+Native pull-request run:
+
+- Pull request: `27`.
+- Run: `40389092669`.
+- Job: `121805060248`.
+- Event base revision: `1789b694405148b6c1179cc9970f937aa7b167bd`.
+- Event head revision: `2d27df7d57114740590a29b6bf3f9e63e72093e1`.
+- Merge base: `1789b694405148b6c1179cc9970f937aa7b167bd`.
+- Runner: Ubuntu 24.04.
+- Node.js: `v22.23.3`.
+- Risk mode: `critical`.
+- Detected check: `test`.
+- Verification decision: `pass`.
+- Combined decision: `pass-with-limitations`.
+- Workflow result: pass.
+- Artifact: `rivet-pr-27-report`.
+- Artifact identifier: `12680774073`.
+- GitHub artifact digest:
+  `sha256:1a2daeffcd7717645e768d0e9a6c784265ca29e43215dc0b80e2f46850757625`.
+- Report digest:
+  `sha256:3d5ddd21e8d184b86f6574b5b53cb048d4bda2ddaf0ad35735ebb77db44008e3`.
+- Verification receipt digest:
+  `sha256:c54790c894bb2a8be8cc8e30cedef0197c1d6cb3ea0b649ea1f4c569454f9d31`.
+
+The first revision of pull request 27 produced a CodeQL alert for a possible
+file-read race. The implementation changed to open the file once, validate
+the open descriptor, and read from the same descriptor. The corrected head
+revision passed the CodeQL workflow and the GitHub code-scanning status.
+
+Result: observed pass with stated limitations.
 
 Limitations:
 
