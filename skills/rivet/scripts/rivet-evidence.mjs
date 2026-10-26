@@ -471,16 +471,25 @@ function secretScan() {
     },
   ];
   const findings = [];
+  let filesChecked = 0;
 
   for (const file of files) {
-    if (!file.startsWith(`${cwd}${path.sep}`) || !fs.existsSync(file)) continue;
-    const stat = fs.statSync(file);
-    if (!stat.isFile() || stat.size > 1024 * 1024) continue;
+    if (!file.startsWith(`${cwd}${path.sep}`)) continue;
+    let descriptor;
     let body;
     try {
-      body = fs.readFileSync(file, "utf8");
+      descriptor = fs.openSync(
+        file,
+        fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0),
+      );
+      const stat = fs.fstatSync(descriptor);
+      if (!stat.isFile() || stat.size > 1024 * 1024) continue;
+      body = fs.readFileSync(descriptor, "utf8");
+      filesChecked += 1;
     } catch {
       continue;
+    } finally {
+      if (descriptor !== undefined) fs.closeSync(descriptor);
     }
     const lines = body.split("\n");
     lines.forEach((line, index) => {
@@ -502,7 +511,7 @@ function secretScan() {
   const report = {
     schema: 1,
     evidence_class: "observed",
-    files_checked: files.length,
+    files_checked: filesChecked,
     findings,
     decision: findings.length ? "fail" : "pass",
     limitations: [

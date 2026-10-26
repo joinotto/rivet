@@ -77,6 +77,8 @@ assert.strictEqual(report.merge_base_revision, base);
 assert.strictEqual(report.head_revision, head);
 assert.strictEqual(report.impact.risk_mode, "service");
 assert.deepStrictEqual(report.impact.files, ["src/api/orders,\nreport.js"]);
+assert.strictEqual(report.secret_scan.decision, "pass");
+assert.strictEqual(report.secret_scan.findings.length, 0);
 assert.strictEqual(report.verification.decision, "pass");
 assert.deepStrictEqual(report.verification.available_evidence, []);
 assert.strictEqual(report.decision, "pass-with-limitations");
@@ -99,6 +101,7 @@ assert.deepStrictEqual(
   manifest.files.map((item) => item.path),
   [
     "changed-files.nul",
+    "secret-scan.json",
     "verification-receipt.json",
     "verification.md",
     "report.json",
@@ -171,6 +174,53 @@ const symbolicLinkVerification = run(
 );
 assert.strictEqual(symbolicLinkVerification.status, 1);
 assert.match(symbolicLinkVerification.stderr, /regular files only/);
+fs.rmSync(path.join(fixture, ".rivet/ci"), { recursive: true, force: true });
+const exposedValue = "this-is-a-secret-value";
+fs.writeFileSync(
+  path.join(fixture, "src/config.js"),
+  `export const apiKey = "${exposedValue}";\n`,
+);
+git("add", ".");
+git("commit", "-m", "add exposed secret");
+const secretHead = git("rev-parse", "HEAD");
+const secretResult = run(
+  process.execPath,
+  ["skills/rivet/scripts/rivet-pr-verify.mjs"],
+  {
+    env: {
+      ...process.env,
+      RIVET_BASE_SHA: head,
+      RIVET_HEAD_SHA: secretHead,
+      RIVET_REPORT_DIR: ".rivet/ci",
+    },
+  },
+);
+assert.strictEqual(secretResult.status, 2, secretResult.stderr);
+assert.doesNotMatch(secretResult.stdout, new RegExp(exposedValue));
+assert.doesNotMatch(secretResult.stderr, new RegExp(exposedValue));
+const secretReportBody = fs.readFileSync(
+  path.join(fixture, ".rivet/ci/report.json"),
+  "utf8",
+);
+assert.doesNotMatch(secretReportBody, new RegExp(exposedValue));
+const secretReport = JSON.parse(secretReportBody);
+assert.strictEqual(secretReport.secret_scan.decision, "fail");
+assert.strictEqual(secretReport.secret_scan.findings.length, 1);
+assert.strictEqual(secretReport.secret_scan.findings[0].value, "[REDACTED]");
+assert.strictEqual(secretReport.decision, "fail");
+const secretOfflineVerification = run(
+  process.execPath,
+  [
+    "skills/rivet/scripts/rivet-pr-verify.mjs",
+    "verify-report",
+    ".rivet/ci",
+  ],
+);
+assert.strictEqual(
+  secretOfflineVerification.status,
+  0,
+  secretOfflineVerification.stderr,
+);
 
 const workflow = fs.readFileSync(
   path.join(sourceRoot, ".github/workflows/pr-verification.yml"),
