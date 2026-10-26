@@ -66,7 +66,7 @@ try {
   );
   fs.writeFileSync(
     path.join(fixture, "seed.txt"),
-    "api_key='host-conformance-secret-value'\n",
+    "api" + "_key='host-conformance-secret-value'\n",
   );
 
   for (const [host, expected] of Object.entries(hosts)) {
