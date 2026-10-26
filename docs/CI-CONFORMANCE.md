@@ -14,6 +14,7 @@ Node.js 22 line. Each job runs:
 - Behavioral tests.
 - Generated host-package conformance.
 - Seeded-defect evaluation.
+- Bounded deterministic parser fuzzing with retained per-runtime JSON evidence.
 - Portable skill-package validation.
 - Skill-change rejection validation.
 - Skill-routing contract tests.
