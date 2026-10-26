@@ -1,5 +1,13 @@
 # Support
 
+## Supported coding tools
+
+The initial release supports Codex and Claude Code only. The public bug form
+lists these two hosts.
+
+Cursor and other coding tools have no active package or support. Future host
+integration is deferred in `ROADMAP.md`.
+
 ## Usage and development questions
 
 Use a GitHub issue or discussion in `joinotto/rivet` for:

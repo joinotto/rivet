@@ -12,6 +12,7 @@ Product-owner decision on 2026-10-26: support Codex and Claude Code only.
 
 Generate, test, document, and release packages for these two hosts. Do not
 ship a Cursor package or a generic host package in the initial distribution.
+Limit public host-support choices to Codex and Claude Code.
 The canonical skill source remains in `skills/rivet/`.
 
 The initial-use and production-release gates are in

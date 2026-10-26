@@ -14,6 +14,20 @@ const valid = validateOpenSourceFoundation(repository);
 assert.strictEqual(valid.decision, "valid", JSON.stringify(valid.faults));
 assert.strictEqual(valid.required_files, 14);
 
+const bugForm = fs.readFileSync(
+  path.join(repository, ".github/ISSUE_TEMPLATE/bug.yml"),
+  "utf8"
+);
+const hostOptions = bugForm.match(
+  /^    id: host\n[\s\S]*?      options:\n((?:        - [^\n]+\n)+)/m
+);
+assert.ok(hostOptions, "The public bug form must contain host choices.");
+assert.deepStrictEqual(
+  hostOptions[1].trim().split("\n").map((line) => line.trim().slice(2)),
+  ["Codex", "Claude Code"],
+  "Public support must list only the two initial coding hosts."
+);
+
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-foundation-"));
 try {
   for (const relative of [
