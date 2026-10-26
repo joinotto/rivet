@@ -22,5 +22,7 @@ Add the sign-off with:
 git commit --signoff
 ```
 
-The required CI checks reject a pull-request commit without a matching
-sign-off. A maintainer must not bypass this check.
+The required CI checks inspect the pull-request head history and reject a
+commit without a matching sign-off. The check excludes GitHub's temporary
+pull-request merge commit because the contributor did not create that commit.
+A maintainer must not bypass this check.
