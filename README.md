@@ -232,6 +232,12 @@ The product must not present an inferred result as an observed result.
 
 ## Documents
 
+- [Contributing](CONTRIBUTING.md)
+- [Code of conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
+- [Governance](GOVERNANCE.md)
+- [Changelog](CHANGELOG.md)
+- [Threat model](THREAT-MODEL.md)
 - [Research foundation](RESEARCH-FOUNDATION.md)
 - [Engineering reasoning method](ENGINEERING-REASONING.md)
 - [Database design guide](DATABASE-DESIGN.md)
