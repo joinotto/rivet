@@ -30,6 +30,7 @@ The repository uses:
 - Protected `main` branch settings.
 - Required pull requests.
 - Required Node.js 16 and Node.js 22 checks.
+- Required repository-wide CodeQL analysis.
 - Linear history.
 - Resolved review conversations before merge.
 - Read-only default workflow permissions.
