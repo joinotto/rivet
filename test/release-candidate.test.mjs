@@ -11,6 +11,11 @@ const repository = path.resolve(
   ".."
 );
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-release-test-"));
+const sourceIsDirty =
+  spawnSync("git", ["status", "--porcelain"], {
+    cwd: repository,
+    encoding: "utf8"
+  }).stdout.trim().length > 0;
 
 function run(output) {
   const revision = spawnSync("git", ["rev-parse", "HEAD"], {
@@ -60,7 +65,14 @@ try {
     fs.readFileSync(path.join(first, "manifest.json"), "utf8")
   );
   assert.strictEqual(manifest.kind, "rivet-release-candidate");
-  assert.strictEqual(manifest.decision, "test-candidate");
+  assert.strictEqual(
+    manifest.decision,
+    sourceIsDirty ? "test-candidate" : "unsigned-candidate"
+  );
+  assert.strictEqual(
+    manifest.source_state,
+    sourceIsDirty ? "dirty-allowed" : "clean"
+  );
   assert.strictEqual(manifest.files.length, 7);
 
   const sbom = JSON.parse(
