@@ -245,6 +245,8 @@ Exit criteria:
 - Non-reachable components do not receive false certainty.
 - The system can explain why one vulnerability has priority over another.
 
+Conformance evidence: `docs/PHASE-3-CONFORMANCE.md`.
+
 ## Phase 4: Data and distributed systems
 
 Duration: 10 weeks

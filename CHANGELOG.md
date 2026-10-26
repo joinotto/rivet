@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Phase 3 criterion-by-criterion conformance record with the qualified-review
+  gate kept explicit.
 - Source-supplied CWE and OWASP ASVS identifier preservation in SARIF
   normalization.
 - Phase 1 criterion-by-criterion conformance record with native-host failures

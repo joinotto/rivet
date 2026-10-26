@@ -237,6 +237,7 @@ The product must not present an inferred result as an observed result.
 - [Roadmap](ROADMAP.md)
 - [Roadmap status and open evidence](docs/ROADMAP-STATUS.md)
 - [Phase 1 conformance](docs/PHASE-1-CONFORMANCE.md)
+- [Phase 3 conformance](docs/PHASE-3-CONFORMANCE.md)
 - [Open-source foundation](OPEN-SOURCE-FOUNDATION.md)
 - [Technical writing rules](TECHNICAL-WRITING.md)
 - [ASD-STE100 for agent skills](docs/ASD-STE100-FOR-SKILLS.md)

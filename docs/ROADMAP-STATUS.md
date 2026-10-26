@@ -30,6 +30,8 @@ completion.
 
 ## Open Phase 3 evidence
 
+See `docs/PHASE-3-CONFORMANCE.md` for the criterion-by-criterion record.
+
 - Obtain review of the threat model and finding schema from qualified security
   experts.
 - Record reviewer identity, scope, revision, findings, and dispositions.
