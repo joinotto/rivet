@@ -22,6 +22,8 @@ This file records notable changes to Rivet.
   explicit private-security routing.
 - Contributor Covenant 2.1 with a verified private conduct-report route,
   confidentiality rules, conflict escalation, and decision review.
+- Release evidence gates for compatibility, versioned changelog entries, and
+  version-bound support and security channels.
 - Deterministic unsigned release-candidate archives with checksums, CycloneDX
   SBOM, source-bound provenance, and byte-reproducibility tests.
 - Offline, fail-closed verification for candidate inventory, archive metadata,
