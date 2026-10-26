@@ -20,6 +20,8 @@ This file records notable changes to Rivet.
   approval record.
 - Structured GitHub issue forms and a pull-request evidence template with
   explicit private-security routing.
+- Contributor Covenant 2.1 with a verified private conduct-report route,
+  confidentiality rules, conflict escalation, and decision review.
 - Deterministic unsigned release-candidate archives with checksums, CycloneDX
   SBOM, source-bound provenance, and byte-reproducibility tests.
 - Offline, fail-closed verification for candidate inventory, archive metadata,

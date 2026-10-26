@@ -123,6 +123,14 @@ export function validateOpenSourceFoundation(root) {
     faults.push("SUPPORT.md must separate security reports from public support.");
   }
   if (
+    !documents["CODE_OF_CONDUCT.md"].includes("Contributor Covenant") ||
+    !documents["CODE_OF_CONDUCT.md"].includes("version 2.1") ||
+    !documents["CODE_OF_CONDUCT.md"].includes("support@joinotto.com") ||
+    !documents["CODE_OF_CONDUCT.md"].includes("conflict of interest")
+  ) {
+    faults.push("CODE_OF_CONDUCT.md must identify its standard, private report route, and conflict escalation.");
+  }
+  if (
     !documents[".github/ISSUE_TEMPLATE/config.yml"].includes(
       "security/advisories/new"
     ) ||

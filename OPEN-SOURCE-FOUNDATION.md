@@ -32,6 +32,9 @@ Maintain these files before the first public release:
 - `THREAT-MODEL.md`
 - `docs/architecture.md`
 
+The project uses Contributor Covenant 2.1 with a private reporting route,
+conflict escalation, confidentiality, and decision-review instructions.
+
 Run `npm run validate:foundation` to check that this set is present and that
 selected license, navigation, maintainer, support, and security-reporting
 records are consistent. This check does not replace legal or governance
