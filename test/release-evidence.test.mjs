@@ -54,12 +54,21 @@ try {
   ]);
 
   const draft = prepareReleaseEvidence(candidate, "maintainer@example.invalid");
+  const hostGate = draft.gates.find((gate) => gate.id === "host-packages");
+  assert.strictEqual(hostGate.status, "pass");
+  assert.strictEqual(hostGate.scope, "candidate");
+  assert.strictEqual(hostGate.artifact, "manifest.json");
+  assert.strictEqual(
+    hostGate.sha256,
+    sha256(path.join(candidate, "manifest.json"))
+  );
   const evidence = path.join(temporary, "evidence");
   fs.mkdirSync(evidence);
   const held = validateReleaseEvidence(draft, candidate, evidence);
   assert.strictEqual(held.decision, "hold");
   assert.ok(held.evidence_gaps.some((gap) => gap.id === "signature-verification"));
   assert.ok(held.evidence_gaps.some((gap) => gap.id === "approvals"));
+  assert.ok(!held.evidence_gaps.some((gap) => gap.id === "host-packages"));
 
   for (const gate of draft.gates) {
     gate.status = "pass";
