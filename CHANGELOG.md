@@ -12,6 +12,8 @@ This file records notable changes to Rivet.
   and unsupported local evidence references.
 - Repository-wide SPDX copyright and license metadata with official REUSE
   compliance checks in CI.
+- A manual, read-only workflow that builds, verifies, and temporarily retains
+  an unsigned candidate for an exact default-branch revision.
 - Deterministic unsigned release-candidate archives with checksums, CycloneDX
   SBOM, source-bound provenance, and byte-reproducibility tests.
 - Offline, fail-closed verification for candidate inventory, archive metadata,
