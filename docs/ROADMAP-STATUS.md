@@ -15,6 +15,8 @@ claim production certification or universal backend coverage.
 
 ## Open Phase 1 evidence
 
+See `docs/PHASE-1-CONFORMANCE.md` for the criterion-by-criterion record.
+
 - Run native Cursor skill discovery after Cursor agent authentication is
   available.
 - Test native approval and hook behavior in Cursor after authentication is

@@ -129,6 +129,8 @@ Exit criteria:
 - Index recommendations identify the target query and measured baseline.
 - Codex, Claude Code, and Cursor pass package and native-runtime conformance suites.
 
+Conformance evidence: `docs/PHASE-1-CONFORMANCE.md`.
+
 ## Phase 2: Test intelligence
 
 Duration: 8 weeks
