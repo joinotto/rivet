@@ -10,6 +10,8 @@ This file records notable changes to Rivet.
   generator no longer emits Cursor or generic host packages. Release candidates
   record the two supported hosts and reject other archive inventories. Future
   host expansion is deferred in the roadmap.
+- Public support and the bug-report host choices now use the same two-host
+  scope. A regression test prevents unsupported host choices from returning.
 - Candidate verification now enforces SLSA statement source, builder,
   invocation, normalization, subject, and byproduct semantics.
 - Release-candidate conformance now records a native exact-revision in-toto
