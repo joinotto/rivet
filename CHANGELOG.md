@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Machine-readable skill-change rejection ledger with retry conditions and
+  deterministic validation.
 - Phase 6 demand, risk-based scope, testable exit criteria, and explicit
   independent-review requirements.
 - Phase 0 conformance record, actionable private vulnerability reporting, and

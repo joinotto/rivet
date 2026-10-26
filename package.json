@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node test/rivet-evidence.test.mjs && node test/skill-package-validator.test.mjs",
+    "test": "node test/rivet-evidence.test.mjs && node test/skill-package-validator.test.mjs && node test/skill-rejection-ledger.test.mjs",
     "test:evaluation": "node skills/rivet/scripts/rivet-evidence.mjs evaluate --fixtures fixtures/reference-systems --findings fixtures/reference-systems/expected-findings.json",
     "test:quality": "node fixtures/test-quality/run-evidence.mjs fixtures/test-quality/evidence",
     "evaluate:blind": "node scripts/run-blind-evaluation.mjs",
@@ -19,6 +19,7 @@
     "test:hosts": "node scripts/test-host-packages.mjs",
     "check:ste": "node skills/rivet/scripts/rivet-ste.mjs skills/rivet",
     "validate:skill": "node scripts/validate-skill-package.mjs skills/rivet",
+    "validate:rejections": "node scripts/validate-skill-rejections.mjs",
     "validate:skill:openai": "python3 /Users/apple/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/rivet",
     "package:hosts": "node scripts/package-hosts.mjs"
   },
