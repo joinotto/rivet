@@ -358,6 +358,7 @@ const fuzzCampaign = {
   duration_seconds: 300,
   executions: 50000,
   seed_corpus_digest: "sha256:corpus",
+  final_corpus_digest: "sha256:final-corpus",
   dictionary_digest: "sha256:dictionary",
   sanitizer: "address,undefined",
   crashes: [],
@@ -367,6 +368,42 @@ const fuzzCampaign = {
 assert.strictEqual(
   normalizeFuzzCampaign(fuzzCampaign).decision,
   "no-crash-observed",
+);
+assert.strictEqual(
+  normalizeFuzzCampaign(fuzzCampaign).campaign.final_corpus_digest,
+  "sha256:final-corpus",
+);
+assert.deepStrictEqual(
+  normalizeFuzzCampaign({
+    ...fuzzCampaign,
+    persistent_corpus: {
+      restored_files: 4,
+      restored_digest: "sha256:restored",
+      imported_files: 3,
+      saved_files: 11,
+      saved_digest: "sha256:saved",
+    },
+  }).campaign.persistent_corpus,
+  {
+    restored_files: 4,
+    restored_digest: "sha256:restored",
+    imported_files: 3,
+    saved_files: 11,
+    saved_digest: "sha256:saved",
+  },
+);
+assert.strictEqual(
+  normalizeFuzzCampaign({
+    ...fuzzCampaign,
+    persistent_corpus: {
+      restored_files: 1,
+      restored_digest: null,
+      imported_files: 0,
+      saved_files: 1,
+      saved_digest: "sha256:saved",
+    },
+  }).decision,
+  "invalid-evidence",
 );
 assert.strictEqual(
   normalizeFuzzCampaign({

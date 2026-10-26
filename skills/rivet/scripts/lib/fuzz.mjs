@@ -31,6 +31,9 @@ export function normalizeFuzzCampaign(report) {
   if (!text(report?.seed_corpus_digest)) {
     warnings.push("The report does not bind the seed corpus.");
   }
+  if (!text(report?.final_corpus_digest)) {
+    warnings.push("The report does not bind the final corpus.");
+  }
   if (!text(report?.dictionary_digest)) {
     warnings.push("The report does not bind a fuzzing dictionary.");
   }
@@ -64,6 +67,32 @@ export function normalizeFuzzCampaign(report) {
   if (!Number.isInteger(report?.out_of_memory) || report.out_of_memory < 0) {
     faults.push("The fuzz report requires a non-negative integer out_of_memory.");
   }
+  const persistentCorpus = report?.persistent_corpus ?? null;
+  if (persistentCorpus !== null) {
+    for (const field of [
+      "restored_files",
+      "imported_files",
+      "saved_files",
+    ]) {
+      if (
+        !Number.isInteger(persistentCorpus?.[field]) ||
+        persistentCorpus[field] < 0
+      ) {
+        faults.push(
+          `The persistent corpus requires a non-negative integer ${field}.`,
+        );
+      }
+    }
+    if (
+      persistentCorpus?.restored_files > 0 &&
+      !text(persistentCorpus?.restored_digest)
+    ) {
+      faults.push("A restored persistent corpus requires restored_digest.");
+    }
+    if (!text(persistentCorpus?.saved_digest)) {
+      faults.push("The persistent corpus requires saved_digest.");
+    }
+  }
 
   return {
     schema: 1,
@@ -77,6 +106,8 @@ export function normalizeFuzzCampaign(report) {
       duration_seconds: report?.duration_seconds ?? null,
       executions: report?.executions ?? null,
       seed_corpus_digest: report?.seed_corpus_digest || null,
+      final_corpus_digest: report?.final_corpus_digest || null,
+      persistent_corpus: persistentCorpus,
       dictionary_digest: report?.dictionary_digest || null,
       sanitizer: report?.sanitizer || null,
     },

@@ -27,6 +27,9 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- A bounded, content-addressed persistent corpus for coverage-guided parser
+  fuzzing. Pull requests can consume trusted corpus state, but only successful
+  default-branch runs can publish the next cache.
 - An isolated, lockfile-pinned Jazzer.js/libFuzzer workspace and
   exact-revision CI campaign for the SARIF, Trivy, CycloneDX, and SPDX
   normalizers, with retained report, corpus, and crash inputs.

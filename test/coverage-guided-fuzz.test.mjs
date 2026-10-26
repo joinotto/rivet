@@ -1,7 +1,14 @@
 import assert from "assert";
 import fs from "fs";
 import path from "path";
+import os from "os";
 import { fuzz } from "../fuzz/coverage-guided/target.mjs";
+import {
+  corpusLimits,
+  mergeCorpus,
+  readCorpus,
+  replaceCorpus,
+} from "../scripts/lib/coverage-guided-corpus.mjs";
 import {
   normalizeSarifDocument,
   normalizeSbomDocument,
@@ -63,5 +70,52 @@ assert.match(workflow, /retention-days: 14/);
 assert.match(workflow, /persist-credentials: false/);
 assert.doesNotMatch(workflow, /pull_request_target/);
 assert.doesNotMatch(workflow, /uses:\s+[^@\n]+@(main|master|v\d+)\s*$/m);
+assert.match(workflow, /actions\/cache\/restore@[a-f0-9]{40}/);
+assert.match(workflow, /actions\/cache\/save@[a-f0-9]{40}/);
+assert.match(
+  workflow,
+  /if: success\(\) && github\.ref == 'refs\/heads\/main'/,
+);
+assert.match(
+  workflow,
+  /--persistent-corpus \.rivet\/persistent-coverage-guided-corpus/,
+);
+assert.match(workflow, /scripts\/lib\/coverage-guided-corpus\.mjs/);
+assert.match(workflow, /skills\/rivet\/scripts\/lib\/fuzz\.mjs/);
+
+const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-corpus-"));
+try {
+  const source = path.join(temporary, "source");
+  const destination = path.join(temporary, "destination");
+  const replacement = path.join(temporary, "replacement");
+  fs.mkdirSync(source);
+  fs.mkdirSync(destination);
+  fs.writeFileSync(path.join(source, "one"), "first");
+  fs.writeFileSync(path.join(source, "duplicate"), "first");
+  fs.writeFileSync(path.join(source, "two"), "second");
+  fs.writeFileSync(path.join(destination, "seed"), "first");
+
+  assert.deepStrictEqual(mergeCorpus(source, destination), {
+    added: 1,
+    files: 2,
+  });
+  assert.strictEqual(readCorpus(destination).length, 2);
+  assert.deepStrictEqual(replaceCorpus(destination, replacement), { files: 2 });
+  assert.strictEqual(readCorpus(replacement).length, 2);
+
+  fs.writeFileSync(
+    path.join(source, "oversized"),
+    Buffer.alloc(corpusLimits.fileBytes + 1),
+  );
+  assert.throws(() => readCorpus(source), /exceeds the 65536-byte limit/);
+  fs.rmSync(path.join(source, "oversized"));
+
+  const outside = path.join(temporary, "outside");
+  fs.writeFileSync(outside, "outside");
+  fs.symlinkSync(outside, path.join(source, "link"));
+  assert.throws(() => readCorpus(source), /only regular files/);
+} finally {
+  fs.rmSync(temporary, { recursive: true, force: true });
+}
 
 console.log("Coverage-guided fuzzing tests passed.");

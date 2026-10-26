@@ -358,6 +358,8 @@ Implemented:
   sanitizer, and crash-reproduction evidence.
 - Isolated Jazzer.js/libFuzzer coverage-guided CI campaigns for the SARIF,
   Trivy, CycloneDX, and SPDX normalizers.
+- Content-addressed persistent fuzz corpus with bounded, no-follow import and
+  trusted default-branch publication.
 - Bounded chaos-experiment planning and observed-result normalization.
 - Required steady-state probes, target limits, stop conditions, rollback
   verification, user-harm signals, and explicit approval.

@@ -6,7 +6,9 @@ on:
       - ".github/workflows/coverage-guided-fuzz.yml"
       - "fuzz/coverage-guided/**"
       - "scripts/run-coverage-guided-fuzz.mjs"
+      - "scripts/lib/coverage-guided-corpus.mjs"
       - "skills/rivet/scripts/lib/security-evidence.mjs"
+      - "skills/rivet/scripts/lib/fuzz.mjs"
   push:
     branches:
       - main
@@ -14,7 +16,9 @@ on:
       - ".github/workflows/coverage-guided-fuzz.yml"
       - "fuzz/coverage-guided/**"
       - "scripts/run-coverage-guided-fuzz.mjs"
+      - "scripts/lib/coverage-guided-corpus.mjs"
       - "skills/rivet/scripts/lib/security-evidence.mjs"
+      - "skills/rivet/scripts/lib/fuzz.mjs"
   schedule:
     - cron: "15 2 * * 6"
   workflow_dispatch:
@@ -53,12 +57,28 @@ jobs:
       - name: Install the isolated fuzz workspace
         run: npm ci --prefix fuzz/coverage-guided
 
+      - name: Restore the trusted persistent corpus
+        id: restore-corpus
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: .rivet/persistent-coverage-guided-corpus
+          key: rivet-jazzer-corpus-v1-${{ runner.os }}-${{ hashFiles('fuzz/coverage-guided/package-lock.json') }}-${{ github.run_id }}
+          restore-keys: rivet-jazzer-corpus-v1-${{ runner.os }}-${{ hashFiles('fuzz/coverage-guided/package-lock.json') }}-
+
       - name: Run the bounded coverage-guided campaign
         run: >-
           node scripts/run-coverage-guided-fuzz.mjs
           --executions 10000
           --workspace .rivet/coverage-guided
+          --persistent-corpus .rivet/persistent-coverage-guided-corpus
           --output .rivet/coverage-guided/report.json
+
+      - name: Save the trusted persistent corpus
+        if: success() && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: .rivet/persistent-coverage-guided-corpus
+          key: ${{ steps.restore-corpus.outputs.cache-primary-key }}
 
       - name: Retain report, corpus, and crash inputs
         if: always()
