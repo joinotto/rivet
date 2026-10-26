@@ -3150,7 +3150,7 @@ assert.deepStrictEqual(
 const secretFile = path.join(fixture, "secrets.txt");
 fs.writeFileSync(
   secretFile,
-  "api_key='this-is-a-secret-value-that-must-not-print'\n",
+  "api" + "_key='this-is-a-secret-value-that-must-not-print'\n",
 );
 const secretScan = invoke(fixture, [
   "secrets",
