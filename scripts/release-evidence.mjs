@@ -14,6 +14,9 @@ const requiredGates = [
   "dependencies",
   "license",
   "security",
+  "compatibility",
+  "changelog",
+  "support",
   "sbom",
   "provenance",
   "signature-verification"
@@ -89,6 +92,15 @@ export function prepareReleaseEvidence(candidateDirectory, preparer = "") {
             ? digest(path.join(candidateDirectory, "provenance.json"))
             : "",
       ...(id === "ci" ? { run_ids: [] } : {}),
+      ...(id === "compatibility" ? { interfaces_reviewed: [] } : {}),
+      ...(id === "changelog" ? { version_entry: "" } : {}),
+      ...(id === "support"
+        ? {
+            supported_version: "",
+            support_channel: "",
+            security_channel: ""
+          }
+        : {}),
       ...(id === "signature-verification"
         ? {
             result: "missing",
@@ -185,6 +197,34 @@ export function validateReleaseEvidence(
         reason: "Signature verification requires a verified result, signer identity, and trust policy."
       });
     }
+    if (
+      id === "compatibility" &&
+      (!Array.isArray(gate?.interfaces_reviewed) ||
+        gate.interfaces_reviewed.length === 0 ||
+        gate.interfaces_reviewed.some((item) => !text(item)))
+    ) {
+      gaps.push({
+        id: "compatibility-scope",
+        reason: "Compatibility evidence must name each reviewed interface class."
+      });
+    }
+    if (id === "changelog" && gate?.version_entry !== record?.version) {
+      gaps.push({
+        id: "changelog-version",
+        reason: "Changelog evidence must identify the candidate version."
+      });
+    }
+    if (
+      id === "support" &&
+      (gate?.supported_version !== record?.version ||
+        !text(gate?.support_channel) ||
+        !text(gate?.security_channel))
+    ) {
+      gaps.push({
+        id: "support-scope",
+        reason: "Support evidence must bind the version and identify support and security channels."
+      });
+    }
   }
   for (const gate of gates) {
     if (!requiredGates.includes(gate.id)) faults.push(`Unexpected gate: ${gate.id}`);
@@ -237,6 +277,9 @@ export function validateReleaseEvidence(
     gaps.push({ id: "approvals", reason: "Required independent approvals are missing." });
   }
 
+  if (!Array.isArray(record?.open_risks)) {
+    faults.push("open_risks must be an array.");
+  }
   for (const risk of record?.open_risks || []) {
     if (!text(risk?.id) || !text(risk?.severity) || !text(risk?.disposition)) {
       faults.push("Each open risk requires id, severity, and disposition.");
@@ -245,7 +288,13 @@ export function validateReleaseEvidence(
       gaps.push({ id: `risk:${risk.id || "unknown"}`, reason: "A critical risk is not accepted." });
     }
   }
-  if (!Array.isArray(record?.known_limitations)) faults.push("known_limitations must be an array.");
+  if (
+    !Array.isArray(record?.known_limitations) ||
+    record.known_limitations.length === 0 ||
+    record.known_limitations.some((limitation) => !text(limitation))
+  ) {
+    faults.push("known_limitations must contain one or more text entries.");
+  }
 
   return {
     schema: 1,

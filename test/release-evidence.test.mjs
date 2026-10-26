@@ -70,6 +70,19 @@ try {
     }
   }
   draft.gates.find((gate) => gate.id === "ci").run_ids = ["40381304029"];
+  draft.gates.find((gate) => gate.id === "compatibility").interfaces_reviewed = [
+    "CLI",
+    "evidence schema",
+    "adapter API",
+    "skill commands"
+  ];
+  draft.gates.find((gate) => gate.id === "changelog").version_entry = "0.1.0";
+  Object.assign(draft.gates.find((gate) => gate.id === "support"), {
+    supported_version: "0.1.0",
+    support_channel: "https://github.com/joinotto/rivet/issues",
+    security_channel:
+      "https://github.com/joinotto/rivet/security/advisories/new"
+  });
   Object.assign(
     draft.gates.find((gate) => gate.id === "signature-verification"),
     {
@@ -131,6 +144,17 @@ try {
   const changedEvidence = validateReleaseEvidence(draft, candidate, evidence);
   assert.strictEqual(changedEvidence.decision, "invalid");
   assert.ok(changedEvidence.faults.some((fault) => /gate security artifact/.test(fault)));
+
+  fs.writeFileSync(path.join(evidence, "security.json"), "security\n");
+  draft.gates.find((gate) => gate.id === "security").sha256 = sha256(
+    path.join(evidence, "security.json")
+  );
+  draft.gates.find((gate) => gate.id === "support").supported_version = "0.2.0";
+  const wrongSupport = validateReleaseEvidence(draft, candidate, evidence);
+  assert.strictEqual(wrongSupport.decision, "hold");
+  assert.ok(
+    wrongSupport.evidence_gaps.some((gap) => gap.id === "support-scope")
+  );
 
   console.log("release evidence tests passed");
 } finally {
