@@ -32,6 +32,8 @@ The repository uses:
 - Required Node.js 16 and Node.js 22 checks.
 - Required repository-wide CodeQL analysis.
 - Required OSV dependency-difference scanning.
+- Full OSV dependency scanning on each push to `main` and on manual release
+  evidence runs.
 - Linear history.
 - Resolved review conversations before merge.
 - Read-only default workflow permissions.

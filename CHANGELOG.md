@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Full OSV dependency scans on pushes to `main` and manual release-evidence
+  runs, while preserving pull-request diff scans.
 - A revision-bound pull-request report manifest with byte sizes and SHA-256
   digests for every retained evidence file, plus fail-closed offline
   verification.
