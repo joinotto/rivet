@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Changed
 
+- Phase 6 and CI conformance now record native, exact-revision fuzz reports
+  for both supported Node.js runtimes.
 - Security baseline status now reflects the completed OpenSSF Scorecard run
   and finding review. Pull-request secret-scan conformance records the native
   artifact and offline manifest verification.
