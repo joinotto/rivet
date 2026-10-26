@@ -60,6 +60,12 @@ The run uploaded its SARIF artifact and code-scanning result.
 The SARIF artifact did not include a reliable overall score. This document does
 not claim one.
 
+GitHub created Dependabot alerts 1 through 8 for the intentional Log4j fixture.
+The maintainers dismissed each alert with reason `not_used` and a comment that
+identifies the evaluation-only scope. The GitHub REST API does not provide a
+`used_in_tests` reason. Reopen an alert if the manifest becomes part of a build,
+package, example application, or executable test.
+
 Run Scorecard again after the remediation changes reach `main`. Keep the
 original result in this record.
 
