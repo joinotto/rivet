@@ -405,6 +405,8 @@ Implemented:
 - Blinded comparison-campaign schema and per-condition scoring.
 - Pairwise observed agreement and Cohen kappa across seeded-defect labels.
 - Seed-excluding native blind-run harness for Codex and Claude Code.
+- Seed-excluding experienced-human packet preparation and signed-result
+  ingestion.
 - Initial observed Codex runs without Rivet, with prose-only Rivet, and with
   tool-backed Rivet.
 

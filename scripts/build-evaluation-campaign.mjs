@@ -31,7 +31,9 @@ function seedFiles(root, output = []) {
 function completeness(run) {
   const checks = [
     run.seed_metadata_excluded === true,
-    typeof run.command_digest === "string" && run.command_digest.length > 0,
+    (typeof run.command_digest === "string" && run.command_digest.length > 0) ||
+      (typeof run.workspace_digest === "string" &&
+        run.workspace_digest.length > 0),
     typeof run.isolation === "string" && run.isolation.length > 0,
     typeof run.started_at === "string" && run.started_at.length > 0,
     typeof run.finished_at === "string" && run.finished_at.length > 0,

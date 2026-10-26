@@ -5,6 +5,7 @@ const CONDITIONS = new Set([
   "agent-without-rivet",
   "prose-only-rivet",
   "tool-backed-rivet",
+  "experienced-human",
 ]);
 
 function copyFile(source, destination) {
@@ -61,7 +62,9 @@ export function blindEvaluationPrompt(condition, files) {
     ? "Review the source directly. Rivet guidance and tools are not available."
     : condition === "prose-only-rivet"
       ? "Read RIVET-GUIDANCE.md. Apply its reasoning guidance, but no Rivet executable tools are available."
-      : "Read skills/rivet/SKILL.md. Use its read-only executable tools when they provide relevant evidence.";
+      : condition === "tool-backed-rivet"
+        ? "Read skills/rivet/SKILL.md. Use its read-only executable tools when they provide relevant evidence."
+        : "Review the source directly with your normal professional methods. Rivet guidance, tools, seed metadata, and answer keys are not available.";
   return [
     "Perform a blind backend engineering defect review.",
     conditionInstruction,

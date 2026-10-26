@@ -356,6 +356,20 @@ Native runs can consume paid model tokens. Do not run them without explicit
 network authorization. Use a separate qualified process for the experienced
 human condition.
 
+Prepare that experienced-human condition without model access:
+
+```sh
+npm run evaluate:human -- prepare \
+  --output .rivet/human-baseline \
+  --reviewer-id reviewer-1 \
+  --time-limit-minutes 60
+```
+
+The reviewer must use the prepared workspace and complete qualification,
+independence, conflict, timing, blindness, method, limitation, and signature
+fields. Ingest the completed record with `npm run evaluate:human -- ingest`.
+Do not complete these declarations for the reviewer.
+
 Coverage normalization accepts Istanbul summary JSON, Cobertura XML, JaCoCo
 XML, LCOV, and Go cover profiles. Rivet reports only aggregate metrics that the
 source artifact contains.

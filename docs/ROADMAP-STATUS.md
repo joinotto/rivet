@@ -51,6 +51,8 @@ tests cannot substitute for the required expert review.
   and reviewer agreement.
 
 The first blind campaign is descriptive until this human baseline exists.
+Use `npm run evaluate:human -- prepare` to create a seed-free packet and
+`npm run evaluate:human -- ingest` to validate the signed reviewer record.
 
 ## Advanced verification
 

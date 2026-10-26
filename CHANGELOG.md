@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Seed-excluding experienced-human baseline packet preparation and signed
+  result ingestion for evaluation campaigns.
 - Phase 3 criterion-by-criterion conformance record with the qualified-review
   gate kept explicit.
 - Source-supplied CWE and OWASP ASVS identifier preservation in SARIF

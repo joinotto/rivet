@@ -360,6 +360,29 @@ Campaign scoring compares no-Rivet, prose-only, tool-backed, and experienced
 human runs. It reports precision, recall, introduced defects, elapsed time,
 evidence completeness, observed reviewer agreement, and Cohen kappa.
 
+Prepare an experienced-human condition with:
+
+```sh
+npm run evaluate:human -- prepare \
+  --output .rivet/human-baseline \
+  --reviewer-id reviewer-1 \
+  --time-limit-minutes 60
+```
+
+The prepared workspace excludes seed metadata, expected findings, agent runs,
+and Rivet guidance. After the reviewer completes and signs `review.json`,
+ingest it:
+
+```sh
+npm run evaluate:human -- ingest \
+  --packet .rivet/human-baseline/packet.json \
+  --review .rivet/human-baseline/review.json \
+  --output reports/human-baseline.json
+```
+
+Structural validation does not prove reviewer experience, independence,
+blindness, or signature trust.
+
 ### `hooks`
 
 Purpose: Configure low-cost automatic checks for changed backend files.

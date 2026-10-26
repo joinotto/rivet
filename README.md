@@ -67,6 +67,8 @@ Version `0.1.0` contains:
 - Owned preventive actions with due dates and follow-up verification.
 - Approval-gated GitHub Issue synchronization for preventive actions.
 - Deterministic seeded-defect precision and recall evaluation.
+- Seed-free experienced-human baseline packets with qualification, blindness,
+  timing, and signature records.
 
 Run the tests:
 
