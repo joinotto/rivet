@@ -120,9 +120,14 @@ workspace-write probes. Claude Code passes native discovery, tool-boundary,
 session, and approval-hook probes. Its `acceptEdits` workspace probe failed
 because the host created an outside-workspace marker.
 
+The workspace probe was repeated on 2026-10-26 with the standalone Claude Code
+2.1.146 executable selected explicitly. The inside write succeeded and the
+outside marker existed. The result remains a fail. The new evidence records
+the executable, version, and command digest.
+
 Cursor package conformance passes. Native discovery, approval, hook, session,
-and boundary behavior remain untested because the installed agent is not
-authenticated.
+and boundary behavior remain untested. Cursor 2.2.36 is installed, but
+`cursor agent status` reports `Not logged in`.
 
 Result: fail for the published exit criterion.
 

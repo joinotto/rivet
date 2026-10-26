@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Explicit native-host executable selection with recorded CLI version and
+  command provenance.
 - Bounded deterministic fuzz execution for SARIF, Trivy, CycloneDX, and SPDX
   normalization boundaries.
 - OpenSSF baseline-3 assessment, secure-development and testing policies, and

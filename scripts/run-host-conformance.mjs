@@ -55,6 +55,7 @@ function main() {
     throw new Error("Native host conformance requires --allow-network.");
   }
   const outputFile = projectPath(output);
+  const executable = value("--executable") || provider;
   if (fs.existsSync(outputFile) && !has("--force")) {
     throw new Error(`Refusing to overwrite existing file: ${output}.`);
   }
@@ -75,7 +76,7 @@ function main() {
       const responseFile = path.join(temporary, "response.json");
       fs.writeFileSync(schemaFile, JSON.stringify(hostProbeSchema));
       command = [
-        "codex",
+        executable,
         "exec",
         "--sandbox",
         "read-only",
@@ -101,7 +102,7 @@ function main() {
       }
     } else {
       command = [
-        "claude",
+        executable,
         "--print",
         "--bare",
         "--no-session-persistence",
@@ -142,6 +143,15 @@ function main() {
       expectedCommandToken: commandToken,
     });
     report.command_digest = digest(JSON.stringify(command));
+    const version = spawnSync(executable, ["--version"], { encoding: "utf8" });
+    report.host = {
+      executable: path.basename(executable),
+      explicit_executable: Boolean(value("--executable")),
+      version:
+        version.status === 0
+          ? (version.stdout || version.stderr).trim()
+          : "version-unavailable",
+    };
     report.isolation = provider === "codex"
       ? "temporary-directory, ephemeral, read-only sandbox"
       : "temporary-directory, no-session, explicit tool allowlist";
