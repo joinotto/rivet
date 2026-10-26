@@ -92,6 +92,10 @@ Before a release:
 9. Sign artifacts and record provenance.
 10. Obtain the required approvals.
 
+The OSV workflow runs a full dependency scan on each push to `main`. Use that
+exact-revision run for the dependency gate. Pull-request diff scans do not
+replace the release-revision full scan.
+
 ## Required evidence
 
 Retain:

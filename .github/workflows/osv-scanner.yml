@@ -3,6 +3,9 @@ name: OSV Scanner
 on:
   merge_group:
   pull_request:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -11,6 +14,7 @@ permissions:
 jobs:
   scan-pr:
     name: Dependency vulnerability diff
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
     permissions:
       actions: read
       contents: read
@@ -18,4 +22,17 @@ jobs:
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
     with:
       fail-on-vuln: true
+      runs-on: ubuntu-24.04
+
+  scan-full:
+    name: Full dependency vulnerability scan
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+    with:
+      fail-on-vuln: true
+      ref: ${{ github.sha }}
       runs-on: ubuntu-24.04
