@@ -48,6 +48,14 @@ The first blind campaign is descriptive until this human baseline exists.
 ## Advanced verification
 
 Phase 6 has implementations for stateful models, fuzz evidence, bounded chaos,
-formal-model evidence, privacy analysis, and capacity planning. The roadmap
-does not define Phase 6 exit criteria. Rivet must not label this phase complete
-until demand, acceptance criteria, and independent review are defined.
+formal-model evidence, privacy analysis, and capacity planning. Product demand
+and explicit exit criteria are now recorded in `ROADMAP.md`.
+
+Open Phase 6 evidence:
+
+- Obtain independent review of one representative formal artifact.
+- Obtain qualified review of one representative privacy artifact.
+- Obtain independent review of one representative chaos artifact, including
+  its approval, stop, harm, and rollback controls.
+
+Rivet must not label Phase 6 complete until these reviews are recorded.

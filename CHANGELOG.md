@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Phase 6 demand, risk-based scope, testable exit criteria, and explicit
+  independent-review requirements.
 - Phase 0 conformance record, actionable private vulnerability reporting, and
   digest checks that bind packaged host guidance to the canonical skill.
 - Digest-bound security-expert review packets and human-review records with

@@ -327,6 +327,14 @@ Exit criteria:
 
 Start only after demand is clear.
 
+Status: In progress.
+
+Demand:
+
+- The product owner requested advanced backend design, testing, security,
+  vulnerability, database, reliability, and agent-reasoning guidance.
+- Use each advanced workflow only when the system risk justifies its cost.
+
 Implemented:
 
 - Stateful property-test model initialization and validation.
@@ -347,6 +355,24 @@ Implemented:
 - Workload-bound cost and capacity planning with measured resource limits,
   project-selected utilization thresholds, dated prices, headroom, and demand
   scenarios.
+
+Exit criteria:
+
+- A stateful model records commands, transitions, invariants, reset behavior,
+  isolation, seeds, shrinking, and unreachable states before execution.
+- Fuzz evidence binds the source revision, tool, command, configuration,
+  corpus, dictionary, sanitizers, and reproducible crash artifacts.
+- A chaos experiment cannot be ready without explicit approval, a steady-state
+  probe, bounded targets, user-harm signals, stop conditions, and verified
+  rollback.
+- Formal evidence states the abstraction, assumptions, finite bounds,
+  omissions, implementation mappings, counterexamples, and human review.
+- Privacy analysis separates engineering evidence from legal decisions and
+  requires qualified review for legal basis and applicable law.
+- Capacity claims bind the workload, measured limits, selected utilization
+  threshold, headroom, demand scenarios, and dated prices.
+- An independent reviewer validates at least one representative artifact for
+  the formal, privacy, and chaos workflows.
 
 ## 2. Reference repositories
 
