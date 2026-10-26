@@ -58,9 +58,9 @@ Do not:
 
 ## 4. Source and license hygiene
 
-Use SPDX identifiers in source files and package metadata.
-
-Use REUSE practices to make copyright and license status machine-readable.
+Use SPDX identifiers in source files and package metadata. Rivet uses
+`REUSE.toml` to annotate tracked files and stores the canonical Apache-2.0 text
+in `LICENSES/Apache-2.0.txt`. CI runs the official REUSE lint action.
 
 Source: [REUSE Specification](https://reuse.software/spec/)
 
