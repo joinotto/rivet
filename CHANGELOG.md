@@ -186,6 +186,8 @@ This file records notable changes to Rivet.
 
 ### Changed
 
+- Made the backend risk and evidence report a strict required check on the
+  protected `main` branch.
 - Made verification receipts disclose detected security and dependency
   adapters that were not run automatically, including the required explicit
   workflow.
