@@ -1,298 +1,166 @@
-# Rivet
+<p align="center">
+  <img src="./docs/assets/rivet-header.svg" alt="Rivet. Evidence-driven backend engineering for coding agents." width="100%">
+</p>
 
-Status: initial host support is Codex and Claude Code; no public release
-Date: 2026-10-26
-Product name: Rivet
+<p align="center">
+  <a href="https://github.com/joinotto/rivet/actions/workflows/ci.yml"><img alt="Continuous integration" src="https://github.com/joinotto/rivet/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="./LICENSE"><img alt="Apache License 2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue"></a>
+  <a href="./SECURITY.md"><img alt="Security policy" src="https://img.shields.io/badge/security-policy-green"></a>
+  <a href="https://github.com/joinotto/rivet/actions/workflows/scorecard.yml"><img alt="OpenSSF Scorecard workflow" src="https://github.com/joinotto/rivet/actions/workflows/scorecard.yml/badge.svg"></a>
+</p>
 
-## Current implementation
+<p align="center">
+  <a href="#quick-start">Quick Start</a> ·
+  <a href="#supported-hosts">Supported Hosts</a> ·
+  <a href="#features">Features</a> ·
+  <a href="./ROADMAP.md">Roadmap</a> ·
+  <a href="./CONTRIBUTING.md">Contributing</a> ·
+  <a href="./SECURITY.md">Security</a>
+</p>
 
-Version `0.1.0` contains:
+Rivet is an open-source backend engineering skill for Codex and Claude Code.
+It combines explicit invariants, database and system-design guidance, selected
+repository checks, and evidence receipts. Your project owns its tools, data,
+permissions, and model-provider configuration.
 
-- A repository-local `rivet` agent skill.
-- The TRACE engineering reasoning protocol.
-- Focused database, testing, security, and system-design references.
-- A dependency-free evidence runner for Node.js 16 or later.
-- Project and context-file discovery.
-- Existing test, lint, type-check, and build-script discovery.
-- Initial Rust, Go, and Python test discovery.
-- Dry-run verification.
-- Selected check execution.
-- Changed-file risk classification.
-- TRACE change-record generation.
-- ASD-STE100-aligned Markdown checks.
-- JSON evidence receipts.
-- Distinct pass, fail, incomplete, and insufficient-evidence results.
-- Context-file initialization that preserves existing files.
-- Content-aware risk classification.
-- Secret-pattern scanning with redacted findings.
-- Dependency-audit adapter discovery.
-- A stable tool-adapter schema.
-- A host-integration contract for Codex and Claude Code.
-- Topology discovery for components, internal dependency edges, data-store artifacts, and messaging dependencies.
-- Reverse dependency impact for changed workspace components.
-- Normalized npm, Cargo, Go, and Python dependency-audit results.
-- Read-only PostgreSQL migration SQL and JSON query-plan inspection.
-- Query-bound PostgreSQL index recommendations with measured baseline,
-  candidate, workload, and write-cost evidence.
-- Read-only context, configuration, and tool-readiness diagnosis.
-- Tool versions and configuration digests in verification receipts.
-- Markdown human summaries and GitHub Actions annotations.
-- Monorepo package-local check execution and dependency-aware test selection.
-- TRACE requirement extraction and risk-based test-family planning.
-- Istanbul, Cobertura, JaCoCo, LCOV, and Go coverage normalization.
-- Stryker, PIT, and cargo-mutants result normalization.
-- Property and contract-test artifact normalization.
-- Flake and inconsistent test-selection detection from repeated JUnit runs.
-- Project-selected quality ratchets for weakened metrics, removed assertions,
-  new suppressions, skipped tests, and expiring exceptions.
-- Requirements-first, redacted independent-review packet generation.
-- SARIF, Trivy, CycloneDX, and SPDX security evidence normalization.
-- Source-supplied CWE and OWASP ASVS mapping preservation.
-- Official CycloneDX and SPDX schema validation with embedded or Sigstore signature verification.
-- Reproducible CISA KEV and FIRST EPSS snapshot enrichment.
-- Expiring security waiver templates and structural validation.
-- Revision-bound vulnerability reachability evidence.
-- Sigstore/Cosign evidence-signing and identity-constrained verification plans.
-- Explicitly authorized execution of repository-declared SAST commands.
-- A pinned GitHub CodeQL fixture that produces and normalizes native SARIF.
-- Timeout, retry-amplification, idempotency, and deadline-budget analysis.
-- OTLP runtime resend, repeated-client-operation, and nested-retry analysis.
-- Expand-and-contract migration plan and dry-run evidence validation.
-- OpenTelemetry semantic, cardinality, sensitive-data, and alert review.
-- Workload-bound performance baseline and candidate comparison.
-- Threshold-based staged release decisions with explicit rollback and evidence gaps.
-- Read-only, approval-aware, hash-chained incident timelines.
-- Blameless postmortem drafts from validated incident evidence.
-- Repeated-sample performance statistics with explicit adequacy limits.
-- Owned preventive actions with due dates and follow-up verification.
-- Approval-gated GitHub Issue synchronization for preventive actions.
-- Deterministic seeded-defect precision and recall evaluation.
-- Seed-free experienced-human baseline packets with qualification, blindness,
-  timing, and signature records.
-- Digest-bound independent-review records for formal, privacy, and chaos
-  evidence.
+Status: development preview. No public release. Publication remains on hold
+until the [release requirements](RELEASING.md) pass.
 
-Run the tests:
+## Why Rivet
+
+- Understand a project's constraints before changing it.
+- Design databases, APIs, jobs, and distributed workflows with explicit invariants.
+- Reuse existing tests and security tools.
+- Separate observed results from assumptions and missing evidence.
+- Keep the skill local and retain your selected model provider.
+- Preserve user files during installation, upgrade, and removal.
+
+## Quick Start
+
+Use a maintained Node.js 22 runtime. Clone and review this repository, then
+install into an existing backend project:
 
 ```sh
+git clone https://github.com/joinotto/rivet.git
 cd rivet
-npm test
-npm run test:fixtures
+node scripts/install-skill.mjs install \
+  --host codex --project /absolute/path/backend --dry-run
+node scripts/install-skill.mjs install \
+  --host codex --project /absolute/path/backend
 ```
 
-Inspect a project:
+For Claude Code, use `--host claude-code`.
+
+Start the coding tool in the backend project. Invoke `$rivet` in Codex or
+`/rivet` in Claude Code. Ask it to inspect the repository and preview detected
+checks. Review commands before approving execution.
+
+See [getting started](docs/getting-started.md) and
+[installation and recovery](docs/INSTALLATION.md) for first use, packaged
+installation, upgrade, removal, and rollback.
+
+## Supported Hosts
+
+| Coding tool | Project discovery path | Model configuration |
+| --- | --- | --- |
+| Codex | `.agents/skills/rivet` | Existing provider settings are preserved |
+| Claude Code | `.claude/skills/rivet` | Existing provider settings are preserved |
+
+These are the only active distributions. Other hosts are deferred in the
+[roadmap](ROADMAP.md). See [host integrations](docs/HOST-INTEGRATIONS.md) for
+permission boundaries and platform limitations.
+
+## Features
+
+- TRACE reasoning: target behavior, record facts and unknowns, analyze risks,
+  compare material alternatives, and verify the change.
+- Database guidance for modeling, normalization, indexes, transactions, and
+  migrations.
+- Repository discovery, change impact, and selected test execution.
+- Coverage, mutation, property, contract, and flake evidence.
+- Secret redaction, dependency-risk evidence, security findings, and threat models.
+- Read-only PostgreSQL migration and saved-query-plan inspection.
+- Retry, idempotency, observability, performance, and release analysis.
+- Structured evidence with distinct pass, fail, incomplete, and
+  insufficient-evidence results.
+
+The runtime and installer have no third-party runtime dependencies. Advanced
+checks use your project's declared tools and supplied evidence. A valid schema
+or passing local check does not prove that a production system is safe.
+
+## Verification
+
+From a project with the Codex installation:
 
 ```sh
-node skills/rivet/scripts/rivet-evidence.mjs inspect
+node .agents/skills/rivet/scripts/rivet-evidence.mjs inspect
+node .agents/skills/rivet/scripts/rivet-evidence.mjs doctor
+node .agents/skills/rivet/scripts/rivet-evidence.mjs verify --dry-run
 ```
 
-Initialize missing project context:
+For Claude Code, use `.claude/skills/rivet/scripts/rivet-evidence.mjs`.
+
+Warning: repository checks can execute arbitrary code. Review the command,
+working directory, network use, and credentials before approving a check.
+
+If the preview lists a check named `test`:
 
 ```sh
-node skills/rivet/scripts/rivet-evidence.mjs init
+node .agents/skills/rivet/scripts/rivet-evidence.mjs verify --checks test --json
 ```
 
-Preview its detected checks:
+Use the check identifiers detected in your project.
 
-```sh
-node skills/rivet/scripts/rivet-evidence.mjs verify --dry-run
-```
+## Project Rules
 
-Analyze change impact:
+- Keep engineering guidance in one canonical skill.
+- Preserve project architecture and model-provider settings.
+- Require authorization for active tests, network use, and external changes.
+- Keep credentials, customer data, and private security findings out of public output.
+- Report failed and unavailable checks without converting them into passes.
+- Do not present inferred results as observed evidence.
 
-```sh
-node skills/rivet/scripts/rivet-evidence.mjs impact
-```
+## Documentation
 
-Shape a change with a TRACE record:
-
-```sh
-node skills/rivet/scripts/rivet-evidence.mjs shape \
-  --title "Order authorization" \
-  --output .rivet/changes/order-authorization.md
-```
-
-The older `change` and `record` names remain as compatibility aliases.
-
-Check skill documentation:
-
-```sh
-npm run check:ste
-```
-
-Preview dependency-audit adapters:
-
-```sh
-node skills/rivet/scripts/rivet-evidence.mjs dependencies --dry-run
-```
-
-Preview active API contract checks:
-
-```sh
-node skills/rivet/scripts/rivet-evidence.mjs contract --dry-run
-```
-
-Execution requires `--target` and `--allow-network`. A non-local target also
-requires `--allow-nonlocal-target`.
-
-Create a threat-model record:
-
-```sh
-node skills/rivet/scripts/rivet-evidence.mjs threat-model init \
-  --system "Order API" \
-  --output .rivet/threat-model.json
-```
-
-Validate it with `threat-model validate --file .rivet/threat-model.json`.
-
-Prepare the security-expert review packet:
-
-```sh
-node skills/rivet/scripts/rivet-evidence.mjs security-review packet \
-  --threat-model .rivet/threat-model.json \
-  --output .rivet/security-review-packet.json
-```
-
-Use `security-review init` to create the reviewer record and
-`security-review validate` after the qualified reviewer completes it.
-For a Markdown threat model, also supply `--system` and `--revision`.
-
-Run an isolated independent review:
-
-```sh
-node skills/rivet/scripts/rivet-evidence.mjs review run \
-  --packet .rivet/reviews/change.json \
-  --provider codex \
-  --output .rivet/reviews/change-findings.json \
-  --allow-network
-```
-
-Codex and Claude Code are supported. External JSON findings can use
-`review ingest`.
-
-Generate host packages:
-
-```sh
-npm run package:hosts
-```
-
-This command creates only Codex and Claude Code packages from the canonical
-`skills/rivet/` source. Other host integrations are future roadmap work.
-
-Run package conformance:
-
-```sh
-npm run test:hosts
-```
-
-This test does not claim native host-runtime conformance.
-
-## Decision
-
-Build it.
-
-Do not build a large prompt library.
-
-Build an evidence-driven engineering system for AI coding agents. The system must help an agent to design, test, secure, operate, and change backend software. It must use proven external tools. It must save durable system context. It must show the evidence for each claim.
-
-## Product thesis
-
-Backend work has the same coordination problem that Impeccable solves for frontend work:
-
-- The agent does not know the product constraints.
-- The agent does not know the architecture decisions.
-- The agent applies generic patterns.
-- The agent changes code before it understands failure modes.
-- The agent writes tests that only confirm its own implementation.
-- The agent reports security from static inspection without proof.
-- The agent optimizes local code and damages system behavior.
-- The agent does not preserve operational knowledge.
-
-The product can correct these problems if it combines:
-
-1. Durable context.
-2. A repeatable engineering reasoning method.
-3. Focused engineering playbooks.
-4. Database design and verification.
-5. Executable verification.
-6. Risk-based security controls.
-7. Test and runtime evidence.
-8. Safe agent permissions.
-9. Open-source governance.
-
-## Non-negotiable rule
-
-The product must separate these result classes:
-
-- **Observed:** A tool or runtime produced the evidence.
-- **Derived:** The system calculated the result from observed evidence.
-- **Inferred:** The agent formed a conclusion from incomplete evidence.
-- **Unknown:** The system does not have sufficient evidence.
-
-The product must not present an inferred result as an observed result.
-
-## Documents
-
+- [Getting started](docs/getting-started.md)
+- [Installation and recovery](docs/INSTALLATION.md)
+- [Commands and workflows](COMMAND-CATALOG.md)
+- [Engineering reasoning](ENGINEERING-REASONING.md)
+- [Database design](DATABASE-DESIGN.md)
+- [Evidence schema](docs/EVIDENCE-SCHEMA.md)
+- [Adapter contract](docs/ADAPTER-CONTRACT.md)
+- [Host integrations](docs/HOST-INTEGRATIONS.md)
+- [Architecture](docs/architecture.md)
+- [Security and evidence](SECURITY-MODEL.md)
+- [Technical writing](TECHNICAL-WRITING.md)
+- [Roadmap](ROADMAP.md)
 - [Contributing](CONTRIBUTING.md)
+- [Testing](TESTING.md)
 - [Code of conduct](CODE_OF_CONDUCT.md)
 - [Security policy](SECURITY.md)
-- [Governance](GOVERNANCE.md)
-- [Changelog](CHANGELOG.md)
 - [Threat model](THREAT-MODEL.md)
-- [Research foundation](RESEARCH-FOUNDATION.md)
-- [Engineering reasoning method](ENGINEERING-REASONING.md)
-- [Database design guide](DATABASE-DESIGN.md)
-- [Product specification](PRODUCT-SPECIFICATION.md)
-- [Command and workflow catalog](COMMAND-CATALOG.md)
-- [Security and evidence model](SECURITY-MODEL.md)
-- [Roadmap](ROADMAP.md)
-- [Roadmap status and open evidence](docs/ROADMAP-STATUS.md)
-- [Initial release plan](docs/INITIAL-RELEASE-PLAN.md)
-- [Phase 1 conformance](docs/PHASE-1-CONFORMANCE.md)
-- [Phase 3 conformance](docs/PHASE-3-CONFORMANCE.md)
-- [Phase 6 conformance](docs/PHASE-6-CONFORMANCE.md)
-- [Open-source foundation](OPEN-SOURCE-FOUNDATION.md)
-- [Architecture](docs/architecture.md)
-- [Continuous-integration conformance](docs/CI-CONFORMANCE.md)
-- [Branch protection](docs/BRANCH-PROTECTION.md)
+- [Governance](GOVERNANCE.md)
 - [Maintainers](MAINTAINERS.md)
 - [Support](SUPPORT.md)
+- [Changelog](CHANGELOG.md)
 - [Releasing](RELEASING.md)
-- [Release-candidate workflow conformance](docs/RELEASE-CANDIDATE-CONFORMANCE.md)
-- [Technical writing rules](TECHNICAL-WRITING.md)
-- [ASD-STE100 for agent skills](docs/ASD-STE100-FOR-SKILLS.md)
-- [Addy Osmani agent-skills audit](docs/ADDY-AGENT-SKILLS-AUDIT.md)
-- [Host integration contract](docs/HOST-INTEGRATIONS.md)
-- [Native SAST conformance](docs/NATIVE-SAST-CONFORMANCE.md)
-- [Native signature conformance](docs/NATIVE-SIGNATURE-CONFORMANCE.md)
-- [Native review conformance](docs/NATIVE-REVIEW-CONFORMANCE.md)
-- [Native host conformance](docs/HOST-CONFORMANCE.md)
-- [Initial blind evaluation](docs/BLIND-EVALUATION-2026-10-25.md)
-- [Phase 2 conformance](docs/PHASE-2-CONFORMANCE.md)
-- [Phase 4 conformance](docs/PHASE-4-CONFORMANCE.md)
-- [Phase 5 conformance](docs/PHASE-5-CONFORMANCE.md)
-- [Seeded reference systems](fixtures/reference-systems/README.md)
 
-## Honest assessment
+## Compatibility
 
-The opportunity is strong. The scope is dangerous.
+The runtime and installer use ECMAScript modules. CI tests Node.js 16 and 22.
+Use a maintained Node.js 22 runtime for deployment. Runtime compatibility does
+not extend the upstream support life of an older Node.js version.
 
-The first release must have a narrow purpose:
+Rivet follows Semantic Versioning for its CLI, schemas, adapters, and skill
+interfaces. Host permissions are not an operating-system sandbox.
 
-> Help an agent make a safe backend change and prove that the change works.
+## Support
 
-Do not start with autonomous penetration testing, production incident control, compliance certification, or a universal architecture generator. These areas have high risk and weak verification.
+Rivet has community support for the two declared coding tools. Use issue forms
+for reproducible defects and documentation problems. Report a new vulnerability
+privately through [the security policy](SECURITY.md).
+See [support](SUPPORT.md) for scope and limitations.
 
-Start with repository context, change-risk analysis, test selection, deterministic checks, dependency risk, threat modeling, and an evidence report.
+## License
 
-## Validation status
-
-The evidence-runner behavioral tests pass on Node.js 16.13.1.
-
-The portable validator checks skill frontmatter, folder identity, reference
-links and anchors, package boundaries, empty directories, and orphaned
-reference documents.
-
-The behavioral tests, skill validator, and Rivet STE checker pass in the development environment.
-
-
+Rivet uses the Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).

@@ -145,6 +145,9 @@ try {
     const listed = spawnSync("tar", ["-tf", archive], { encoding: "utf8" });
     assert.strictEqual(listed.status, 0, listed.stderr);
     assert.match(listed.stdout, /^rivet-host[.]json$/m);
+    assert.match(listed.stdout, /^install[.]mjs$/m);
+    assert.match(listed.stdout, /^LICENSE$/m);
+    assert.match(listed.stdout, /^NOTICE$/m);
     assert.match(listed.stdout, /^rivet\/SKILL[.]md$/m);
   }
 

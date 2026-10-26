@@ -63,8 +63,8 @@ Report abusive, harassing, or otherwise unacceptable behavior by email to
 conduct report in a public issue.
 
 The named Rivet maintainer reviews reports. If a report concerns that
-maintainer or presents another conflict of interest, ask Otto support to route
-the report to a different Otto repository administrator.
+maintainer or presents another conflict of interest, ask the private support
+channel to route the report to a different repository administrator.
 
 The project will protect the privacy and safety of the reporter and affected
 people. It will share report details only with people needed for a fair

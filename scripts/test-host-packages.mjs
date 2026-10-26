@@ -75,8 +75,19 @@ try {
     const manifest = JSON.parse(
       fs.readFileSync(path.join(root, "rivet-host.json"), "utf8"),
     );
+    assert.deepStrictEqual(fs.readdirSync(root).sort(), ["LICENSE", "NOTICE", "install.mjs", "rivet", "rivet-host.json"]);
+    for (const document of ["LICENSE", "NOTICE"]) {
+      assert.strictEqual(digest(path.join(root, document)), digest(path.join(repository, document)));
+    }
+    assert.strictEqual(
+      digest(path.join(root, "install.mjs")),
+      digest(path.join(repository, "scripts/install-skill.mjs")),
+    );
     assert.strictEqual(manifest.schema, 1);
     assert.strictEqual(manifest.host, host);
+    assert.strictEqual(manifest.version, "0.1.0");
+    assert.match(manifest.source_revision, /^[a-f0-9]{40}$/);
+    assert.ok(["clean", "dirty"].includes(manifest.source_state));
     assert.strictEqual(manifest.canonical_source, "skills/rivet");
     assert.strictEqual(manifest.install_path, expected.install_path);
     assert.deepStrictEqual(Object.keys(manifest.capabilities).sort(), [

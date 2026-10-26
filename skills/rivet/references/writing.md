@@ -55,5 +55,3 @@ node "<skill-dir>/scripts/rivet-ste.mjs" <file-or-directory>
 
 The checker finds deterministic faults and heuristic warnings. It does not certify ASD-STE100 compliance.
 
-For the complete policy, read `docs/ASD-STE100-FOR-SKILLS.md` in the Rivet repository.
-

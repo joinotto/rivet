@@ -356,36 +356,6 @@ Rivet calculates per-condition precision and recall and pairwise reviewer
 agreement. Procedural evidence must establish blindness and reviewer
 experience. Agreement does not determine correctness.
 
-Run agent arms only from a seed-free workspace:
-
-```sh
-npm run evaluate:blind -- \
-  --condition agent-without-rivet \
-  --provider codex \
-  --output reports/without-rivet.json \
-  --allow-network
-```
-
-The runner supports `agent-without-rivet`, `prose-only-rivet`, and
-`tool-backed-rivet`. It copies source fixtures but excludes `seed.json`.
-Native runs can consume paid model tokens. Do not run them without explicit
-network authorization. Use a separate qualified process for the experienced
-human condition.
-
-Prepare that experienced-human condition without model access:
-
-```sh
-npm run evaluate:human -- prepare \
-  --output .rivet/human-baseline \
-  --reviewer-id reviewer-1 \
-  --time-limit-minutes 60
-```
-
-The reviewer must use the prepared workspace and complete qualification,
-independence, conflict, timing, blindness, method, limitation, and signature
-fields. Ingest the completed record with `npm run evaluate:human -- ingest`.
-Do not complete these declarations for the reviewer.
-
 Coverage normalization accepts Istanbul summary JSON, Cobertura XML, JaCoCo
 XML, LCOV, and Go cover profiles. Rivet reports only aggregate metrics that the
 source artifact contains.
@@ -467,49 +437,6 @@ Use a JSON packet for native review. Rivet runs the reviewer in a temporary
 directory. Codex uses ephemeral read-only mode. Claude Code uses bare,
 no-session, no-tools mode. The command requires explicit network authorization
 because it can use a paid model API.
-
-Run native host boundary probes separately from normal tests:
-
-```sh
-npm run test:host-native -- \
-  --provider codex \
-  --output reports/codex-host-boundary.json \
-  --allow-network
-```
-
-The probe uses a temporary workspace. It verifies file reading, an allowed
-Node command, and a prohibited write boundary. Codex uses its read-only
-sandbox. Claude Code uses an explicit tool allowlist, which is not an
-operating-system filesystem sandbox. Native probes can consume paid model
-tokens.
-
-Test two-turn session resume with a random nonce:
-
-```sh
-npm run test:host-session -- \
-  --provider codex \
-  --output reports/codex-session.json \
-  --allow-network
-```
-
-The probe creates persistent host session metadata and resumes it by
-identifier. It does not test long sessions, compaction, concurrency, or
-credential expiry.
-
-Test native approval and hook behavior:
-
-```sh
-npm run test:host-approval-hooks -- \
-  --provider codex \
-  --output reports/codex-approval-hooks.json \
-  --allow-network
-```
-
-The probe records a session-start hook, requests one shell mutation, denies
-the request through the host approval configuration, and confirms that the
-mutation is absent. Codex also exercises its permission-request hook. Claude
-Code print mode supplies a structured permission denial but does not emit its
-interactive permission-request hook event.
 
 Do not use Claude Code `acceptEdits` as a workspace sandbox. Native testing
 observed an outside-workspace file write through the Write/Edit tool set. Keep

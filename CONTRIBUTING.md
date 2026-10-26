@@ -26,20 +26,10 @@ Run:
 ```sh
 npm test
 npm run validate:skill
-npm run validate:rejections
-npm run validate:openssf
-npm run test:routing
-```
-
-Before you retry a rejected skill or policy change, inspect
-`docs/SKILL-CHANGE-REJECTIONS.json`. Supply the evidence required by its retry
-conditions. Do not remove a rejection record because the original branch or
-proposal is no longer active.
-
-Maintainers with the OpenAI skill-creator package and PyYAML can also run:
-
-```sh
-npm run validate:skill:openai
+npm run test:hosts
+npm run test:installation
+npm run test:release
+npm run test:release-verification
 ```
 
 ## Pull request evidence
