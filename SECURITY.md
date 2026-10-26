@@ -10,7 +10,13 @@ The project is in an early development stage. Only the current main branch recei
 
 Do not open a public issue for a new vulnerability.
 
-Until a private project address is available, contact the maintainers through a private channel that they publish for this repository.
+Use GitHub private vulnerability reporting:
+
+1. Open the repository **Security** page.
+2. Select **Advisories**.
+3. Select **Report a vulnerability**.
+
+This route creates a private discussion with the repository maintainers.
 
 Include:
 

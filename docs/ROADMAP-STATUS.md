@@ -4,6 +4,7 @@ Observed on 2026-10-25.
 
 ## Completed published scopes
 
+- Phase 0: foundation. See `docs/PHASE-0-CONFORMANCE.md`.
 - Phase 2: test intelligence. See `docs/PHASE-2-CONFORMANCE.md`.
 - Phase 4: data and distributed systems. See
   `docs/PHASE-4-CONFORMANCE.md`.

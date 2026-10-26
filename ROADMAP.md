@@ -10,6 +10,8 @@ Do not build all commands at the same time.
 
 Duration: 4 to 6 weeks
 
+Status: Complete for the published Phase 0 scope.
+
 Deliver:
 
 - Project charter.
@@ -35,6 +37,8 @@ Exit criteria:
 - Every tool result records tool failure separately from no findings.
 - The project can receive private vulnerability reports.
 - Host wrappers do not fork Rivet engineering guidance.
+
+Conformance evidence: `docs/PHASE-0-CONFORMANCE.md`.
 
 ## Phase 1: Safe change verification
 

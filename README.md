@@ -1,7 +1,7 @@
 # Rivet
 
-Status: active Phase 1 implementation
-Date: 2026-10-25
+Status: active Phase 1 implementation; published Phases 0, 2, 4, and 5 complete
+Date: 2026-10-26
 Product name: Rivet
 
 ## Current implementation

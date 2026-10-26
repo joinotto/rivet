@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import assert from "assert";
+import crypto from "crypto";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -12,6 +13,7 @@ const repository = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
+const source = path.join(repository, "skills", "rivet");
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-conformance-"));
 const packages = path.join(temporary, "packages");
 const fixture = path.join(temporary, "fixture");
@@ -19,6 +21,10 @@ const hosts = ["portable", "codex", "claude-code", "cursor"];
 
 function run(executable, args, cwd = repository) {
   return spawnSync(executable, args, { cwd, encoding: "utf8" });
+}
+
+function digest(file) {
+  return crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 }
 
 try {
@@ -50,6 +56,18 @@ try {
     assert.strictEqual(manifest.host, host);
     assert.strictEqual(manifest.capabilities.model_provider_independent, true);
     assert.ok(fs.existsSync(path.join(skill, "SKILL.md")));
+    assert.strictEqual(
+      digest(path.join(skill, "SKILL.md")),
+      digest(path.join(source, "SKILL.md")),
+      `${host}: packaged guidance differs from the canonical skill`,
+    );
+    for (const reference of fs.readdirSync(path.join(source, "references"))) {
+      assert.strictEqual(
+        digest(path.join(skill, "references", reference)),
+        digest(path.join(source, "references", reference)),
+        `${host}: packaged ${reference} differs from the canonical reference`,
+      );
+    }
 
     const runner = path.join(skill, "scripts/rivet-evidence.mjs");
     const inspection = run(process.execPath, [runner, "inspect", "--json"], fixture);
