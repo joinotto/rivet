@@ -66,8 +66,33 @@ identifies the evaluation-only scope. The GitHub REST API does not provide a
 `used_in_tests` reason. Reopen an alert if the manifest becomes part of a build,
 package, example application, or executable test.
 
-Run Scorecard again after the remediation changes reach `main`. Keep the
-original result in this record.
+## Remediation run
+
+The remediation run passed:
+
+- Run: `40364326312`.
+- Revision: `a12aabfb374c2d602c2102ddddaa1262a0b985bf`.
+- Event: push to `main`.
+- Result: success.
+- Date: 2026-10-26.
+
+The second SARIF artifact no longer reports the Security Policy or
+Vulnerabilities findings. GitHub reports no open Dependabot alert.
+
+The SAST check remains at 7 because CodeQL covered 2 of the 7 recent commits at
+the time of the run. Repository-wide CodeQL is now a required branch check.
+Coverage will increase as new commits use the required workflow. Do not create
+unnecessary commits to change this metric.
+
+The following findings remain valid:
+
+- Fuzzing.
+- Repository age and maintenance history.
+- Independent human code review.
+- OpenSSF Best Practices assessment.
+
+The remediation result does not prove that these remaining controls are
+complete.
 
 ## Review rule
 

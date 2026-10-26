@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Required CodeQL branch protection and observed Scorecard remediation
+  evidence.
 - Repository-wide CodeQL analysis and an evidence-based review of the first
   OpenSSF Scorecard findings.
 - Commit-pinned OpenSSF Scorecard analysis with SARIF artifact and code
