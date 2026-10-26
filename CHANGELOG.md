@@ -13,7 +13,8 @@ This file records notable changes to Rivet.
 ### Added
 
 - Retained exact-revision bounded parser-fuzz evidence for both supported
-  Node.js CI jobs, including failed campaigns.
+  Node.js CI jobs, including failed campaigns. CI verifies the explicit
+  pull-request head or push revision before it creates evidence.
 - Deterministic changed-file secret scanning in every pull-request evidence
   report, with redacted findings, fail-closed decisions, and manifest-bound
   scan evidence.
