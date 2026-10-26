@@ -16,8 +16,7 @@ function location(result) {
   };
 }
 
-export function normalizeSarif(file) {
-  const document = readJson(file);
+export function normalizeSarifDocument(document, artifact = "<memory>") {
   if (
     !record(document) ||
     document.version !== "2.1.0" ||
@@ -71,7 +70,7 @@ export function normalizeSarif(file) {
     kind: "sast",
     format: "sarif-2.1.0",
     evidence_class: "observed",
-    artifact: file,
+    artifact,
     tools,
     findings,
     decision: findings.length ? "review-findings" : "pass",
@@ -83,8 +82,11 @@ export function normalizeSarif(file) {
   };
 }
 
-export function normalizeTrivy(file) {
-  const document = readJson(file);
+export function normalizeSarif(file) {
+  return normalizeSarifDocument(readJson(file), file);
+}
+
+export function normalizeTrivyDocument(document, artifact = "<memory>") {
   if (!record(document) || !Array.isArray(document.Results)) {
     throw new Error("The artifact is not a supported Trivy JSON report.");
   }
@@ -142,7 +144,7 @@ export function normalizeTrivy(file) {
     kind: "container-or-iac",
     format: "trivy-json",
     evidence_class: "observed",
-    artifact: file,
+    artifact,
     findings,
     decision: findings.length ? "review-findings" : "pass",
     limitations: [
@@ -152,8 +154,15 @@ export function normalizeTrivy(file) {
   };
 }
 
-export function normalizeSbom(file, revision) {
-  const document = readJson(file);
+export function normalizeTrivy(file) {
+  return normalizeTrivyDocument(readJson(file), file);
+}
+
+export function normalizeSbomDocument(
+  document,
+  revision,
+  artifact = "<memory>",
+) {
   if (!record(document)) {
     throw new Error("The artifact is not supported CycloneDX or SPDX JSON.");
   }
@@ -182,7 +191,7 @@ export function normalizeSbom(file, revision) {
     schema: 1,
     kind: "sbom",
     evidence_class: "observed",
-    artifact: file,
+    artifact,
     format,
     format_version: version || null,
     subject_revision: revision,
@@ -194,6 +203,10 @@ export function normalizeSbom(file, revision) {
       "This structural check does not perform full schema or signature validation.",
     ],
   };
+}
+
+export function normalizeSbom(file, revision) {
+  return normalizeSbomDocument(readJson(file), revision, file);
 }
 
 function vulnerabilityIds(document) {

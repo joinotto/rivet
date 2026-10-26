@@ -24,6 +24,16 @@ npm run test:routing
 npm run check:ste
 ```
 
+Run the isolated coverage-guided campaign with Node.js 22:
+
+```sh
+npm ci --prefix fuzz/coverage-guided
+node scripts/run-coverage-guided-fuzz.mjs \
+  --executions 10000 \
+  --workspace .rivet/coverage-guided \
+  --output .rivet/coverage-guided/report.json
+```
+
 A command exit status of zero means that its published assertions passed. It
 does not prove production correctness or native host behavior. Read each
 command's limitations in its output and conformance document.
@@ -36,6 +46,7 @@ Pull requests run:
 - Repository-wide CodeQL.
 - OSV dependency-difference scanning.
 - A bounded deterministic parser-fuzz campaign.
+- A path-scoped Jazzer.js/libFuzzer campaign on Node.js 22.
 - DCO sign-off verification.
 
 The protected branch requires the configured checks to pass on the current

@@ -99,7 +99,8 @@ The following controls are not complete:
 - Secret validity checks.
 - Release artifact signing.
 - Build provenance attestation.
-- Coverage-guided continuous fuzzing for parsers and trust-boundary code.
+- Persistent-corpus and long-duration fuzzing for parsers and trust-boundary
+  code.
 
 Add each control only when Rivet has the related code or release artifact.
 

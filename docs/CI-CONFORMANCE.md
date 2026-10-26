@@ -65,6 +65,26 @@ Exact-revision fuzz evidence:
 
 Result: pass.
 
+## Coverage-guided parser fuzzing
+
+Workflow: `.github/workflows/coverage-guided-fuzz.yml`
+
+The workflow uses an isolated Node.js 22 workspace with an exact
+`package-lock.json`. It checks out and verifies the selected pull-request head
+or push revision. It runs 10,000 Jazzer.js/libFuzzer executions against pure
+SARIF, Trivy, CycloneDX, and SPDX document normalizers.
+
+The runner records the source revision, engine version, command digest, seed
+and final corpus digests, dictionary digest, execution count, process result,
+crash inputs, and evidence limitations. The workflow retains the report,
+expanded corpus, and crash directory for 14 days, including after failure.
+
+The workflow has only `contents: read` permission. It uses commit-pinned
+actions, does not persist checkout credentials, and does not use
+`pull_request_target`.
+
+Native execution evidence is not yet recorded.
+
 ## Pull-request verification report
 
 Workflow: `.github/workflows/pr-verification.yml`
