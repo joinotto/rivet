@@ -10,10 +10,10 @@
     "baseline_version": "2026-08-28"
   },
   "summary": {
-    "met": 10,
+    "met": 11,
     "not_met": 1,
     "not_applicable": 9,
-    "needs_review": 1
+    "needs_review": 0
   },
   "controls": [
     {
@@ -126,9 +126,9 @@
     },
     {
       "id": "OSPS-VM-05.03",
-      "status": "needs_review",
-      "evidence": [".github/workflows/osv-scanner.yml", "fixtures/reference-systems/kev-dependency/osv-scanner.toml"],
-      "notes": "The pull-request workflow is configured to block newly introduced vulnerabilities. Record a passing native run and make its check required before marking this control met."
+      "status": "met",
+      "evidence": [".github/workflows/osv-scanner.yml", "fixtures/reference-systems/kev-dependency/osv-scanner.toml", "GitHub Actions run 40370013413: pass", "GitHub branch protection: Dependency vulnerability diff / osv-scan required"],
+      "notes": "The required pull-request workflow blocks newly introduced known vulnerabilities and preserves reviewed manifest-local exceptions."
     },
     {
       "id": "OSPS-VM-06.01",
@@ -145,7 +145,6 @@
   ],
   "limitations": [
     "This record is a local evidence assessment. It is not an OpenSSF badge.",
-    "The OSV pull-request workflow must pass natively before its control is complete.",
     "Independent non-author approval and qualified threat-model review remain unavailable.",
     "Release-dependent controls must be reassessed against actual artifacts."
   ]
