@@ -18,6 +18,9 @@ This file records notable changes to Rivet.
   baseline now reflects existing revision-bound CycloneDX generation.
 - Phase 6 and CI conformance now record native, exact-revision fuzz reports
   for both supported Node.js runtimes.
+- Phase 6 and CI conformance now record the native Jazzer.js/libFuzzer
+  campaign, including exact revision, corpus growth, decisions, and artifact
+  digests.
 - Security baseline status now reflects the completed OpenSSF Scorecard run
   and finding review. Pull-request secret-scan conformance records the native
   artifact and offline manifest verification.

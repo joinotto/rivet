@@ -83,7 +83,29 @@ The workflow has only `contents: read` permission. It uses commit-pinned
 actions, does not persist checkout credentials, and does not use
 `pull_request_target`.
 
-Native execution evidence is not yet recorded.
+Native execution evidence:
+
+- Pull request: `49`.
+- Run: `40403223111`.
+- Job: `121854235904`.
+- Revision: `170d556cb58fd9868d97c3981fa5cb7d94986f39`.
+- Engine: Jazzer.js `4.0.0` with libFuzzer.
+- Executions: `10,000`.
+- Seed corpus: `4` files.
+- Final corpus: `18` files.
+- Crashes, timeouts, and out-of-memory results: `0`.
+- Evidence decision: `no-crash-observed`.
+- Workflow decision: `pass`.
+- Artifact: `12688519276`.
+- Artifact digest:
+  `sha256:8d8ea1c637c07f8db886097adcf51429e786ab2e11fd7727c5b535184b29305b`.
+- Downloaded report digest:
+  `sha256:3684d9ef7b9e33db2ccc5c4375ac7c81e0e372ab26006adfa3b58fae7d28c406`.
+
+The downloaded report recorded the selected revision and the artifact contained
+the report and expanded corpus. No crash input existed to retain.
+
+Result: pass.
 
 ## Pull-request verification report
 
