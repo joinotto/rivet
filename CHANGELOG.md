@@ -188,6 +188,9 @@ This file records notable changes to Rivet.
 
 ### Changed
 
+- Made release evidence drafts automatically bind verified host packages,
+  SBOM, and provenance from the candidate instead of reporting host packages
+  as missing.
 - Made the backend risk and evidence report a strict required check on the
   protected `main` branch.
 - Made verification receipts disclose detected security and dependency

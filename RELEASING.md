@@ -52,11 +52,12 @@ npm run release:evidence -- prepare \
   --preparer MAINTAINER_IDENTITY
 ```
 
-The draft stays on hold until every required gate has pass status and an
-artifact digest. Required gates cover CI, host packages, dependencies, license,
-security, compatibility, changelog, support, SBOM, provenance, and signature
-verification. The record also requires two distinct qualified independent
-approvals. Validate the completed record with:
+The draft automatically binds the verified host packages, SBOM, and
+provenance from the candidate. It stays on hold until every other required
+gate has pass status and an artifact digest. Required gates also cover CI,
+dependencies, license, security, compatibility, changelog, support, and
+signature verification. The record requires two distinct qualified
+independent approvals. Validate the completed record with:
 
 ```sh
 npm run release:evidence -- validate \

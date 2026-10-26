@@ -82,11 +82,26 @@ export function prepareReleaseEvidence(candidateDirectory, preparer = "") {
     required_approvals: 2,
     gates: requiredGates.map((id) => ({
       id,
-      status: id === "sbom" || id === "provenance" ? "pass" : "missing",
-      scope: id === "sbom" || id === "provenance" ? "candidate" : "evidence",
-      artifact: id === "sbom" ? "bom.cdx.json" : id === "provenance" ? "provenance.json" : "",
+      status:
+        id === "host-packages" || id === "sbom" || id === "provenance"
+          ? "pass"
+          : "missing",
+      scope:
+        id === "host-packages" || id === "sbom" || id === "provenance"
+          ? "candidate"
+          : "evidence",
+      artifact:
+        id === "host-packages"
+          ? "manifest.json"
+          : id === "sbom"
+            ? "bom.cdx.json"
+            : id === "provenance"
+              ? "provenance.json"
+              : "",
       sha256:
-        id === "sbom"
+        id === "host-packages"
+          ? digest(manifestFile)
+          : id === "sbom"
           ? digest(path.join(candidateDirectory, "bom.cdx.json"))
           : id === "provenance"
             ? digest(path.join(candidateDirectory, "provenance.json"))
@@ -113,6 +128,7 @@ export function prepareReleaseEvidence(candidateDirectory, preparer = "") {
     open_risks: [],
     known_limitations: [
       "The candidate is unsigned until signature-verification evidence passes.",
+      "Candidate verification proves package structure and binding, not native host runtime behavior.",
       "This draft does not authorize publication."
     ]
   };
