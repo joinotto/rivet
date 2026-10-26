@@ -198,6 +198,8 @@ Implemented:
 - Sigstore/Cosign keyless signing and identity-constrained verification adapter.
 - Repository-declared SAST command discovery and gated execution.
 - Structured threat-model initialization and validation with control evidence.
+- Digest-bound security-expert review packets and human-review record
+  validation.
 - Pinned GitHub CodeQL fixture with native SARIF production and expected-rule verification.
 - Tool-backed CycloneDX and SPDX schema validation with embedded RSA or identity-constrained Sigstore verification.
 - Pinned native Cosign signed-artifact fixture with recorded ephemeral-key

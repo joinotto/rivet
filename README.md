@@ -136,6 +136,17 @@ node skills/rivet/scripts/rivet-evidence.mjs threat-model init \
 
 Validate it with `threat-model validate --file .rivet/threat-model.json`.
 
+Prepare the security-expert review packet:
+
+```sh
+node skills/rivet/scripts/rivet-evidence.mjs security-review packet \
+  --threat-model .rivet/threat-model.json \
+  --output .rivet/security-review-packet.json
+```
+
+Use `security-review init` to create the reviewer record and
+`security-review validate` after the qualified reviewer completes it.
+
 Run an isolated independent review:
 
 ```sh

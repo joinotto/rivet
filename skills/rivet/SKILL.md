@@ -116,6 +116,25 @@ boundaries, data flows, and abuse cases. Connect each threat to concrete
 controls and verification evidence. Use STRIDE only as one prompt method.
 Do not claim compliance from a standard mapping or a valid schema.
 
+Prepare and validate a qualified security-review record:
+
+```sh
+node "<skill-dir>/scripts/rivet-evidence.mjs" security-review packet \
+  --threat-model .rivet/threat-model.json \
+  --output .rivet/security-review-packet.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" security-review init \
+  --packet .rivet/security-review-packet.json \
+  --output .rivet/security-expert-review.json
+node "<skill-dir>/scripts/rivet-evidence.mjs" security-review validate \
+  --packet .rivet/security-review-packet.json \
+  --review .rivet/security-expert-review.json
+```
+
+The packet binds the threat model and finding schema by digest. The review
+record requires reviewer qualifications, independence and conflict statements,
+scope, findings, dispositions, and a conclusion. Structural validation does
+not establish reviewer qualifications or authority.
+
 Scan for common secret patterns:
 
 ```sh

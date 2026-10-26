@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Digest-bound security-expert review packets and human-review records with
+  qualification, independence, conflict, scope, finding, and conclusion checks.
 - Portable skill-package validation for frontmatter, references, anchors,
   package boundaries, empty directories, and orphan documents.
 - Pinned source and test audit of Addy Osmani's agent-skills repository, with

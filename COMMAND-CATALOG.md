@@ -139,6 +139,17 @@ Purpose: Identify assets, actors, entry points, trust boundaries, abuse cases, t
 
 Output must include verification for each important mitigation.
 
+### `security-review`
+
+Purpose: Prepare an expert-review packet and validate the returned human
+review record.
+
+Bind the threat model and finding schema by digest. Record reviewer
+qualifications, independence, conflicts, reviewed scope, findings,
+dispositions, conclusion, limitations, and signature identity.
+
+Schema validation must not claim that the reviewer is qualified or authorized.
+
 ### `security`
 
 Purpose: Run the applicable secure-development checks.

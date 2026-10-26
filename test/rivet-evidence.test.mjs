@@ -992,6 +992,107 @@ const validThreatModelReport = JSON.parse(validThreatModel.stdout);
 assert.strictEqual(validThreatModelReport.decision, "ready-for-review");
 assert.deepStrictEqual(validThreatModelReport.faults, []);
 
+const securityReviewPacket = invoke(intelligence, [
+  "security-review",
+  "packet",
+  "--threat-model",
+  "threat-model.json",
+  "--created-at",
+  "2026-10-26",
+  "--output",
+  "security-review-packet.json",
+]);
+assert.strictEqual(securityReviewPacket.status, 0, securityReviewPacket.stderr);
+const parsedSecurityReviewPacket = JSON.parse(securityReviewPacket.stdout);
+assert.strictEqual(
+  parsedSecurityReviewPacket.kind,
+  "security-expert-review-packet",
+);
+assert.match(
+  parsedSecurityReviewPacket.artifacts.threat_model.sha256,
+  /^[a-f0-9]{64}$/,
+);
+assert.match(
+  parsedSecurityReviewPacket.artifacts.finding_schema.sha256,
+  /^[a-f0-9]{64}$/,
+);
+const securityReviewInit = invoke(intelligence, [
+  "security-review",
+  "init",
+  "--packet",
+  "security-review-packet.json",
+  "--created-at",
+  "2026-10-26",
+  "--output",
+  "security-expert-review.json",
+]);
+assert.strictEqual(securityReviewInit.status, 0, securityReviewInit.stderr);
+const securityReviewPath = path.join(
+  intelligence,
+  "security-expert-review.json",
+);
+const securityReview = JSON.parse(
+  fs.readFileSync(securityReviewPath, "utf8"),
+);
+Object.assign(securityReview.reviewer, {
+  name: "Fixture Reviewer",
+  role: "Application Security Engineer",
+  organization: "Independent Review Lab",
+  qualifications: [
+    "Ten years of application-security design and review experience.",
+  ],
+  independence: "Did not author the reviewed artifacts.",
+  conflicts: "No conflict was declared.",
+});
+securityReview.reviewed_at = "2026-10-26";
+securityReview.scope = {
+  threat_model: true,
+  finding_schema: true,
+};
+securityReview.conclusion = "approved";
+securityReview.limitations = [
+  "The fixture review does not represent a real expert assessment.",
+];
+securityReview.signature = {
+  method: "fixture identity",
+  identity: "fixture-reviewer",
+  artifact: "test-only",
+};
+fs.writeFileSync(securityReviewPath, JSON.stringify(securityReview));
+const validSecurityReview = invoke(intelligence, [
+  "security-review",
+  "validate",
+  "--packet",
+  "security-review-packet.json",
+  "--review",
+  "security-expert-review.json",
+]);
+assert.strictEqual(validSecurityReview.status, 0, validSecurityReview.stderr);
+assert.strictEqual(
+  JSON.parse(validSecurityReview.stdout).decision,
+  "recorded-human-review",
+);
+securityReview.packet.threat_model_sha256 = "0".repeat(64);
+fs.writeFileSync(securityReviewPath, JSON.stringify(securityReview));
+const mismatchedSecurityReview = invoke(intelligence, [
+  "security-review",
+  "validate",
+  "--packet",
+  "security-review-packet.json",
+  "--review",
+  "security-expert-review.json",
+]);
+assert.strictEqual(
+  mismatchedSecurityReview.status,
+  2,
+  mismatchedSecurityReview.stderr,
+);
+assert.ok(
+  JSON.parse(mismatchedSecurityReview.stdout).faults.some((fault) =>
+    /threat_model_sha256 does not match/.test(fault)
+  ),
+);
+
 const securityDryRun = invoke(intelligence, [
   "security",
   "--run",

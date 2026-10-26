@@ -75,6 +75,11 @@ import {
   validateThreatModel,
 } from "./lib/threat-model.mjs";
 import {
+  createSecurityReviewPacket,
+  securityReviewTemplate,
+  validateSecurityReview,
+} from "./lib/security-review.mjs";
+import {
   statefulTemplate,
   validateStatefulModel,
 } from "./lib/stateful.mjs";
@@ -645,6 +650,74 @@ function threatModelWorkflow() {
       return;
     }
     throw new Error("Use threat-model init or threat-model validate.");
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}
+
+function securityReviewWorkflow() {
+  const action = argv[1];
+  try {
+    const packetFile = value("--packet");
+    if (action === "packet") {
+      const threatModelFile = evidenceArtifact("--threat-model");
+      const output = value("--output");
+      if (!threatModelFile || !output) {
+        throw new Error(
+          "Security-review packet creation requires --threat-model <file> and --output <file>.",
+        );
+      }
+      const packet = createSecurityReviewPacket({
+        threatModelFile: path.relative(cwd, threatModelFile),
+        findingSchema: reviewFindingsSchema,
+        createdAt: value("--created-at") || new Date().toISOString().slice(0, 10),
+      });
+      const absolute = outputPath(output);
+      if (fs.existsSync(absolute) && !has("--force")) {
+        throw new Error(`Refusing to overwrite existing file: ${output}.`);
+      }
+      fs.mkdirSync(path.dirname(absolute), { recursive: true });
+      fs.writeFileSync(absolute, `${JSON.stringify(packet, null, 2)}\n`, {
+        mode: 0o600,
+      });
+      process.stdout.write(`${JSON.stringify(packet, null, 2)}\n`);
+      return;
+    }
+    if (!packetFile) {
+      throw new Error("Security-review init and validate require --packet <file>.");
+    }
+    const packet = readJson(evidenceArtifact("--packet"));
+    if (action === "init") {
+      const output = value("--output");
+      if (!output) throw new Error("Security-review init requires --output <file>.");
+      const absolute = outputPath(output);
+      if (fs.existsSync(absolute) && !has("--force")) {
+        throw new Error(`Refusing to overwrite existing file: ${output}.`);
+      }
+      const review = securityReviewTemplate(
+        packet,
+        value("--created-at") || new Date().toISOString().slice(0, 10),
+      );
+      fs.mkdirSync(path.dirname(absolute), { recursive: true });
+      fs.writeFileSync(absolute, `${JSON.stringify(review, null, 2)}\n`, {
+        mode: 0o600,
+      });
+      console.log(`Security-review template: ${output}`);
+      console.log("Status: incomplete");
+      return;
+    }
+    if (action === "validate") {
+      const reviewFile = evidenceArtifact("--review");
+      if (!reviewFile) {
+        throw new Error("Security-review validation requires --review <file>.");
+      }
+      const report = validateSecurityReview(packet, readJson(reviewFile));
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+      if (report.decision !== "recorded-human-review") process.exitCode = 2;
+      return;
+    }
+    throw new Error("Use security-review packet, init, or validate.");
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
@@ -2646,6 +2719,8 @@ if (command === "init") {
   contractEvidence();
 } else if (command === "threat-model") {
   threatModelWorkflow();
+} else if (command === "security-review") {
+  securityReviewWorkflow();
 } else if (command === "stateful") {
   statefulWorkflow();
 } else if (command === "fuzz") {
@@ -2689,7 +2764,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | stateful (init | validate) | fuzz --report file | chaos (init | validate | result) | formalize (init | validate | result) | privacy (init | validate) | capacity (init | evaluate) | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file [--enrich findings --kev snapshot --epss snapshot --retrieved-at date] [--reachability findings --evidence record]) | sbom --file file --revision value [--validate-schema] [--signature embedded|sigstore|cosign-key] | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate (--campaign file | --fixtures dir --findings file) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
+    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id]) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | stateful (init | validate) | fuzz --report file | chaos (init | validate | result) | formalize (init | validate | result) | privacy (init | validate) | capacity (init | evaluate) | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security-review (packet | init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file [--enrich findings --kev snapshot --epss snapshot --retrieved-at date] [--reachability findings --evidence record]) | sbom --file file --revision value [--validate-schema] [--signature embedded|sigstore|cosign-key] | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate (--campaign file | --fixtures dir --findings file) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
   );
   process.exitCode = 1;
 }
