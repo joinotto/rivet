@@ -40,6 +40,9 @@ The workflow has read-only repository permission. It builds and verifies the
 candidate, then retains it as a 14-day workflow artifact. It does not create a
 tag, GitHub release, package, signature, or publication.
 
+The first observed native run and independent artifact verification are in
+`docs/RELEASE-CANDIDATE-CONFORMANCE.md`.
+
 ## Release authority
 
 A named maintainer prepares a release. Security-sensitive binaries or

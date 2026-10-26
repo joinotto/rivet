@@ -256,6 +256,7 @@ The product must not present an inferred result as an observed result.
 - [Maintainers](MAINTAINERS.md)
 - [Support](SUPPORT.md)
 - [Releasing](RELEASING.md)
+- [Release-candidate workflow conformance](docs/RELEASE-CANDIDATE-CONFORMANCE.md)
 - [Technical writing rules](TECHNICAL-WRITING.md)
 - [ASD-STE100 for agent skills](docs/ASD-STE100-FOR-SKILLS.md)
 - [Addy Osmani agent-skills audit](docs/ADDY-AGENT-SKILLS-AUDIT.md)

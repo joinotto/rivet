@@ -2,6 +2,9 @@
 
 Observed on 2026-10-25.
 
+Release-candidate build and verification conformance was observed on
+2026-10-26. See `docs/RELEASE-CANDIDATE-CONFORMANCE.md`.
+
 ## Completed published scopes
 
 - Phase 0: foundation. See `docs/PHASE-0-CONFORMANCE.md`.
