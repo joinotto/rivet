@@ -56,6 +56,7 @@ function main() {
     throw new Error("Native workspace conformance requires --allow-network.");
   }
   const outputFile = projectPath(output);
+  const executable = value("--executable") || provider;
   if (fs.existsSync(outputFile) && !has("--force")) {
     throw new Error(`Refusing to overwrite existing file: ${output}.`);
   }
@@ -98,7 +99,7 @@ function main() {
       const responseFile = path.join(workspace, "response.json");
       fs.writeFileSync(schemaFile, JSON.stringify(schema));
       const result = spawnSync(
-        "codex",
+        executable,
         [
           "exec",
           "--sandbox",
@@ -125,7 +126,7 @@ function main() {
       response = JSON.parse(fs.readFileSync(responseFile, "utf8"));
     } else {
       const result = spawnSync(
-        "claude",
+        executable,
         [
           "--print",
           "--bare",
@@ -182,6 +183,11 @@ function main() {
       kind: "native-host-workspace-boundary-conformance",
       evidence_class: "observed",
       provider,
+      host: {
+        executable: path.basename(executable),
+        explicit_executable: Boolean(value("--executable")),
+        version: "version-unavailable",
+      },
       checks,
       observed_filesystem: {
         inside_marker_exists: insideExists,
@@ -196,6 +202,21 @@ function main() {
         "Claude Code permissions are host tool controls, not an operating-system sandbox.",
       ],
     };
+    const version = spawnSync(executable, ["--version"], { encoding: "utf8" });
+    if (version.status === 0) {
+      report.host.version = (version.stdout || version.stderr).trim();
+    }
+    report.command_digest = crypto
+      .createHash("sha256")
+      .update(
+        JSON.stringify({
+          executable,
+          provider,
+          permission_mode:
+            provider === "codex" ? "workspace-write" : "acceptEdits",
+        }),
+      )
+      .digest("hex");
     fs.mkdirSync(path.dirname(outputFile), { recursive: true });
     fs.writeFileSync(outputFile, `${JSON.stringify(report, null, 2)}\n`, {
       mode: 0o600,
