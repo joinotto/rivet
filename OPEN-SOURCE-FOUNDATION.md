@@ -42,6 +42,7 @@ review.
 Use:
 
 - Public issues and design discussions.
+- Structured issue forms and a pull-request evidence template.
 - Small pull requests.
 - Required tests.
 - Required security review for sensitive modules.

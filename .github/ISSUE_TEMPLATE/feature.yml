@@ -1,0 +1,41 @@
+name: Feature proposal
+description: Propose a new Rivet capability or evidence workflow.
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the engineering decision or risk that lacks reliable evidence.
+    validations:
+      required: true
+  - type: textarea
+    id: users
+    attributes:
+      label: Users and context
+      description: State who needs this and when Rivet should apply it.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Required evidence
+      description: State the observed evidence, failure states, and uncertainty the result must preserve.
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety and permissions
+      description: Identify network access, writes, credentials, approvals, and recovery requirements.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Existing tools and alternatives
+      description: Name repository tools or established standards that Rivet should reuse.
+    validations:
+      required: true

@@ -1,0 +1,63 @@
+name: Bug report
+description: Report reproducible incorrect Rivet behavior.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include credentials, private source code, or a new vulnerability.
+        Use private vulnerability reporting for security issues.
+  - type: input
+    id: revision
+    attributes:
+      label: Rivet revision
+      description: Provide the full commit identifier or release version.
+    validations:
+      required: true
+  - type: dropdown
+    id: host
+    attributes:
+      label: Host
+      options:
+        - Portable
+        - Codex
+        - Claude Code
+        - Cursor
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Give the smallest safe sequence that reproduces the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include the operating system, Node.js version, host version, command, and redacted output.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed secrets, private source, personal data, and vulnerability details.
+          required: true

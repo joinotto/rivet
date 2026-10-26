@@ -18,6 +18,8 @@ This file records notable changes to Rivet.
   signatures, risks, or independent approvals.
 - Safe artifact-path and digest verification for every release gate and signed
   approval record.
+- Structured GitHub issue forms and a pull-request evidence template with
+  explicit private-security routing.
 - Deterministic unsigned release-candidate archives with checksums, CycloneDX
   SBOM, source-bound provenance, and byte-reproducibility tests.
 - Offline, fail-closed verification for candidate inventory, archive metadata,

@@ -25,6 +25,13 @@ export const requiredFoundationFiles = [
 ];
 
 const requiredLicenseMetadata = ["REUSE.toml", "LICENSES/Apache-2.0.txt"];
+export const requiredCommunityFiles = [
+  ".github/ISSUE_TEMPLATE/bug.yml",
+  ".github/ISSUE_TEMPLATE/feature.yml",
+  ".github/ISSUE_TEMPLATE/documentation.yml",
+  ".github/ISSUE_TEMPLATE/config.yml",
+  ".github/pull_request_template.md"
+];
 
 const navigatedFoundationFiles = requiredFoundationFiles.filter(
   (relative) => !["LICENSE", "NOTICE", "README.md"].includes(relative)
@@ -62,7 +69,11 @@ function read(root, relative, faults) {
 export function validateOpenSourceFoundation(root) {
   const faults = [];
   const documents = Object.fromEntries(
-    [...requiredFoundationFiles, ...requiredLicenseMetadata].map((relative) => [
+    [
+      ...requiredFoundationFiles,
+      ...requiredLicenseMetadata,
+      ...requiredCommunityFiles
+    ].map((relative) => [
       relative,
       read(root, relative, faults)
     ])
@@ -111,11 +122,30 @@ export function validateOpenSourceFoundation(root) {
   if (!documents["SUPPORT.md"].includes("Security reports")) {
     faults.push("SUPPORT.md must separate security reports from public support.");
   }
+  if (
+    !documents[".github/ISSUE_TEMPLATE/config.yml"].includes(
+      "security/advisories/new"
+    ) ||
+    !documents[".github/ISSUE_TEMPLATE/bug.yml"].includes(
+      "Do not include credentials"
+    )
+  ) {
+    faults.push("Public issue intake must route sensitive reports to the private security channel.");
+  }
+  if (
+    !documents[".github/pull_request_template.md"].includes("DCO sign-off") ||
+    !documents[".github/pull_request_template.md"].includes(
+      "Security and privacy"
+    )
+  ) {
+    faults.push("The pull-request template must require contribution and security evidence.");
+  }
 
   return {
     schema: 1,
     kind: "open-source-foundation-conformance",
     required_files: requiredFoundationFiles.length,
+    community_files: requiredCommunityFiles.length,
     license: packageDocument?.license || null,
     faults,
     decision: faults.length ? "invalid" : "valid",
