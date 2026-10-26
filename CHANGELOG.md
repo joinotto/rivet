@@ -183,6 +183,9 @@ This file records notable changes to Rivet.
 
 ### Changed
 
+- Made verification receipts disclose detected security and dependency
+  adapters that were not run automatically, including the required explicit
+  workflow.
 - Updated the roadmap to distinguish the completed pull-request milestone
   implementation from the unreleased public product.
 - Limited pull-request content-risk signals to added production lines. The

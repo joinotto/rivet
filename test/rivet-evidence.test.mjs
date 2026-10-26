@@ -936,6 +936,52 @@ const incomplete = invoke(fixture, [
 assert.strictEqual(incomplete.status, 1, incomplete.stderr);
 assert.strictEqual(JSON.parse(incomplete.stdout).decision, "incomplete");
 
+const specializedFixture = fs.mkdtempSync(
+  path.join(os.tmpdir(), "rivet-specialized-evidence-"),
+);
+fs.writeFileSync(
+  path.join(specializedFixture, "package.json"),
+  JSON.stringify({
+    scripts: {
+      test: "node -e \"process.exit(0)\"",
+      "security:scan":
+        "node -e \"require('fs').writeFileSync('security-ran', 'yes')\"",
+    },
+  }),
+);
+fs.writeFileSync(
+  path.join(specializedFixture, "package-lock.json"),
+  JSON.stringify({
+    name: "specialized-evidence",
+    lockfileVersion: 3,
+    packages: {},
+  }),
+);
+const specializedVerification = invoke(specializedFixture, [
+  "verify",
+  "--json",
+]);
+assert.strictEqual(
+  specializedVerification.status,
+  0,
+  specializedVerification.stderr,
+);
+const specializedReceipt = JSON.parse(specializedVerification.stdout);
+assert.strictEqual(specializedReceipt.decision, "pass-with-limitations");
+assert.deepStrictEqual(
+  specializedReceipt.available_evidence.map((item) => item.id),
+  ["security:scan", "npm-audit"],
+);
+assert.ok(
+  specializedReceipt.available_evidence.every(
+    (item) => item.status === "not-run",
+  ),
+);
+assert.strictEqual(
+  fs.existsSync(path.join(specializedFixture, "security-ran")),
+  false,
+);
+
 const serviceRisk = invoke(fixture, [
   "impact",
   "--files",

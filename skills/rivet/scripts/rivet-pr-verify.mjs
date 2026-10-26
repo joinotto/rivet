@@ -202,6 +202,19 @@ if (!receipt.results.length) {
 }
 lines.push(
   "",
+  "## Specialized evidence not run",
+  "",
+);
+if (!receipt.available_evidence.length) {
+  lines.push("- No specialized security or dependency adapter was detected.");
+}
+for (const item of receipt.available_evidence) {
+  lines.push(
+    `- ${markdownCell(item.id)} (${markdownCell(item.kind)}): ${markdownCell(item.reason)}`,
+  );
+}
+lines.push(
+  "",
   "## Limitations",
   "",
   ...report.limitations.map((item) => `- ${markdownCell(item)}`),
