@@ -22,6 +22,7 @@ Run:
 npm test
 npm run validate:skill
 npm run validate:rejections
+npm run validate:openssf
 npm run test:routing
 ```
 

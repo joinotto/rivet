@@ -21,6 +21,7 @@
     "check:ste": "node skills/rivet/scripts/rivet-ste.mjs skills/rivet",
     "validate:skill": "node scripts/validate-skill-package.mjs skills/rivet",
     "validate:rejections": "node scripts/validate-skill-rejections.mjs",
+    "validate:openssf": "node scripts/validate-openssf-baseline.mjs",
     "test:routing": "node scripts/evaluate-skill-routing.mjs",
     "validate:skill:openai": "python3 /Users/apple/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/rivet",
     "package:hosts": "node scripts/package-hosts.mjs"

@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Machine-validated OpenSSF baseline-1 evidence assessment and repository
+  ignore rules for generated, local, and credential-bearing files.
 - Required CodeQL branch protection and observed Scorecard remediation
   evidence.
 - Repository-wide CodeQL analysis and an evidence-based review of the first

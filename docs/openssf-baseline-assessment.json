@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "kind": "openssf-baseline-1-assessment",
+  "project": "joinotto/rivet",
+  "observed_at": "2026-10-26",
+  "source": {
+    "repository": "ossf/best-practices-badge",
+    "revision": "6248d00bdd588f9802a2cf5f6c611cd45ada002b",
+    "criteria_file": "criteria/baseline_criteria.yml",
+    "baseline_version": "2026-08-28"
+  },
+  "summary": {
+    "met": 17,
+    "not_met": 1,
+    "not_applicable": 6,
+    "needs_review": 0
+  },
+  "controls": [
+    {
+      "id": "OSPS-AC-01.01",
+      "status": "not_met",
+      "evidence": ["GitHub organization API: two_factor_requirement_enabled=false"],
+      "notes": "The repository owner must enforce multi-factor authentication for organization members."
+    },
+    {
+      "id": "OSPS-AC-02.01",
+      "status": "met",
+      "evidence": ["GitHub organization API: default_repository_permission=read", "Repository collaborator roles show explicit read or admin grants"],
+      "notes": "New organization access defaults to read. Elevated repository access requires an explicit role."
+    },
+    {
+      "id": "OSPS-AC-03.01",
+      "status": "met",
+      "evidence": ["docs/BRANCH-PROTECTION.md", "GitHub branch protection: pull requests and strict checks required"],
+      "notes": "Direct changes to main are rejected."
+    },
+    {
+      "id": "OSPS-AC-03.02",
+      "status": "met",
+      "evidence": ["docs/BRANCH-PROTECTION.md", "GitHub branch protection: allow_deletions=false"],
+      "notes": "The primary branch cannot be deleted through the normal repository workflow."
+    },
+    {
+      "id": "OSPS-BR-01.01",
+      "status": "met",
+      "evidence": [".github/workflows/ci.yml", ".github/workflows/codeql.yml", ".github/workflows/scorecard.yml"],
+      "notes": "The workflows do not interpolate pull-request titles, branch names, commit messages, authors, or other untrusted metadata into shell commands."
+    },
+    {
+      "id": "OSPS-BR-01.03",
+      "status": "met",
+      "evidence": [".github/workflows/ci.yml", ".github/workflows/codeql.yml", "docs/SECURITY-BASELINE.md"],
+      "notes": "Pull-request workflows have explicit minimal permissions and do not receive project secrets."
+    },
+    {
+      "id": "OSPS-BR-03.01",
+      "status": "met",
+      "evidence": ["README.md", "SUPPORT.md", "SECURITY.md"],
+      "notes": "Official repository, support, and security channels use HTTPS."
+    },
+    {
+      "id": "OSPS-BR-03.02",
+      "status": "not_applicable",
+      "evidence": ["GitHub releases API: zero releases", "RELEASING.md"],
+      "notes": "Rivet has no official distribution channel or released artifact."
+    },
+    {
+      "id": "OSPS-BR-07.01",
+      "status": "met",
+      "evidence": [".gitignore", "docs/SECURITY-BASELINE.md", "GitHub repository settings: secret scanning and push protection enabled"],
+      "notes": "Ignore rules and repository scanning reduce accidental credential storage. They do not replace contributor review."
+    },
+    {
+      "id": "OSPS-DO-01.01",
+      "status": "not_applicable",
+      "evidence": ["GitHub releases API: zero releases"],
+      "notes": "The criterion applies after the first release. Current usage documentation is in README.md and COMMAND-CATALOG.md."
+    },
+    {
+      "id": "OSPS-DO-02.01",
+      "status": "not_applicable",
+      "evidence": ["GitHub releases API: zero releases", "CONTRIBUTING.md", "SUPPORT.md"],
+      "notes": "The criterion applies after the first release. Defect reporting is already documented."
+    },
+    {
+      "id": "OSPS-GV-02.01",
+      "status": "met",
+      "evidence": ["GitHub repository settings: issues enabled", "CONTRIBUTING.md", "SUPPORT.md"],
+      "notes": "Public issues provide a discussion route for changes and usage obstacles."
+    },
+    {
+      "id": "OSPS-GV-03.01",
+      "status": "met",
+      "evidence": ["CONTRIBUTING.md"],
+      "notes": "The contribution workflow, required evidence, tests, and generated-code responsibility are documented."
+    },
+    {
+      "id": "OSPS-LE-02.01",
+      "status": "met",
+      "evidence": ["LICENSE", "package.json"],
+      "notes": "The source uses Apache License 2.0."
+    },
+    {
+      "id": "OSPS-LE-02.02",
+      "status": "not_applicable",
+      "evidence": ["GitHub releases API: zero releases"],
+      "notes": "No released software asset exists."
+    },
+    {
+      "id": "OSPS-LE-03.01",
+      "status": "met",
+      "evidence": ["LICENSE"],
+      "notes": "The repository root contains the complete Apache License 2.0 text."
+    },
+    {
+      "id": "OSPS-LE-03.02",
+      "status": "not_applicable",
+      "evidence": ["GitHub releases API: zero releases"],
+      "notes": "No released source archive or software asset exists."
+    },
+    {
+      "id": "OSPS-QA-01.01",
+      "status": "met",
+      "evidence": ["GitHub repository API: visibility=public", "README.md"],
+      "notes": "The authoritative repository is publicly readable at its stable GitHub location."
+    },
+    {
+      "id": "OSPS-QA-01.02",
+      "status": "met",
+      "evidence": ["Public Git commit history", "docs/BRANCH-PROTECTION.md"],
+      "notes": "The repository records commit authors, revisions, and timestamps. Linear history is required."
+    },
+    {
+      "id": "OSPS-QA-02.01",
+      "status": "met",
+      "evidence": ["package.json"],
+      "notes": "package.json is the direct JavaScript dependency manifest. It currently declares no package dependencies."
+    },
+    {
+      "id": "OSPS-QA-04.01",
+      "status": "not_applicable",
+      "evidence": ["README.md", "docs/architecture.md"],
+      "notes": "Rivet currently uses one authoritative source repository."
+    },
+    {
+      "id": "OSPS-QA-05.01",
+      "status": "met",
+      "evidence": ["Tracked-file type inventory: 172 source and text artifacts", ".gitignore"],
+      "notes": "No generated executable artifact is tracked."
+    },
+    {
+      "id": "OSPS-QA-05.02",
+      "status": "met",
+      "evidence": ["Tracked-file type inventory: no unreviewable binary artifact"],
+      "notes": "Fixtures and evidence are reviewable text formats."
+    },
+    {
+      "id": "OSPS-VM-02.01",
+      "status": "met",
+      "evidence": ["SECURITY.md", "SUPPORT.md"],
+      "notes": "The project publishes its private vulnerability-reporting route and response targets."
+    }
+  ],
+  "limitations": [
+    "This record is a local evidence assessment. It is not an OpenSSF badge.",
+    "External repository and organization settings can change after the observation date.",
+    "The project must submit and maintain the assessment in the official service before it displays a badge."
+  ]
+}

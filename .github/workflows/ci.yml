@@ -48,6 +48,9 @@ jobs:
       - name: Validate skill-change rejections
         run: npm run validate:rejections
 
+      - name: Validate OpenSSF baseline assessment
+        run: npm run validate:openssf
+
       - name: Test skill-routing contract
         run: npm run test:routing
 
