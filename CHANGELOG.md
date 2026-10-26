@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Complete vulnerability disclosure policy, weekly GitHub Actions dependency
+  updates, and a repository security baseline record.
 - Enforced `main` branch protection with required Node.js 16 and 22 checks,
   plus a documented single-maintainer review limitation.
 - General CI across Node.js 16 and 22, plus maintainer, support, release, and

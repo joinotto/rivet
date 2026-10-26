@@ -1,0 +1,77 @@
+# Repository Security Baseline
+
+> This document uses an ASD-STE100-aligned technical writing style. It is not a
+> certified ASD-STE100 document.
+
+## Purpose
+
+This document records the repository security controls for Rivet. Repository
+settings are external state. Recheck them before each public release.
+
+## Disclosure
+
+`SECURITY.md` defines:
+
+- The supported version.
+- The private report route.
+- The required report information.
+- Response targets.
+- Coordinated disclosure.
+- Reporter credit.
+- CVE assessment.
+- The current safe-harbor status.
+
+Private vulnerability reporting is enabled in the GitHub repository.
+
+## Source and workflow controls
+
+The repository uses:
+
+- Protected `main` branch settings.
+- Required pull requests.
+- Required Node.js 16 and Node.js 22 checks.
+- Linear history.
+- Resolved review conversations before merge.
+- Read-only default workflow permissions.
+- Commit-pinned third-party GitHub Actions.
+- Native static-analysis and signature workflows.
+
+See `docs/BRANCH-PROTECTION.md` and `docs/CI-CONFORMANCE.md`.
+
+## Dependency controls
+
+`.github/dependabot.yml` requests weekly GitHub Actions update pull requests.
+Dependabot vulnerability alerts and security updates are enabled in the
+repository settings.
+
+The project currently has no runtime package dependencies. Recheck the update
+configuration when a package ecosystem or lock file is added.
+
+## Secret controls
+
+The repository enables:
+
+- Secret scanning.
+- Push protection.
+
+These controls reduce risk. They do not prove that the repository has no
+secrets. Contributors must not commit credentials.
+
+GitHub reports non-provider pattern scanning and secret validity checks as
+disabled. The repository owner must recheck whether the current GitHub plan and
+organization policy make these controls available.
+
+## Remaining work
+
+The following controls are not complete:
+
+- OpenSSF Scorecard workflow and review.
+- OpenSSF Best Practices badge assessment.
+- Non-provider secret pattern scanning.
+- Secret validity checks.
+- Release artifact signing.
+- Software bill of materials generation.
+- Build provenance attestation.
+- Fuzzing for future parsers and trust-boundary code.
+
+Add each control only when Rivet has the related code or release artifact.
