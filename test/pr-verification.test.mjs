@@ -22,15 +22,10 @@ function git(...args) {
   return result.stdout.trim();
 }
 
-fs.mkdirSync(path.join(fixture, "scripts"), { recursive: true });
 fs.cpSync(
   path.join(sourceRoot, "skills"),
   path.join(fixture, "skills"),
   { recursive: true },
-);
-fs.copyFileSync(
-  path.join(sourceRoot, "scripts/run-pr-verification.mjs"),
-  path.join(fixture, "scripts/run-pr-verification.mjs"),
 );
 fs.writeFileSync(
   path.join(fixture, "package.json"),
@@ -58,14 +53,18 @@ git("add", ".");
 git("commit", "-m", "change");
 const head = git("rev-parse", "HEAD");
 
-const result = run(process.execPath, ["scripts/run-pr-verification.mjs"], {
+const result = run(
+  process.execPath,
+  ["skills/rivet/scripts/rivet-pr-verify.mjs"],
+  {
   env: {
     ...process.env,
     RIVET_BASE_SHA: base,
     RIVET_HEAD_SHA: head,
     RIVET_REPORT_DIR: ".rivet/ci",
   },
-});
+  },
+);
 assert.strictEqual(result.status, 0, `${result.stdout}\n${result.stderr}`);
 
 const report = JSON.parse(
