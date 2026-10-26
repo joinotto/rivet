@@ -43,6 +43,28 @@ tag, GitHub release, package, signature, or publication.
 The first observed native run and independent artifact verification are in
 `docs/RELEASE-CANDIDATE-CONFORMANCE.md`.
 
+Prepare a revision-bound release evidence draft:
+
+```sh
+npm run release:evidence -- prepare \
+  --candidate dist/release \
+  --output dist/release-evidence.json \
+  --preparer MAINTAINER_IDENTITY
+```
+
+The draft stays on hold until every required gate has pass status, an artifact
+digest, and two distinct qualified independent approvals. Validate the
+completed record with:
+
+```sh
+npm run release:evidence -- validate \
+  --candidate dist/release \
+  --record dist/release-evidence.json
+```
+
+The strongest result is `ready-for-publication-review`. It does not authorize
+or create a release.
+
 ## Release authority
 
 A named maintainer prepares a release. Security-sensitive binaries or
