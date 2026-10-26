@@ -1366,15 +1366,27 @@ function contentRiskSignals(files, revisions = null) {
 
   for (const file of files) {
     if (!contentRiskEligible(file)) continue;
-    const absolute = path.resolve(cwd, file);
-    if (!absolute.startsWith(`${cwd}${path.sep}`) || !fs.existsSync(absolute)) {
-      continue;
+    let body;
+    if (revisions) {
+      body = addedContent(file, revisions.base, revisions.head);
+    } else {
+      const absolute = path.resolve(cwd, file);
+      if (!absolute.startsWith(`${cwd}${path.sep}`)) continue;
+      let descriptor;
+      try {
+        descriptor = fs.openSync(
+          absolute,
+          fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0),
+        );
+        const stat = fs.fstatSync(descriptor);
+        if (!stat.isFile() || stat.size > 1024 * 1024) continue;
+        body = fs.readFileSync(descriptor, "utf8");
+      } catch {
+        continue;
+      } finally {
+        if (descriptor !== undefined) fs.closeSync(descriptor);
+      }
     }
-    const stat = fs.statSync(absolute);
-    if (!stat.isFile() || stat.size > 1024 * 1024) continue;
-    const body = revisions
-      ? addedContent(file, revisions.base, revisions.head)
-      : fs.readFileSync(absolute, "utf8");
     for (const rule of patterns) {
       if (rule.pattern.test(body)) {
         signals.push({
