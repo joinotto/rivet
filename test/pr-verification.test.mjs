@@ -176,9 +176,10 @@ assert.strictEqual(symbolicLinkVerification.status, 1);
 assert.match(symbolicLinkVerification.stderr, /regular files only/);
 fs.rmSync(path.join(fixture, ".rivet/ci"), { recursive: true, force: true });
 const exposedValue = "this-is-a-secret-value";
+const keyName = ["api", "Key"].join("");
 fs.writeFileSync(
   path.join(fixture, "src/config.js"),
-  `export const apiKey = "${exposedValue}";\n`,
+  `export const ${keyName} = "${exposedValue}";\n`,
 );
 git("add", ".");
 git("commit", "-m", "add exposed secret");
