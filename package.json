@@ -18,6 +18,7 @@
     "test:generated": "node fixtures/reference-systems/run-generated-tests.mjs fixtures/reference-systems/generated-test-evidence.json",
     "test:migration": "node fixtures/migration-resume/run-evidence.mjs fixtures/migration-resume/evidence.json",
     "test:hosts": "node scripts/test-host-packages.mjs",
+    "check:dco": "node scripts/check-dco.mjs",
     "check:ste": "node skills/rivet/scripts/rivet-ste.mjs skills/rivet",
     "validate:skill": "node scripts/validate-skill-package.mjs skills/rivet",
     "validate:rejections": "node scripts/validate-skill-rejections.mjs",

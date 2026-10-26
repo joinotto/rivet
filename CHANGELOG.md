@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- OpenSSF baseline-2 evidence assessment, documented sensitive-access holders,
+  and required DCO sign-off verification.
 - Machine-validated OpenSSF baseline-1 evidence assessment and repository
   ignore rules for generated, local, and credential-bearing files.
 - Required CodeQL branch protection and observed Scorecard remediation
