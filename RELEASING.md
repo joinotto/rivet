@@ -14,8 +14,10 @@ npm run package:release-candidate -- \
 ```
 
 The builder creates deterministic uncompressed host archives, SHA-256 sums, a
-CycloneDX SBOM, unsigned source-bound provenance, and a manifest. CI builds the
-candidate twice and requires byte-identical output.
+CycloneDX SBOM, an unsigned in-toto Statement with the SLSA v1 provenance
+predicate, and a manifest. CI builds the candidate twice and requires
+byte-identical output. `docs/RELEASE-BUILD-TYPE.md` defines the build type and
+the untrusted local-builder boundary.
 
 The output directory must resolve inside the project. The builder rejects
 symbolic link traversal outside that boundary and does not remove an outside

@@ -74,11 +74,17 @@ Controls:
 
 An attacker can modify a distributed skill or runner.
 
-Planned controls:
+Implemented candidate controls:
+
+- Deterministic host archives.
+- Revision-bound CycloneDX SBOM.
+- Unsigned in-toto Statement with the SLSA v1 provenance predicate.
+- Candidate manifest and independent verification.
+
+Required public-release controls:
 
 - Signed release artifacts.
-- Software bill of materials.
-- Build provenance.
+- Authenticated build provenance.
 - Two-person release approval.
 
 ## Residual risks
