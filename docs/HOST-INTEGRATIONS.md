@@ -19,7 +19,7 @@ A host integration only connects this core to an agent product.
 ## Initial supported hosts
 
 The initial distribution supports Codex and Claude Code only. Future host
-expansion is recorded in `ROADMAP.md`.
+expansion is recorded in the [roadmap](ROADMAP.md).
 
 ### Codex
 

@@ -35,5 +35,7 @@ The source package version is `0.1.0`.
   Its checker does not certify compliance.
 - Experimental development helpers and implementation records are excluded
   from the public source tree and host packages.
+- Detailed guides and project policies are organized under `docs/`, with a
+  categorized index. Only essential repository Markdown files remain at root.
 - Publication remains subject to real-project pilots, qualified review,
   authenticated artifacts, and independent approvals.

@@ -6,7 +6,7 @@ The initial release supports Codex and Claude Code only. The public bug form
 lists these two hosts.
 
 Cursor and other coding tools have no active package or support. Future host
-integration is deferred in `ROADMAP.md`.
+integration is deferred in the [roadmap](docs/ROADMAP.md).
 
 ## Usage and development questions
 

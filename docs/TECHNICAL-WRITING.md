@@ -14,7 +14,7 @@ Sources:
 - [ASD Simplified Technical English](https://www.asd-europe.org/standards-specifications/simplified-technical-english/)
 
 The skill's applied guidance is in
-[writing reference](skills/rivet/references/writing.md).
+[writing reference](../skills/rivet/references/writing.md).
 
 ## 2. Compliance statement
 
