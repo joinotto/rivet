@@ -109,6 +109,10 @@ candidate also includes an unsigned in-toto Statement with the SLSA v1
 provenance predicate. These records do not replace a signed SBOM or
 authenticated provenance for a public release.
 
+Native candidate run `40400844333` verified this structure for exact revision
+`5107f5e7e7fadbfcca243f17d09b6e578b2399c9`. See
+`docs/RELEASE-CANDIDATE-CONFORMANCE.md`.
+
 The local baseline-1, baseline-2, and baseline-3 evidence assessments are in
 `docs/openssf-baseline-assessment.json` and
 `docs/openssf-baseline-2-assessment.json`, and
