@@ -1481,7 +1481,9 @@ fs.writeFileSync(
           version: "1.0.0",
           rules: [{
             id: "auth-object",
-            properties: { tags: ["security", "CWE-639"] },
+            properties: {
+              tags: ["security", "CWE-639", "OWASP-ASVS-4.2.1"],
+            },
           }],
         },
       },
@@ -1508,6 +1510,11 @@ assert.strictEqual(sarifEvidence.status, 2, sarifEvidence.stderr);
 const sarifReport = JSON.parse(sarifEvidence.stdout);
 assert.strictEqual(sarifReport.findings[0].rule_id, "auth-object");
 assert.deepStrictEqual(sarifReport.findings[0].cwe, ["CWE-639"]);
+assert.deepStrictEqual(sarifReport.findings[0].asvs, ["OWASP-ASVS-4.2.1"]);
+assert.deepStrictEqual(
+  sarifReport.findings[0].standard_mappings,
+  ["CWE-639", "OWASP-ASVS-4.2.1"],
+);
 
 fs.writeFileSync(
   path.join(intelligence, "trivy.json"),

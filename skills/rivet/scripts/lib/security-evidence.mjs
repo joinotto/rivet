@@ -28,12 +28,18 @@ export function normalizeSarif(file) {
     for (const result of run.results || []) {
       const rule = (driver?.rules || []).find((item) => item.id === result.ruleId);
       const tags = rule?.properties?.tags || [];
+      const cwe = tags.filter((tag) => /^CWE-\d+$/i.test(tag));
+      const asvs = tags.filter(
+        (tag) => /^(?:OWASP[-: ])?ASVS[-: ][A-Za-z0-9.-]+$/i.test(tag),
+      );
       findings.push({
         rule_id: result.ruleId || null,
         level: result.level || "warning",
         message: result.message?.text || null,
         location: location(result),
-        cwe: tags.filter((tag) => /^CWE-\d+$/i.test(tag)),
+        cwe,
+        asvs,
+        standard_mappings: [...cwe, ...asvs],
         evidence_class: "observed",
       });
     }
@@ -49,7 +55,7 @@ export function normalizeSarif(file) {
     decision: findings.length ? "review-findings" : "pass",
     limitations: [
       "A clean static-analysis result does not prove that the system has no vulnerabilities.",
-      "CWE identifiers are preserved only when the source rule supplies them.",
+      "CWE and ASVS identifiers are preserved only when the source rule supplies them.",
       "Runtime configuration, authorization, data flow, and reachability can require separate evidence.",
     ],
   };

@@ -196,6 +196,7 @@ Status: In progress.
 Implemented:
 
 - SARIF 2.1.0 static-analysis result normalization.
+- Source-supplied CWE and OWASP ASVS mapping preservation.
 - Trivy container and IaC result normalization.
 - CycloneDX and SPDX structural SBOM evidence.
 - Explicit SBOM source-revision binding.

@@ -47,6 +47,7 @@ Version `0.1.0` contains:
   new suppressions, skipped tests, and expiring exceptions.
 - Requirements-first, redacted independent-review packet generation.
 - SARIF, Trivy, CycloneDX, and SPDX security evidence normalization.
+- Source-supplied CWE and OWASP ASVS mapping preservation.
 - Official CycloneDX and SPDX schema validation with embedded or Sigstore signature verification.
 - Reproducible CISA KEV and FIRST EPSS snapshot enrichment.
 - Expiring security waiver templates and structural validation.

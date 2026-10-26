@@ -53,6 +53,10 @@ Rivet preserves source rule and vulnerability identifiers.
 
 Rivet maps a result to CWE, ASVS, KEV, EPSS, or another taxonomy only when the source artifact or a dated authoritative enrichment record supplies that value. An agent must not infer a standards identifier from similar wording.
 
+For SARIF, Rivet preserves source rule tags that use `CWE-<number>`,
+`ASVS-<identifier>`, or `OWASP-ASVS-<identifier>`. It does not infer a mapping
+from the rule message or category.
+
 An enrichment record must include its retrieval date and source artifact. “Not listed” means only that the identifier was absent from the supplied snapshot.
 
 EPSS is stored as a probability and percentile. Rivet must not convert it into a severity label.

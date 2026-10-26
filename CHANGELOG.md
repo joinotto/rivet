@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Source-supplied CWE and OWASP ASVS identifier preservation in SARIF
+  normalization.
 - Phase 1 criterion-by-criterion conformance record with native-host failures
   kept explicit.
 - Query-bound PostgreSQL index recommendations with measured baseline and
