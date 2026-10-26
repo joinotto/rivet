@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Deterministic unsigned release-candidate archives with checksums, CycloneDX
+  SBOM, source-bound provenance, and byte-reproducibility tests.
 - Explicit native-host executable selection with recorded CLI version and
   command provenance.
 - Bounded deterministic fuzz execution for SARIF, Trivy, CycloneDX, and SPDX

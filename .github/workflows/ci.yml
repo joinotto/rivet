@@ -48,6 +48,9 @@ jobs:
       - name: Run bounded parser fuzzing
         run: npm run test:fuzz
 
+      - name: Test release-candidate reproducibility
+        run: npm run test:release
+
       - name: Validate skill package
         run: npm run validate:skill
 

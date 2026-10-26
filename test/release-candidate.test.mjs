@@ -1,0 +1,98 @@
+import assert from "node:assert";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+const repository = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  ".."
+);
+const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-release-test-"));
+
+function run(output) {
+  const revision = spawnSync("git", ["rev-parse", "HEAD"], {
+    cwd: repository,
+    encoding: "utf8"
+  }).stdout.trim();
+  return spawnSync(
+    process.execPath,
+    [
+      "scripts/build-release-candidate.mjs",
+      "--version",
+      "0.1.0",
+      "--revision",
+      revision,
+      "--output",
+      output,
+      "--allow-dirty"
+    ],
+    { cwd: repository, encoding: "utf8" }
+  );
+}
+
+function inventory(root) {
+  return fs
+    .readdirSync(root)
+    .sort()
+    .map((file) => {
+      const content = fs.readFileSync(path.join(root, file));
+      return {
+        file,
+        bytes: content.length,
+        sha256: crypto.createHash("sha256").update(content).digest("hex")
+      };
+    });
+}
+
+try {
+  const first = path.join(temporary, "first");
+  const second = path.join(temporary, "second");
+  const firstRun = run(first);
+  const secondRun = run(second);
+  assert.strictEqual(firstRun.status, 0, firstRun.stderr);
+  assert.strictEqual(secondRun.status, 0, secondRun.stderr);
+  assert.deepStrictEqual(inventory(first), inventory(second));
+
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(first, "manifest.json"), "utf8")
+  );
+  assert.strictEqual(manifest.kind, "rivet-release-candidate");
+  assert.strictEqual(manifest.decision, "test-candidate");
+  assert.strictEqual(manifest.files.length, 7);
+
+  const sbom = JSON.parse(
+    fs.readFileSync(path.join(first, "bom.cdx.json"), "utf8")
+  );
+  assert.strictEqual(sbom.bomFormat, "CycloneDX");
+  assert.strictEqual(sbom.components.length, 4);
+
+  for (const host of ["portable", "codex", "claude-code", "cursor"]) {
+    const archive = path.join(first, `rivet-0.1.0-${host}.tar`);
+    assert.ok(fs.statSync(archive).size > 1024);
+    const listed = spawnSync("tar", ["-tf", archive], { encoding: "utf8" });
+    assert.strictEqual(listed.status, 0, listed.stderr);
+    assert.match(listed.stdout, /^rivet-host[.]json$/m);
+    assert.match(listed.stdout, /^rivet\/SKILL[.]md$/m);
+  }
+
+  const sums = fs
+    .readFileSync(path.join(first, "SHA256SUMS"), "utf8")
+    .trim()
+    .split("\n");
+  assert.strictEqual(sums.length, 4);
+  for (const line of sums) {
+    const [expected, file] = line.split(/  /);
+    const content = fs.readFileSync(path.join(first, file));
+    assert.strictEqual(
+      crypto.createHash("sha256").update(content).digest("hex"),
+      expected
+    );
+  }
+
+  console.log("release candidate reproducibility tests passed");
+} finally {
+  fs.rmSync(temporary, { recursive: true, force: true });
+}
