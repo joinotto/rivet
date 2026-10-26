@@ -75,6 +75,10 @@ The workflow has only `contents: read` permission. It does not run in the
 privileged `pull_request_target` context, persist checkout credentials, post a
 comment, approve a change, deploy code, or claim production behavior.
 
+The `Backend risk and evidence` job is a strict required check on `main`.
+GitHub reported the check under the GitHub Actions application after the
+protection update on 2026-10-26.
+
 Implementation tests cover exact revision binding, unusual UTF-8 filenames,
 report composition, read-only permissions, and the absence of the privileged
 pull-request trigger.
