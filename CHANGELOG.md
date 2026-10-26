@@ -8,7 +8,8 @@ This file records notable changes to Rivet.
 
 - A read-only pull-request workflow that binds exact revisions, preserves
   unusual UTF-8 filenames, classifies backend risk, runs detected checks, and
-  retains a truthful evidence report.
+  retains a truthful evidence report. The runner is part of the portable skill
+  package.
 - A fail-closed open-source foundation conformance check for required project,
   license, maintainer, support, and security-reporting artifacts.
 - OpenSSF assessment validation for missing, duplicate, escaping, symbolic-link,

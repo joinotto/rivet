@@ -46,6 +46,8 @@ Result: pass.
 
 Workflow: `.github/workflows/pr-verification.yml`
 
+Portable runner: `skills/rivet/scripts/rivet-pr-verify.mjs`
+
 The read-only pull-request workflow checks out the exact head revision. It
 derives the merge base from the exact base and head revisions in the GitHub
 event. It supplies the changed paths to Rivet as a NUL-delimited file. This

@@ -3,12 +3,14 @@
 import fs from "fs";
 import path from "path";
 import { spawnSync } from "child_process";
+import { fileURLToPath } from "url";
 
 const cwd = process.cwd();
 const base = process.env.RIVET_BASE_SHA || "";
 const head = process.env.RIVET_HEAD_SHA || "";
 const outputRoot = path.resolve(cwd, process.env.RIVET_REPORT_DIR || ".rivet/ci");
-const cli = path.join(cwd, "skills/rivet/scripts/rivet-evidence.mjs");
+const scriptRoot = path.dirname(fileURLToPath(import.meta.url));
+const cli = path.join(scriptRoot, "rivet-evidence.mjs");
 
 function fail(message) {
   console.error(message);

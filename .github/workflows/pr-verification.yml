@@ -33,7 +33,7 @@ jobs:
           RIVET_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           RIVET_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           RIVET_REPORT_DIR: .rivet/ci
-        run: node scripts/run-pr-verification.mjs
+        run: node skills/rivet/scripts/rivet-pr-verify.mjs
 
       - name: Retain the Rivet report
         if: always()
