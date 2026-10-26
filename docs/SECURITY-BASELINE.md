@@ -98,11 +98,14 @@ The following controls are not complete:
 - GitHub non-provider secret pattern scanning.
 - Secret validity checks.
 - Release artifact signing.
-- Software bill of materials generation.
 - Build provenance attestation.
 - Coverage-guided continuous fuzzing for parsers and trust-boundary code.
 
 Add each control only when Rivet has the related code or release artifact.
+
+The unsigned candidate already includes a revision-bound CycloneDX SBOM. The
+candidate verifier checks its host-package digests and source binding. This
+does not replace a signed SBOM for a public release.
 
 The local baseline-1, baseline-2, and baseline-3 evidence assessments are in
 `docs/openssf-baseline-assessment.json` and

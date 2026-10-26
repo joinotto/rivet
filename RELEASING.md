@@ -17,6 +17,10 @@ The builder creates deterministic uncompressed host archives, SHA-256 sums, a
 CycloneDX SBOM, unsigned source-bound provenance, and a manifest. CI builds the
 candidate twice and requires byte-identical output.
 
+The output directory must resolve inside the project. The builder rejects
+symbolic link traversal outside that boundary and does not remove an outside
+directory when `--force` is set.
+
 The candidate is not a release. Do not publish it until the signing,
 independent approval, support, verification, and publication requirements in
 this document are complete.

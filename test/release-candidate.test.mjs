@@ -10,7 +10,13 @@ const repository = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   ".."
 );
-const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-release-test-"));
+const temporary = path.join(
+  repository,
+  ".rivet",
+  "tmp",
+  `release-candidate-${process.pid}`
+);
+fs.mkdirSync(temporary, { recursive: true });
 const sourceIsDirty =
   spawnSync("git", ["status", "--porcelain"], {
     cwd: repository,
@@ -60,6 +66,42 @@ try {
   assert.strictEqual(firstRun.status, 0, firstRun.stderr);
   assert.strictEqual(secondRun.status, 0, secondRun.stderr);
   assert.deepStrictEqual(inventory(first), inventory(second));
+
+  const outside = fs.mkdtempSync(
+    path.join(os.tmpdir(), "rivet-release-outside-")
+  );
+  const marker = path.join(outside, "keep.txt");
+  fs.writeFileSync(marker, "keep\n");
+  const outsideRun = spawnSync(
+    process.execPath,
+    [
+      "scripts/build-release-candidate.mjs",
+      "--version",
+      "0.1.0",
+      "--revision",
+      spawnSync("git", ["rev-parse", "HEAD"], {
+        cwd: repository,
+        encoding: "utf8"
+      }).stdout.trim(),
+      "--output",
+      outside,
+      "--force",
+      "--allow-dirty"
+    ],
+    { cwd: repository, encoding: "utf8" }
+  );
+  assert.notStrictEqual(outsideRun.status, 0);
+  assert.match(outsideRun.stderr, /--output must resolve to a directory inside/);
+  assert.strictEqual(fs.readFileSync(marker, "utf8"), "keep\n");
+
+  const linkedParent = path.join(temporary, "outside-link");
+  fs.symlinkSync(outside, linkedParent);
+  const linkedRun = run(path.join(linkedParent, "candidate"));
+  assert.notStrictEqual(linkedRun.status, 0);
+  assert.match(linkedRun.stderr, /--output must resolve to a directory inside/);
+  assert.strictEqual(fs.readFileSync(marker, "utf8"), "keep\n");
+  fs.unlinkSync(linkedParent);
+  fs.rmSync(outside, { recursive: true, force: true });
 
   const manifest = JSON.parse(
     fs.readFileSync(path.join(first, "manifest.json"), "utf8")
