@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Deterministic Rivet routing contract with positive, negative, and
+  verification-pressure cases.
 - Machine-readable skill-change rejection ledger with retry conditions and
   deterministic validation.
 - Phase 6 demand, risk-based scope, testable exit criteria, and explicit

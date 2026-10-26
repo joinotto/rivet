@@ -175,7 +175,8 @@ install a new tool merely because an external skill recommends it.
 ## Rivet work created by this audit
 
 1. Add portable skill-package and reference-link validation. Complete.
-2. Add positive, negative, and pressure cases for Rivet activation.
+2. Add positive, negative, and pressure cases for Rivet activation. Complete
+   for the deterministic contract; native host evaluation remains separate.
 3. Add a skill-change rejection ledger. Complete.
 4. Add quality-ratchet evidence without automatic tool installation.
 5. Extend host-package tests to detect canonical-guidance drift. Complete.

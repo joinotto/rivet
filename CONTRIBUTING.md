@@ -22,6 +22,7 @@ Run:
 npm test
 npm run validate:skill
 npm run validate:rejections
+npm run test:routing
 ```
 
 Before you retry a rejected skill or policy change, inspect
