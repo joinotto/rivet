@@ -6,6 +6,9 @@ This file records notable changes to Rivet.
 
 ### Changed
 
+- Release-candidate conformance now records a native exact-revision in-toto
+  Statement with the SLSA v1 provenance predicate and downloaded-artifact
+  verification.
 - Release-candidate verification rejects symbolic-link roots and reads each
   retained artifact once through a bounded, no-follow file descriptor.
 - Release-candidate output is restricted to a non-symbolic directory inside

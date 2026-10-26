@@ -77,6 +77,31 @@ Observed current archive digests:
 Each archive contains `rivet/scripts/rivet-pr-verify.mjs` and
 `rivet/scripts/rivet-evidence.mjs`.
 
+## SLSA predicate candidate
+
+The workflow was repeated after the candidate adopted the in-toto Statement v1
+and SLSA provenance v1 predicate:
+
+- Workflow run: `40400844333`.
+- Job: `121845955253`.
+- Source revision: `5107f5e7e7fadbfcca243f17d09b6e578b2399c9`.
+- Version: `0.1.0`.
+- Workflow result: pass.
+- Independent downloaded-artifact verification: pass with four archives and
+  no faults.
+- Artifact identifier: `12688916467`.
+- GitHub artifact digest:
+  `sha256:17b0fec3ec6b372743dc6967b361e959f49f04b081a16f0677c50288d56e0d63`.
+- Candidate manifest digest:
+  `sha256:4b16409c255115be80735e52f4fca1065aa335ddd7072f2913d91db515544ad4`.
+- Provenance statement digest:
+  `sha256:c1ad2537d35fd00888a954e898a01578e44926e29e16269282ed5c0a7949b6cf`.
+- CycloneDX SBOM digest:
+  `sha256:ec3c612ecf05fb0a4835dece29989e9c29731cff130f00dccd5041643a009173`.
+
+The downloaded statement recorded the exact source revision, four archive
+subjects, the SBOM and checksum file as byproducts, and `unsigned: true`.
+
 ## Decision
 
 The workflow can build, verify, and retain an unsigned candidate for an exact
