@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import { spawnSync } from "child_process";
 import { fileURLToPath } from "url";
 
@@ -11,6 +12,8 @@ const head = process.env.RIVET_HEAD_SHA || "";
 const outputRoot = path.resolve(cwd, process.env.RIVET_REPORT_DIR || ".rivet/ci");
 const scriptRoot = path.dirname(fileURLToPath(import.meta.url));
 const cli = path.join(scriptRoot, "rivet-evidence.mjs");
+const reportVerificationRoot =
+  process.argv[2] === "verify-report" ? process.argv[3] : null;
 
 function fail(message) {
   console.error(message);
@@ -44,6 +47,123 @@ function inlineCode(value) {
   return `\`${markdownCell(value).replaceAll("`", "&#96;")}\``;
 }
 
+function fileEvidence(file) {
+  const body = fs.readFileSync(file);
+  return {
+    path: path.basename(file),
+    size: body.length,
+    sha256: crypto.createHash("sha256").update(body).digest("hex"),
+  };
+}
+
+function readRegularFile(file) {
+  let descriptor;
+  try {
+    descriptor = fs.openSync(
+      file,
+      fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0),
+    );
+    const stat = fs.fstatSync(descriptor);
+    if (!stat.isFile() || stat.size > 16 * 1024 * 1024) {
+      throw new Error(`Evidence is not a bounded regular file: ${path.basename(file)}`);
+    }
+    return fs.readFileSync(descriptor);
+  } finally {
+    if (descriptor !== undefined) fs.closeSync(descriptor);
+  }
+}
+
+function verifyReport(directory) {
+  if (!directory) throw new Error("Use verify-report <report-directory>.");
+  const root = fs.realpathSync(path.resolve(cwd, directory));
+  let entries;
+  try {
+    entries = fs.readdirSync(root, { withFileTypes: true });
+  } catch {
+    throw new Error("The report path must be a readable directory.");
+  }
+  if (entries.some((entry) => !entry.isFile())) {
+    throw new Error("The report directory must contain regular files only.");
+  }
+  const manifestFile = path.join(root, "manifest.json");
+  let manifest;
+  try {
+    manifest = JSON.parse(readRegularFile(manifestFile).toString("utf8"));
+  } catch {
+    throw new Error("The report manifest must contain valid JSON.");
+  }
+  if (manifest?.schema !== 1 || manifest?.kind !== "rivet-pr-report-manifest") {
+    throw new Error("The report manifest schema or kind is unsupported.");
+  }
+  for (const revision of [
+    manifest.base_revision,
+    manifest.merge_base_revision,
+    manifest.head_revision,
+  ]) {
+    if (!validRevision(revision)) {
+      throw new Error("The report manifest contains an invalid revision.");
+    }
+  }
+  if (!Array.isArray(manifest.files) || manifest.files.length === 0) {
+    throw new Error("The report manifest requires evidence files.");
+  }
+  const names = manifest.files.map((item) => item?.path);
+  if (
+    names.some(
+      (name) =>
+        typeof name !== "string" ||
+        name !== path.basename(name) ||
+        name === "manifest.json",
+    ) ||
+    new Set(names).size !== names.length
+  ) {
+    throw new Error("The report manifest contains an invalid or duplicate path.");
+  }
+  const expected = new Set(["manifest.json", ...names]);
+  const observed = new Set(entries.map((entry) => entry.name));
+  if (
+    expected.size !== observed.size ||
+    [...expected].some((name) => !observed.has(name))
+  ) {
+    throw new Error("The report directory inventory does not match the manifest.");
+  }
+  for (const item of manifest.files) {
+    if (
+      !Number.isSafeInteger(item.size) ||
+      item.size < 0 ||
+      !/^[a-f0-9]{64}$/.test(item.sha256 || "")
+    ) {
+      throw new Error(`The manifest evidence record is invalid: ${item.path}`);
+    }
+    const body = readRegularFile(path.join(root, item.path));
+    const observedDigest = crypto
+      .createHash("sha256")
+      .update(body)
+      .digest("hex");
+    if (body.length !== item.size || observedDigest !== item.sha256) {
+      throw new Error(`Report evidence verification failed: ${item.path}`);
+    }
+  }
+  return {
+    schema: 1,
+    workflow: "pull-request-report-verification",
+    evidence_class: "observed",
+    base_revision: manifest.base_revision,
+    merge_base_revision: manifest.merge_base_revision,
+    head_revision: manifest.head_revision,
+    files: manifest.files.length,
+    decision: "pass",
+  };
+}
+
+if (process.argv[2] === "verify-report") {
+  try {
+    process.stdout.write(`${JSON.stringify(verifyReport(reportVerificationRoot), null, 2)}\n`);
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+} else {
 if (!validRevision(base) || !validRevision(head)) {
   fail("RIVET_BASE_SHA and RIVET_HEAD_SHA must be full lowercase commit identifiers.");
 }
@@ -227,5 +347,27 @@ if (process.env.GITHUB_STEP_SUMMARY) {
   fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n"));
 }
 
+const evidenceFiles = [
+  filesPath,
+  receiptPath,
+  verificationSummaryPath,
+  reportPath,
+  summaryPath,
+];
+const manifestPath = path.join(outputRoot, "manifest.json");
+fs.writeFileSync(
+  manifestPath,
+  `${JSON.stringify({
+    schema: 1,
+    kind: "rivet-pr-report-manifest",
+    base_revision: base,
+    merge_base_revision: mergeBase,
+    head_revision: head,
+    files: evidenceFiles.map(fileEvidence),
+  }, null, 2)}\n`,
+  { mode: 0o600 },
+);
+
 console.log(`Rivet PR report: ${path.relative(cwd, summaryPath)}`);
 if (verification.status !== 0) process.exit(verification.status || 1);
+}

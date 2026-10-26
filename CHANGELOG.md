@@ -6,6 +6,9 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- A revision-bound pull-request report manifest with byte sizes and SHA-256
+  digests for every retained evidence file, plus fail-closed offline
+  verification.
 - A read-only pull-request workflow that binds exact revisions, preserves
   unusual UTF-8 filenames, classifies backend risk, runs detected checks, and
   retains a truthful evidence report. The runner is part of the portable skill

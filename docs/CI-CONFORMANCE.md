@@ -63,6 +63,10 @@ The workflow:
   automatically, with the safety reason and explicit workflow to use.
 - Writes the machine-readable impact, verification receipt, combined report,
   and Markdown summary.
+- Writes a revision-bound manifest with the byte size and SHA-256 digest of
+  every retained evidence file.
+- Provides offline manifest verification through
+  `rivet-pr-verify.mjs verify-report <report-directory>`.
 - Adds GitHub workflow annotations for pass, fail, incomplete, and unavailable
   results.
 - Retains the report artifact for 14 days, including on a failed check.

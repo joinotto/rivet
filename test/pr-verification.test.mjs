@@ -1,4 +1,5 @@
 import assert from "assert";
+import crypto from "crypto";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -87,6 +88,89 @@ assert.match(
   fs.readFileSync(path.join(fixture, ".rivet/ci/summary.md"), "utf8"),
   /orders, report\.js/,
 );
+const manifest = JSON.parse(
+  fs.readFileSync(path.join(fixture, ".rivet/ci/manifest.json"), "utf8"),
+);
+assert.strictEqual(manifest.kind, "rivet-pr-report-manifest");
+assert.strictEqual(manifest.base_revision, base);
+assert.strictEqual(manifest.merge_base_revision, base);
+assert.strictEqual(manifest.head_revision, head);
+assert.deepStrictEqual(
+  manifest.files.map((item) => item.path),
+  [
+    "changed-files.nul",
+    "verification-receipt.json",
+    "verification.md",
+    "report.json",
+    "summary.md",
+  ],
+);
+for (const item of manifest.files) {
+  const body = fs.readFileSync(path.join(fixture, ".rivet/ci", item.path));
+  assert.strictEqual(item.size, body.length);
+  assert.strictEqual(
+    item.sha256,
+    crypto.createHash("sha256").update(body).digest("hex"),
+  );
+}
+const offlineVerification = run(
+  process.execPath,
+  [
+    "skills/rivet/scripts/rivet-pr-verify.mjs",
+    "verify-report",
+    ".rivet/ci",
+  ],
+);
+assert.strictEqual(
+  offlineVerification.status,
+  0,
+  offlineVerification.stderr,
+);
+assert.strictEqual(
+  JSON.parse(offlineVerification.stdout).decision,
+  "pass",
+);
+const originalSummary = fs.readFileSync(
+  path.join(fixture, ".rivet/ci/summary.md"),
+);
+fs.appendFileSync(path.join(fixture, ".rivet/ci/summary.md"), "altered");
+const alteredVerification = run(
+  process.execPath,
+  [
+    "skills/rivet/scripts/rivet-pr-verify.mjs",
+    "verify-report",
+    ".rivet/ci",
+  ],
+);
+assert.strictEqual(alteredVerification.status, 1);
+assert.match(alteredVerification.stderr, /verification failed: summary\.md/);
+fs.writeFileSync(path.join(fixture, ".rivet/ci/summary.md"), originalSummary);
+fs.writeFileSync(path.join(fixture, ".rivet/ci/unexpected.txt"), "unexpected");
+const extraFileVerification = run(
+  process.execPath,
+  [
+    "skills/rivet/scripts/rivet-pr-verify.mjs",
+    "verify-report",
+    ".rivet/ci",
+  ],
+);
+assert.strictEqual(extraFileVerification.status, 1);
+assert.match(extraFileVerification.stderr, /inventory does not match/);
+fs.rmSync(path.join(fixture, ".rivet/ci/unexpected.txt"));
+fs.symlinkSync(
+  path.join(fixture, ".rivet/ci/summary.md"),
+  path.join(fixture, ".rivet/ci/unexpected-link"),
+);
+const symbolicLinkVerification = run(
+  process.execPath,
+  [
+    "skills/rivet/scripts/rivet-pr-verify.mjs",
+    "verify-report",
+    ".rivet/ci",
+  ],
+);
+assert.strictEqual(symbolicLinkVerification.status, 1);
+assert.match(symbolicLinkVerification.stderr, /regular files only/);
 
 const workflow = fs.readFileSync(
   path.join(sourceRoot, ".github/workflows/pr-verification.yml"),
