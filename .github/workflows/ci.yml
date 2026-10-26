@@ -51,6 +51,9 @@ jobs:
       - name: Test release-candidate reproducibility
         run: npm run test:release
 
+      - name: Test release-candidate verification
+        run: npm run test:release-verification
+
       - name: Validate skill package
         run: npm run validate:skill
 
