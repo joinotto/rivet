@@ -53,6 +53,13 @@ Both reports recorded 3,000 executions, zero crashes, and
 `no-crash-observed`. See `docs/CI-CONFORMANCE.md` for job, artifact, and digest
 identifiers.
 
+Native coverage-guided run `40403223111` used Jazzer.js 4.0.0 with libFuzzer
+for revision `170d556cb58fd9868d97c3981fa5cb7d94986f39`. It recorded 10,000
+executions, expanded the corpus from 4 seed files to 18 files, and observed
+zero crashes, timeouts, and out-of-memory results. Its evidence decision was
+`no-crash-observed`, and its workflow decision was `pass`. See
+`docs/CI-CONFORMANCE.md` for the job, artifact, and digest identifiers.
+
 Result: pass for the published evidence contract and bounded parser campaign.
 
 Limitation: the bounded CI campaigns do not preserve a corpus between workflow
