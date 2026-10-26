@@ -4,9 +4,10 @@ Observed on 2026-10-26.
 
 Workflow: `.github/workflows/ci.yml`
 
-The general workflow runs on pull requests and pushes to `main`. It uses
-read-only repository permissions and cancels an obsolete run for the same
-workflow and Git reference.
+The general workflow runs on pull requests and pushes to `main`. It checks out
+and verifies the explicit pull-request head or push revision. It uses read-only
+repository permissions and cancels an obsolete run for the same workflow and
+Git reference.
 
 The workflow tests the minimum supported Node.js 16 line and the current
 Node.js 22 line. Each job runs:

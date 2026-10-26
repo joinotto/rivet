@@ -63,6 +63,18 @@ assert.match(missingOutput.stderr, /--output requires/);
 const workflow = fs.readFileSync(".github/workflows/ci.yml", "utf8");
 assert.match(
   workflow,
+  /ref: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/,
+);
+assert.match(
+  workflow,
+  /EXPECTED_REVISION: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/,
+);
+assert.match(
+  workflow,
+  /test "\$EXPECTED_REVISION" = "\$\(git rev-parse HEAD\)"/,
+);
+assert.match(
+  workflow,
   /npm run test:fuzz -- --output "\.rivet\/ci\/parser-fuzz-node-\$\{\{ matrix\.node \}\}\.json"/,
 );
 assert.match(workflow, /name: rivet-parser-fuzz-node-\$\{\{ matrix\.node \}\}/);
