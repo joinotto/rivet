@@ -127,8 +127,8 @@
     {
       "id": "OSPS-VM-05.03",
       "status": "met",
-      "evidence": [".github/workflows/osv-scanner.yml", "fixtures/reference-systems/kev-dependency/osv-scanner.toml", "GitHub Actions run 40370013413: pass", "GitHub branch protection: Dependency vulnerability diff / osv-scan required"],
-      "notes": "The required pull-request workflow blocks newly introduced known vulnerabilities and preserves reviewed manifest-local exceptions."
+      "evidence": [".github/workflows/osv-scanner.yml", "fixtures/reference-systems/kev-dependency/osv-scanner.toml", "GitHub Actions pull-request run 40370013413: pass", "GitHub Actions full main scan 40394485453: pass", "GitHub branch protection: Dependency vulnerability diff / osv-scan required"],
+      "notes": "The required pull-request workflow blocks newly introduced known vulnerabilities. The full main-branch workflow supplies exact-revision release evidence. Both preserve reviewed manifest-local exceptions."
     },
     {
       "id": "OSPS-VM-06.01",
