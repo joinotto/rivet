@@ -180,4 +180,5 @@ install a new tool merely because an external skill recommends it.
 3. Add a skill-change rejection ledger. Complete.
 4. Add quality-ratchet evidence without automatic tool installation.
    Complete.
-5. Extend host-package tests to detect canonical-guidance drift. Complete.
+5. Extend host-package tests to detect command, manifest, artifact-path, and
+   canonical-source drift. Complete.

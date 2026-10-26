@@ -17,7 +17,24 @@ const source = path.join(repository, "skills", "rivet");
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-conformance-"));
 const packages = path.join(temporary, "packages");
 const fixture = path.join(temporary, "fixture");
-const hosts = ["portable", "codex", "claude-code", "cursor"];
+const hosts = {
+  portable: {
+    install_path: "Choose a skill directory supported by the host.",
+    includes_agent_metadata: false,
+  },
+  codex: {
+    install_path: ".agents/skills/rivet or the configured Codex skills directory",
+    includes_agent_metadata: true,
+  },
+  "claude-code": {
+    install_path: ".claude/skills/rivet",
+    includes_agent_metadata: false,
+  },
+  cursor: {
+    install_path: ".cursor/skills/rivet",
+    includes_agent_metadata: false,
+  },
+};
 
 function run(executable, args, cwd = repository) {
   return spawnSync(executable, args, { cwd, encoding: "utf8" });
@@ -25,6 +42,18 @@ function run(executable, args, cwd = repository) {
 
 function digest(file) {
   return crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+}
+
+function files(root, directory = root, output = []) {
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const absolute = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      files(root, absolute, output);
+    } else if (entry.isFile()) {
+      output.push(path.relative(root, absolute));
+    }
+  }
+  return output.sort();
 }
 
 try {
@@ -47,25 +76,38 @@ try {
     "api_key='host-conformance-secret-value'\n",
   );
 
-  for (const host of hosts) {
+  for (const [host, expected] of Object.entries(hosts)) {
     const root = path.join(packages, host);
     const skill = path.join(root, "rivet");
     const manifest = JSON.parse(
       fs.readFileSync(path.join(root, "rivet-host.json"), "utf8"),
     );
+    assert.strictEqual(manifest.schema, 1);
     assert.strictEqual(manifest.host, host);
+    assert.strictEqual(manifest.canonical_source, "skills/rivet");
+    assert.strictEqual(manifest.install_path, expected.install_path);
+    assert.deepStrictEqual(Object.keys(manifest.capabilities).sort(), [
+      "approval_mapping",
+      "evidence_receipts",
+      "local_scripts",
+      "model_provider_independent",
+      "sandbox_mapping",
+    ]);
     assert.strictEqual(manifest.capabilities.model_provider_independent, true);
-    assert.ok(fs.existsSync(path.join(skill, "SKILL.md")));
-    assert.strictEqual(
-      digest(path.join(skill, "SKILL.md")),
-      digest(path.join(source, "SKILL.md")),
-      `${host}: packaged guidance differs from the canonical skill`,
+    const sourceFiles = files(source).filter(
+      (file) => expected.includes_agent_metadata || !file.startsWith(`agents${path.sep}`),
     );
-    for (const reference of fs.readdirSync(path.join(source, "references"))) {
+    const packagedFiles = files(skill);
+    assert.deepStrictEqual(
+      packagedFiles,
+      sourceFiles,
+      `${host}: packaged artifact inventory differs from the canonical source`,
+    );
+    for (const file of sourceFiles) {
       assert.strictEqual(
-        digest(path.join(skill, "references", reference)),
-        digest(path.join(source, "references", reference)),
-        `${host}: packaged ${reference} differs from the canonical reference`,
+        digest(path.join(skill, file)),
+        digest(path.join(source, file)),
+        `${host}: packaged ${file} differs from the canonical source`,
       );
     }
 
@@ -94,7 +136,9 @@ try {
     assert.doesNotMatch(secretScan.stdout, /host-conformance-secret-value/);
   }
 
-  console.log(`Rivet package conformance passed for: ${hosts.join(", ")}`);
+  console.log(
+    `Rivet package conformance passed for: ${Object.keys(hosts).join(", ")}`,
+  );
   console.log("Native host runtime behavior was not tested.");
 } finally {
   fs.rmSync(temporary, { recursive: true });

@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Complete host-package inventory, digest, manifest, capability, and install
+  path drift checks.
 - Project-selected quality-ratchet evidence for weakened metrics, removed
   assertions, new suppressions, skipped tests, and expiring exceptions.
 - Deterministic Rivet routing contract with positive, negative, and
