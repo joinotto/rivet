@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node test/rivet-evidence.test.mjs && node test/skill-package-validator.test.mjs && node test/skill-rejection-ledger.test.mjs && node test/skill-routing-contract.test.mjs && node test/human-baseline.test.mjs && node test/open-source-foundation.test.mjs && node test/openssf-evidence-integrity.test.mjs && node test/claude-macos-sandbox.test.mjs",
+    "test": "node test/rivet-evidence.test.mjs && node test/skill-package-validator.test.mjs && node test/skill-rejection-ledger.test.mjs && node test/skill-routing-contract.test.mjs && node test/human-baseline.test.mjs && node test/open-source-foundation.test.mjs && node test/openssf-evidence-integrity.test.mjs && node test/claude-macos-sandbox.test.mjs && node test/pr-verification.test.mjs",
     "test:release": "node test/release-candidate.test.mjs && node test/release-candidate-workflow.test.mjs && node test/release-evidence.test.mjs",
     "test:release-verification": "node test/release-candidate-verification.test.mjs",
     "test:evaluation": "node skills/rivet/scripts/rivet-evidence.mjs evaluate --fixtures fixtures/reference-systems --findings fixtures/reference-systems/expected-findings.json",

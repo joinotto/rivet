@@ -42,6 +42,35 @@ Pinned-runner verification:
 
 Result: pass.
 
+## Pull-request verification report
+
+Workflow: `.github/workflows/pr-verification.yml`
+
+The read-only pull-request workflow checks out the exact head revision. It
+derives the merge base from the exact base and head revisions in the GitHub
+event. It supplies the changed paths to Rivet as a NUL-delimited file. This
+format preserves commas and line breaks in valid UTF-8 paths.
+
+The workflow:
+
+- Derives the changed-file risk mode and review requirements.
+- Runs the checks that Rivet detects in the checked-out project.
+- Writes the machine-readable impact, verification receipt, combined report,
+  and Markdown summary.
+- Adds GitHub workflow annotations for pass, fail, incomplete, and unavailable
+  results.
+- Retains the report artifact for 14 days, including on a failed check.
+
+The workflow has only `contents: read` permission. It does not run in the
+privileged `pull_request_target` context, persist checkout credentials, post a
+comment, approve a change, deploy code, or claim production behavior.
+
+Implementation tests cover exact revision binding, unusual UTF-8 filenames,
+report composition, read-only permissions, and the absence of the privileged
+pull-request trigger.
+
+Native GitHub Actions conformance is not yet recorded for this workflow.
+
 Limitations:
 
 - CI does not run paid native agent evaluations.
@@ -49,3 +78,5 @@ Limitations:
   every supported host version.
 - GitHub-hosted runner images and preinstalled software can still change
   within the named image.
+- Pull-request risk signals are heuristics. Project context can require a
+  higher risk mode.
