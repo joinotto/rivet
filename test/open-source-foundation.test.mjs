@@ -26,6 +26,17 @@ try {
   assert.strictEqual(missing.decision, "invalid");
   assert.ok(missing.faults.includes("Required file is missing: SECURITY.md"));
 
+  fs.symlinkSync(
+    path.join(repository, "SECURITY.md"),
+    path.join(temporary, "SECURITY.md")
+  );
+  const linked = validateOpenSourceFoundation(temporary);
+  assert.strictEqual(linked.decision, "invalid");
+  assert.ok(
+    linked.faults.includes("Required file cannot be opened safely: SECURITY.md")
+  );
+  fs.rmSync(path.join(temporary, "SECURITY.md"));
+
   fs.copyFileSync(
     path.join(repository, "SECURITY.md"),
     path.join(temporary, "SECURITY.md")
