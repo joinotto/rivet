@@ -59,5 +59,14 @@ Do not submit generated code that you cannot explain, test, and license.
 
 ## Sign-off
 
-The project intends to use the Developer Certificate of Origin. Add a `Signed-off-by` line to each commit after the project publishes its final contribution policy.
+The project uses Developer Certificate of Origin version 1.1. Read `DCO.md`.
+
+Add a sign-off to every commit:
+
+```sh
+git commit --signoff
+```
+
+The sign-off identity must match the commit author identity. Required CI rejects
+a pull-request commit without the matching sign-off.
 
