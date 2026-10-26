@@ -9,6 +9,8 @@ This file records notable changes to Rivet.
 - General CI across Node.js 16 and 22, plus maintainer, support, release, and
   architecture documentation required by the open-source foundation.
 - Pinned Ubuntu 24.04 CI runner and an observed CI conformance record.
+- Observed passing GitHub CI evidence for the pinned runner on Node.js 16 and
+  Node.js 22.
 - Phase 6 criterion-by-criterion conformance record with independent-review
   gates kept explicit.
 - Digest-bound independent-review packets and human-review validation for

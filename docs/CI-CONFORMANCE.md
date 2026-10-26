@@ -30,8 +30,17 @@ Initial observed run:
 - Node.js 22: pass.
 
 This first run used `ubuntu-latest` and emitted a planned runner-image
-migration warning. The workflow was then pinned to Ubuntu 24.04. Record the
-replacement run below after it completes.
+migration warning.
+
+Pinned-runner verification:
+
+- Run: `40352338749`
+- Revision: `ae66fddc136206ccec429df9b9b544a90ee1842f`
+- Runner: Ubuntu 24.04.
+- Node.js 16: pass.
+- Node.js 22: pass.
+
+Result: pass.
 
 Limitations:
 
