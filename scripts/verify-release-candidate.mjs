@@ -12,11 +12,33 @@ function sha256(content) {
   return crypto.createHash("sha256").update(content).digest("hex");
 }
 
-function parseJson(file, faults) {
+function readRegularFile(file, faults, label, maximum = 64 * 1024 * 1024) {
+  let descriptor;
   try {
-    return JSON.parse(fs.readFileSync(file, "utf8"));
+    descriptor = fs.openSync(
+      file,
+      fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0)
+    );
+    const stat = fs.fstatSync(descriptor);
+    if (!stat.isFile() || stat.size > maximum) {
+      faults.push(`${label} must be a bounded regular file.`);
+      return undefined;
+    }
+    return fs.readFileSync(descriptor);
+  } catch {
+    faults.push(`${label} cannot be read safely.`);
+    return undefined;
+  } finally {
+    if (descriptor !== undefined) fs.closeSync(descriptor);
+  }
+}
+
+function parseJson(content, label, faults) {
+  if (!content) return undefined;
+  try {
+    return JSON.parse(content.toString("utf8"));
   } catch (error) {
-    faults.push(`${path.basename(file)} is not valid JSON: ${error.message}`);
+    faults.push(`${label} is not valid JSON: ${error.message}`);
     return undefined;
   }
 }
@@ -91,13 +113,25 @@ function inspectTar(content, archive, faults) {
 export function verifyReleaseCandidate(input, expected = {}) {
   const root = path.resolve(input);
   const faults = [];
-  if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) {
+  let rootStat;
+  try {
+    rootStat = fs.lstatSync(root);
+  } catch {
+    rootStat = undefined;
+  }
+  if (!rootStat?.isDirectory() || rootStat.isSymbolicLink()) {
     return { schema: 1, kind: "rivet-release-candidate-verification", input: root, decision: "fail", faults: ["Input is not a directory."] };
   }
-  const manifest = parseJson(path.join(root, "manifest.json"), faults);
-  const sbom = parseJson(path.join(root, "bom.cdx.json"), faults);
-  const provenance = parseJson(path.join(root, "provenance.json"), faults);
-  if (!manifest || !sbom || !provenance) {
+  const manifest = parseJson(
+    readRegularFile(
+      path.join(root, "manifest.json"),
+      faults,
+      "manifest.json"
+    ),
+    "manifest.json",
+    faults
+  );
+  if (!manifest) {
     return { schema: 1, kind: "rivet-release-candidate-verification", input: root, decision: "fail", faults };
   }
   if (manifest.kind !== "rivet-release-candidate") faults.push("Manifest kind is invalid.");
@@ -108,25 +142,60 @@ export function verifyReleaseCandidate(input, expected = {}) {
   const recorded = Array.isArray(manifest.files) ? manifest.files : [];
   const actualFiles = fs.readdirSync(root, { withFileTypes: true });
   if (actualFiles.some((entry) => !entry.isFile())) faults.push("Candidate directory contains a non-file entry.");
-  const expectedNames = [...recorded.map((entry) => entry.file), "manifest.json"].sort();
+  const expectedNames = [
+    ...recorded
+      .filter((entry) => entry && typeof entry.file === "string")
+      .map((entry) => entry.file),
+    "manifest.json"
+  ].sort();
   const actualNames = actualFiles.map((entry) => entry.name).sort();
   if (JSON.stringify(expectedNames) !== JSON.stringify(actualNames)) faults.push("Candidate file inventory does not match the manifest.");
+  const contents = new Map();
   for (const record of recorded) {
-    if (!record || typeof record.file !== "string" || path.basename(record.file) !== record.file) {
-      faults.push("Manifest contains an unsafe file name.");
+    if (
+      !record ||
+      typeof record.file !== "string" ||
+      path.basename(record.file) !== record.file ||
+      !Number.isSafeInteger(record.bytes) ||
+      record.bytes < 0 ||
+      !/^[a-f0-9]{64}$/.test(record.sha256 || "")
+    ) {
+      faults.push("Manifest contains an invalid file record.");
       continue;
     }
-    const file = path.join(root, record.file);
-    if (!fs.existsSync(file)) continue;
-    const content = fs.readFileSync(file);
-    if (content.length !== record.bytes || sha256(content) !== record.sha256) faults.push(`${record.file} does not match its manifest digest.`);
+    const content = readRegularFile(
+      path.join(root, record.file),
+      faults,
+      record.file
+    );
+    if (!content) continue;
+    if (content.length !== record.bytes || sha256(content) !== record.sha256) {
+      faults.push(`${record.file} does not match its manifest digest.`);
+      continue;
+    }
+    contents.set(record.file, content);
+  }
+  const sbom = parseJson(contents.get("bom.cdx.json"), "bom.cdx.json", faults);
+  const provenance = parseJson(
+    contents.get("provenance.json"),
+    "provenance.json",
+    faults
+  );
+  if (!sbom || !provenance) {
+    return { schema: 1, kind: "rivet-release-candidate-verification", input: root, decision: "fail", faults };
   }
 
-  const archives = recorded.filter((entry) => /^rivet-.+-[^/]+[.]tar$/.test(entry.file));
+  const archives = recorded.filter(
+    (entry) =>
+      entry &&
+      typeof entry.file === "string" &&
+      /^rivet-.+-[^/]+[.]tar$/.test(entry.file)
+  );
   if (archives.length !== 4) faults.push("Manifest must contain four host archives.");
   const archiveDigests = new Map();
   for (const archive of archives) {
-    const content = fs.readFileSync(path.join(root, archive.file));
+    const content = contents.get(archive.file);
+    if (!content) continue;
     archiveDigests.set(archive.file, sha256(content));
     const entries = inspectTar(content, archive.file, faults);
     const hostEntry = entries.find((entry) => entry.path === "rivet-host.json");
@@ -142,9 +211,9 @@ export function verifyReleaseCandidate(input, expected = {}) {
     }
   }
 
-  const sumsFile = path.join(root, "SHA256SUMS");
-  if (fs.existsSync(sumsFile)) {
-    const sums = fs.readFileSync(sumsFile, "utf8").trim().split("\n");
+  const sumsContent = contents.get("SHA256SUMS");
+  if (sumsContent) {
+    const sums = sumsContent.toString("utf8").trim().split("\n");
     const parsed = new Map(sums.map((line) => line.split(/  /)));
     if (parsed.size !== archives.length) faults.push("SHA256SUMS must list each host archive once.");
     for (const [file, digest] of archiveDigests) {

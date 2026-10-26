@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -74,11 +75,44 @@ try {
   assert.strictEqual(inventoryResult.decision, "fail");
   assert.ok(inventoryResult.faults.some((fault) => /inventory/.test(fault)));
 
+  const linkedFile = copyCandidate(candidate, "linked-file");
+  const outside = path.join(temporary, "outside.txt");
+  fs.writeFileSync(outside, "outside\n");
+  fs.rmSync(path.join(linkedFile, "SHA256SUMS"));
+  fs.symlinkSync(outside, path.join(linkedFile, "SHA256SUMS"));
+  const linkedResult = verifyReleaseCandidate(linkedFile);
+  assert.strictEqual(linkedResult.decision, "fail");
+  assert.ok(
+    linkedResult.faults.some(
+      (fault) =>
+        /non-file entry/.test(fault) ||
+        /SHA256SUMS cannot be read safely/.test(fault)
+    )
+  );
+
+  const linkedRoot = path.join(temporary, "linked-root");
+  fs.symlinkSync(candidate, linkedRoot);
+  const linkedRootResult = verifyReleaseCandidate(linkedRoot);
+  assert.strictEqual(linkedRootResult.decision, "fail");
+  assert.deepStrictEqual(linkedRootResult.faults, ["Input is not a directory."]);
+
   const changedBinding = copyCandidate(candidate, "changed-binding");
   const provenanceFile = path.join(changedBinding, "provenance.json");
   const provenance = JSON.parse(fs.readFileSync(provenanceFile, "utf8"));
   provenance.source.revision = "0".repeat(40);
   fs.writeFileSync(provenanceFile, `${JSON.stringify(provenance, null, 2)}\n`);
+  const changedProvenance = fs.readFileSync(provenanceFile);
+  const manifestFile = path.join(changedBinding, "manifest.json");
+  const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
+  const provenanceRecord = manifest.files.find(
+    (entry) => entry.file === "provenance.json"
+  );
+  provenanceRecord.bytes = changedProvenance.length;
+  provenanceRecord.sha256 = crypto
+    .createHash("sha256")
+    .update(changedProvenance)
+    .digest("hex");
+  fs.writeFileSync(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`);
   const bindingResult = verifyReleaseCandidate(changedBinding);
   assert.strictEqual(bindingResult.decision, "fail");
   assert.ok(bindingResult.faults.some((fault) => /Provenance is not bound/.test(fault)));
