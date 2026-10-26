@@ -70,7 +70,7 @@ organization policy make these controls available.
 The following controls are not complete:
 
 - Observed OpenSSF Scorecard run and finding review.
-- OpenSSF Best Practices badge assessment.
+- Official OpenSSF Best Practices submission and badge.
 - Non-provider secret pattern scanning.
 - Secret validity checks.
 - Release artifact signing.
@@ -79,3 +79,7 @@ The following controls are not complete:
 - Fuzzing for future parsers and trust-boundary code.
 
 Add each control only when Rivet has the related code or release artifact.
+
+The local baseline-1 evidence assessment is in
+`docs/openssf-baseline-assessment.json`. It currently identifies organization
+multi-factor authentication as not met. A local assessment is not a badge.
