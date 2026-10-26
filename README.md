@@ -250,7 +250,9 @@ Start with repository context, change-risk analysis, test selection, determinist
 
 The evidence-runner behavioral tests pass on Node.js 16.13.1.
 
-The skill has no unfinished scaffold markers. Its frontmatter, folder name, references, script path, and UI metadata were inspected manually.
+The portable validator checks skill frontmatter, folder identity, reference
+links and anchors, package boundaries, empty directories, and orphaned
+reference documents.
 
 The behavioral tests, skill validator, and Rivet STE checker pass in the development environment.
 

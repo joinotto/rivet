@@ -15,19 +15,18 @@ Do not include secrets, production data, or code without a compatible license.
 Requirements:
 
 - Node.js 16 or later.
-- Python 3 for the optional skill validator.
-- PyYAML for the bundled skill validator.
 
 Run:
 
 ```sh
 npm test
+npm run validate:skill
 ```
 
-When PyYAML is available, run:
+Maintainers with the OpenAI skill-creator package and PyYAML can also run:
 
 ```sh
-npm run validate:skill
+npm run validate:skill:openai
 ```
 
 ## Pull request evidence

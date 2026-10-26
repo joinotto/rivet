@@ -6,6 +6,8 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- Portable skill-package validation for frontmatter, references, anchors,
+  package boundaries, empty directories, and orphan documents.
 - Pinned source and test audit of Addy Osmani's agent-skills repository, with
   explicit Rivet adoption and rejection decisions.
 - Native approval and hook conformance probe that records lifecycle events,
