@@ -8,6 +8,8 @@ This file records notable changes to Rivet.
 
 - A fail-closed open-source foundation conformance check for required project,
   license, maintainer, support, and security-reporting artifacts.
+- OpenSSF assessment validation for missing, duplicate, escaping, symbolic-link,
+  and unsupported local evidence references.
 - Deterministic unsigned release-candidate archives with checksums, CycloneDX
   SBOM, source-bound provenance, and byte-reproducibility tests.
 - Offline, fail-closed verification for candidate inventory, archive metadata,
