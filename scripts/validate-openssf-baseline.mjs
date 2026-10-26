@@ -1,4 +1,52 @@
 import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const repository = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+export function isLocalEvidenceReference(reference) {
+  return (
+    typeof reference === "string" &&
+    /^[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)*$/.test(reference)
+  );
+}
+
+export function validateLocalEvidence(references, root = repository) {
+  const faults = [];
+  const observed = new Set();
+  for (const reference of references) {
+    if (observed.has(reference)) {
+      faults.push(`duplicate evidence reference: ${reference}`);
+      continue;
+    }
+    observed.add(reference);
+    if (!isLocalEvidenceReference(reference)) continue;
+    if (reference.split("/").includes("..")) {
+      faults.push(`local evidence escapes the repository: ${reference}`);
+      continue;
+    }
+    const target = path.resolve(root, reference);
+    if (target !== root && !target.startsWith(`${root}${path.sep}`)) {
+      faults.push(`local evidence escapes the repository: ${reference}`);
+      continue;
+    }
+    try {
+      const stat = fs.lstatSync(target);
+      if (stat.isSymbolicLink()) {
+        faults.push(`local evidence must not be a symbolic link: ${reference}`);
+      } else if (!stat.isFile() && !stat.isDirectory()) {
+        faults.push(`local evidence has an unsupported type: ${reference}`);
+      }
+    } catch (error) {
+      faults.push(
+        error.code === "ENOENT"
+          ? `local evidence does not exist: ${reference}`
+          : `local evidence cannot be inspected: ${reference}`
+      );
+    }
+  }
+  return faults;
+}
 
 const definitions = [
   {
@@ -125,6 +173,9 @@ for (const definition of definitions) {
     }
     if (control.status === "not_applicable" && control.notes.length < 20) {
       faults.push(`${prefix}/${control.id}: not-applicable justification is insufficient`);
+    }
+    for (const fault of validateLocalEvidence(control.evidence || [])) {
+      faults.push(`${prefix}/${control.id}: ${fault}`);
     }
   }
 
