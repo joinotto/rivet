@@ -21,6 +21,19 @@ The candidate is not a release. Do not publish it until the signing,
 independent approval, support, verification, and publication requirements in
 this document are complete.
 
+Verify a received candidate before review or signing:
+
+```sh
+npm run verify:release-candidate -- \
+  --input dist/release \
+  --version 0.1.0 \
+  --revision COMMIT_ID
+```
+
+The verifier fails when the inventory, digests, normalized archive structure,
+host metadata, SBOM binding, or provenance binding is inconsistent. It does not
+verify a publisher identity or authorize publication.
+
 ## Release authority
 
 A named maintainer prepares a release. Security-sensitive binaries or
