@@ -47,6 +47,36 @@ Observed archive digests:
 | Cursor | `5101774c7cff99cbb66a0ae9c8b2c2de8249386c0aed3c3de25b7598fbfe515d` |
 | Portable | `a2d9d2bccdfd643bce2e12cdfab369825cc1d73825135da32824828875a0fd40` |
 
+## Current milestone candidate
+
+The workflow was repeated after the pull-request verification milestone was
+implemented and enforced:
+
+- Workflow run: `40393437523`.
+- Job: `121820119790`.
+- Source revision: `8b9a5d8c4a6f2941245687773187f96599e7e13d`.
+- Version: `0.1.0`.
+- Trigger: `workflow_dispatch`.
+- Workflow result: pass.
+- Independent downloaded-artifact verification: pass.
+- Artifact identifier: `12685426928`.
+- GitHub artifact digest:
+  `sha256:8c0cf49b11ba16ac20987caa2d1d20015d89bd630e6b2701f418f4f9087a2a96`.
+- Candidate manifest digest:
+  `sha256:5500ca7602e9cb40678b7233f742381acbd291d0f07e1f9673251110da3f6957`.
+
+Observed current archive digests:
+
+| Host | SHA-256 |
+| --- | --- |
+| Claude Code | `95e2bec1acee2d44b6fe0bc209864517cf58ed3a8505f6df440cce20c41c5adb` |
+| Codex | `8c958fc164c5646ee643a127b4765cdc83039c8e1d9a9bfc2d24b29de138f156` |
+| Cursor | `fd0ac88f07d211760dd3c952c43c208274e1ff0c6511c3182dd480c9279e3a0c` |
+| Portable | `93759b6a2c54b98c72f8106a2af72a15b9c9b67c2c03f3d8e52fa5ca175d1c49` |
+
+Each archive contains `rivet/scripts/rivet-pr-verify.mjs` and
+`rivet/scripts/rivet-evidence.mjs`.
+
 ## Decision
 
 The workflow can build, verify, and retain an unsigned candidate for an exact
