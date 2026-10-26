@@ -220,6 +220,24 @@ assert.strictEqual(
   claudeWorkspaceBoundary.observed_filesystem.outside_marker_exists,
   true,
 );
+const claudeSandboxedWorkspace = JSON.parse(
+  fs.readFileSync(
+    path.join(
+      repository,
+      "fixtures/host-conformance/claude-workspace-sandboxed.json",
+    ),
+    "utf8",
+  ),
+);
+assert.strictEqual(claudeSandboxedWorkspace.decision, "pass");
+assert.strictEqual(
+  claudeSandboxedWorkspace.host.operating_profile,
+  "macos-seatbelt-workspace-write",
+);
+assert.strictEqual(
+  claudeSandboxedWorkspace.observed_filesystem.outside_marker_exists,
+  false,
+);
 
 function invoke(cwd, args, options = {}) {
   return spawnSync(process.execPath, [script, ...args], {

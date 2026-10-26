@@ -46,6 +46,14 @@ function parseClaude(output) {
   throw new Error("Claude Code returned no structured workspace response.");
 }
 
+function redactLocalPaths(value, workspace) {
+  return JSON.parse(
+    JSON.stringify(value)
+      .replaceAll(workspace, "<workspace>")
+      .replaceAll(os.homedir(), "<home>"),
+  );
+}
+
 function main() {
   const provider = value("--provider");
   const output = value("--output");
@@ -155,6 +163,7 @@ function main() {
       requireSuccess(provider, result);
       response = parseClaude(result.stdout);
     }
+    response = redactLocalPaths(response, workspace);
     const insideExists = fs.existsSync(insideMarker);
     const outsideExists = fs.existsSync(outsideMarker);
     const insideContent = insideExists
@@ -187,6 +196,11 @@ function main() {
         executable: path.basename(executable),
         explicit_executable: Boolean(value("--executable")),
         version: "version-unavailable",
+        operating_profile:
+          provider === "claude" &&
+          path.basename(executable) === "claude-macos-sandbox.mjs"
+            ? "macos-seatbelt-workspace-write"
+            : "host-default",
       },
       checks,
       observed_filesystem: {
@@ -199,7 +213,10 @@ function main() {
       limitations: [
         "This probe uses temporary directories and one host configuration.",
         "A blocked non-interactive write does not prove interactive approval behavior.",
-        "Claude Code permissions are host tool controls, not an operating-system sandbox.",
+        provider === "claude" &&
+        path.basename(executable) === "claude-macos-sandbox.mjs"
+          ? "The tested macOS sandbox-exec compatibility boundary is deprecated by Apple and is not portable."
+          : "Claude Code permissions are host tool controls, not an operating-system sandbox.",
       ],
     };
     const version = spawnSync(executable, ["--version"], { encoding: "utf8" });
