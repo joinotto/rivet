@@ -6,6 +6,9 @@ This file records notable changes to Rivet.
 
 ### Added
 
+- A read-only pull-request workflow that binds exact revisions, preserves
+  unusual UTF-8 filenames, classifies backend risk, runs detected checks, and
+  retains a truthful evidence report.
 - A fail-closed open-source foundation conformance check for required project,
   license, maintainer, support, and security-reporting artifacts.
 - OpenSSF assessment validation for missing, duplicate, escaping, symbolic-link,

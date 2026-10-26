@@ -946,6 +946,18 @@ assert.strictEqual(serviceRisk.status, 0, serviceRisk.stderr);
 assert.strictEqual(JSON.parse(serviceRisk.stdout).risk_mode, "service");
 assert.strictEqual(JSON.parse(serviceRisk.stdout).workflow, "impact");
 
+fs.writeFileSync(path.join(fixture, "empty-files.nul"), "");
+const emptyRisk = invoke(fixture, [
+  "impact",
+  "--files-from",
+  "empty-files.nul",
+  "--json",
+]);
+assert.strictEqual(emptyRisk.status, 0, emptyRisk.stderr);
+assert.deepStrictEqual(JSON.parse(emptyRisk.stdout).files, []);
+assert.strictEqual(JSON.parse(emptyRisk.stdout).risk_mode, "local");
+fs.rmSync(path.join(fixture, "empty-files.nul"));
+
 const criticalRisk = invoke(fixture, [
   "change",
   "--files",

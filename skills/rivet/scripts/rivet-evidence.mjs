@@ -119,6 +119,43 @@ function has(flag) {
   return argv.includes(flag);
 }
 
+function explicitFiles() {
+  const listPath = value("--files-from");
+  if (listPath && value("--files")) {
+    throw new Error("Use --files or --files-from, not both.");
+  }
+  if (listPath) {
+    const absolute = path.resolve(cwd, listPath);
+    if (
+      absolute !== cwd &&
+      !absolute.startsWith(`${cwd}${path.sep}`)
+    ) {
+      throw new Error("The file list must be inside the project.");
+    }
+    if (!fs.existsSync(absolute) || !fs.statSync(absolute).isFile()) {
+      throw new Error("The file list must be an existing file.");
+    }
+    const body = fs.readFileSync(absolute);
+    if (body.length > 1024 * 1024) {
+      throw new Error("The file list must not exceed 1 MiB.");
+    }
+    let decoded;
+    try {
+      decoded = new TextDecoder("utf-8", { fatal: true }).decode(body);
+    } catch {
+      throw new Error("The file list must contain valid UTF-8 paths.");
+    }
+    return decoded
+      .split("\0")
+      .filter(Boolean);
+  }
+
+  return (value("--files") || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function value(flag) {
   const index = argv.indexOf(flag);
   return index >= 0 ? argv[index + 1] : undefined;
@@ -396,12 +433,9 @@ function walkFiles(root, output = []) {
 }
 
 function secretScan() {
-  const explicit = (value("--files") || "")
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .map((item) => path.resolve(cwd, item));
-  const files = explicit.length ? explicit : walkFiles(cwd);
+  const explicit = explicitFiles().map((item) => path.resolve(cwd, item));
+  const files =
+    has("--files") || has("--files-from") ? explicit : walkFiles(cwd);
   const patterns = [
     {
       id: "private-key",
@@ -1210,11 +1244,8 @@ function databaseEvidence() {
 }
 
 function changedFiles() {
-  const explicit = (value("--files") || "")
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-  if (explicit.length) return explicit;
+  const explicit = explicitFiles();
+  if (has("--files") || has("--files-from")) return explicit;
 
   const result = run("git", ["status", "--short"]);
   if (result.status !== 0) return [];
@@ -2632,7 +2663,9 @@ function githubEscape(value) {
   return String(value)
     .replaceAll("%", "%25")
     .replaceAll("\r", "%0D")
-    .replaceAll("\n", "%0A");
+    .replaceAll("\n", "%0A")
+    .replaceAll(":", "%3A")
+    .replaceAll(",", "%2C");
 }
 
 function githubOutput(receipt) {
@@ -2881,7 +2914,7 @@ if (command === "init") {
 } else {
   console.error(`Unknown command: ${command}`);
   console.error(
-    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list] [--json] | shape [--title value] [--files list] [--output path] [--force] | secrets [--files list] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id] | --index-evidence file) | test [--files list] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | quality-ratchet --file file [--observed-at date] | stateful (init | validate) | fuzz --report file | chaos (init | validate | result) | formalize (init | validate | result) | privacy (init | validate) | capacity (init | evaluate) | advanced-review (packet | init | validate) | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security-review (packet | init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file [--enrich findings --kev snapshot --epss snapshot --retrieved-at date] [--reachability findings --evidence record]) | sbom --file file --revision value [--validate-schema] [--signature embedded|sigstore|cosign-key] | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate (--campaign file | --fixtures dir --findings file) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
+    "Use: init [--force] | map [--json] | inspect [--json] | impact [--files list | --files-from nul-file] [--json] | shape [--title value] [--files list | --files-from nul-file] [--output path] [--force] | secrets [--files list | --files-from nul-file] [--json] | dependencies [--dry-run] | database (--migration file | --plan file [--query id] | --index-evidence file) | test [--files list | --files-from nul-file] [--record file] [--coverage-report file | --mutation-report file | --property-report file | --contract-report file | --flake-reports file1,file2] [--json] | quality-ratchet --file file [--observed-at date] | stateful (init | validate) | fuzz --report file | chaos (init | validate | result) | formalize (init | validate | result) | privacy (init | validate) | capacity (init | evaluate) | advanced-review (packet | init | validate) | contract (--dry-run | --report file | --target url --allow-network [--allow-nonlocal-target]) | review [--record file | run --packet file --provider codex|claude --output file --allow-network | ingest --packet file --findings file] | threat-model (init | validate) | security-review (packet | init | validate) | security (--run [--dry-run] [--allow-network] | --sarif file | --trivy file [--enrich findings --kev snapshot --epss snapshot --retrieved-at date] [--reachability findings --evidence record]) | sbom --file file --revision value [--validate-schema] [--signature embedded|sigstore|cosign-key] | waiver (init | validate) | attest (plan | sign | verify) | resilience (--file model.json | --trace spans.json) | migrate (--plan file | --dry-run file) | observe --file telemetry.json | performance (--baseline file --candidate file | --sample-baseline file --sample-candidate file) | release --plan file [--performance comparison.json] | incident (init | add | validate) | postmortem --incident file [--output file] | action (init | validate | sync) | evaluate (--campaign file | --fixtures dir --findings file) | verify [--dry-run] [--checks list] [--receipt path] [--summary path] [--format text|json|github] | doctor [--json]. Compatibility aliases: change=impact, record=shape.",
   );
   process.exitCode = 1;
 }
