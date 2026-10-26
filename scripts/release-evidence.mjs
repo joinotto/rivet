@@ -27,6 +27,38 @@ function text(value) {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+function artifactDigest(root, artifact, label, faults) {
+  if (!text(artifact) || path.isAbsolute(artifact) || artifact.split(/[\\/]/).includes("..")) {
+    faults.push(`${label} has an unsafe artifact path.`);
+    return undefined;
+  }
+  const target = path.resolve(root, artifact);
+  if (target === root || !target.startsWith(`${root}${path.sep}`)) {
+    faults.push(`${label} artifact escapes its evidence root.`);
+    return undefined;
+  }
+  let descriptor;
+  try {
+    descriptor = fs.openSync(
+      target,
+      fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW
+    );
+    if (!fs.fstatSync(descriptor).isFile()) {
+      faults.push(`${label} artifact must be a regular file.`);
+      return undefined;
+    }
+    return crypto
+      .createHash("sha256")
+      .update(fs.readFileSync(descriptor))
+      .digest("hex");
+  } catch {
+    faults.push(`${label} artifact cannot be read safely.`);
+    return undefined;
+  } finally {
+    if (descriptor !== undefined) fs.closeSync(descriptor);
+  }
+}
+
 export function prepareReleaseEvidence(candidateDirectory, preparer = "") {
   const candidate = verifyReleaseCandidate(candidateDirectory);
   if (candidate.decision !== "pass") {
@@ -48,6 +80,7 @@ export function prepareReleaseEvidence(candidateDirectory, preparer = "") {
     gates: requiredGates.map((id) => ({
       id,
       status: id === "sbom" || id === "provenance" ? "pass" : "missing",
+      scope: id === "sbom" || id === "provenance" ? "candidate" : "evidence",
       artifact: id === "sbom" ? "bom.cdx.json" : id === "provenance" ? "provenance.json" : "",
       sha256:
         id === "sbom"
@@ -73,7 +106,11 @@ export function prepareReleaseEvidence(candidateDirectory, preparer = "") {
   };
 }
 
-export function validateReleaseEvidence(record, candidateDirectory) {
+export function validateReleaseEvidence(
+  record,
+  candidateDirectory,
+  evidenceDirectory = candidateDirectory
+) {
   const faults = [];
   const gaps = [];
   const candidate = verifyReleaseCandidate(candidateDirectory, {
@@ -113,10 +150,21 @@ export function validateReleaseEvidence(record, candidateDirectory) {
       gaps.push({ id, reason: "Gate is missing." });
     } else if (
       gate.status !== "pass" ||
+      !["candidate", "evidence"].includes(gate.scope) ||
       !text(gate.artifact) ||
       !/^[a-f0-9]{64}$/.test(gate.sha256 || "")
     ) {
-      gaps.push({ id, reason: "Gate requires pass status, artifact, and SHA-256 digest." });
+      gaps.push({ id, reason: "Gate requires pass status, scope, artifact, and SHA-256 digest." });
+    } else {
+      const observedDigest = artifactDigest(
+        gate.scope === "candidate" ? candidateDirectory : evidenceDirectory,
+        gate.artifact,
+        `gate ${id}`,
+        faults
+      );
+      if (observedDigest && observedDigest !== gate.sha256) {
+        faults.push(`gate ${id} artifact does not match its SHA-256 digest.`);
+      }
     }
     if (
       id === "ci" &&
@@ -159,10 +207,23 @@ export function validateReleaseEvidence(record, candidateDirectory) {
       !text(approval?.signature?.method) ||
       !text(approval?.signature?.artifact) ||
       !text(approval?.signature?.identity) ||
+      approval?.signature?.scope !== "evidence" ||
+      !/^[a-f0-9]{64}$/.test(approval?.signature?.sha256 || "") ||
       approval.signature.identity !== approval.reviewer.identity
     ) {
       faults.push("Each approval must be qualified, independent, signed, and revision-bound.");
       continue;
+    }
+    const signatureDigest = artifactDigest(
+      evidenceDirectory,
+      approval.signature.artifact,
+      `approval ${approval.reviewer.identity}`,
+      faults
+    );
+    if (signatureDigest && signatureDigest !== approval.signature.sha256) {
+      faults.push(
+        `approval ${approval.reviewer.identity} signature does not match its SHA-256 digest.`
+      );
     }
     if (
       approval.reviewer.identity === record.preparer ||
@@ -217,12 +278,21 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     });
     process.stdout.write(`${JSON.stringify(record, null, 2)}\n`);
   } else if (command === "validate" && candidate && value("--record")) {
-    const record = JSON.parse(fs.readFileSync(path.resolve(repository, value("--record")), "utf8"));
-    const result = validateReleaseEvidence(record, path.resolve(repository, candidate));
+    const recordFile = path.resolve(repository, value("--record"));
+    const record = JSON.parse(fs.readFileSync(recordFile, "utf8"));
+    const evidenceDirectory = path.resolve(
+      repository,
+      value("--evidence-root") || path.dirname(recordFile)
+    );
+    const result = validateReleaseEvidence(
+      record,
+      path.resolve(repository, candidate),
+      evidenceDirectory
+    );
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     if (result.decision !== "ready-for-publication-review") process.exitCode = 1;
   } else {
-    console.error("Use: release-evidence prepare --candidate dir --output file [--preparer identity] | validate --candidate dir --record file");
+    console.error("Use: release-evidence prepare --candidate dir --output file [--preparer identity] | validate --candidate dir --record file [--evidence-root dir]");
     process.exitCode = 2;
   }
 }

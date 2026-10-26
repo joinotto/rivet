@@ -16,6 +16,8 @@ This file records notable changes to Rivet.
   an unsigned candidate for an exact default-branch revision.
 - Revision-bound release evidence drafts that fail closed on missing gates,
   signatures, risks, or independent approvals.
+- Safe artifact-path and digest verification for every release gate and signed
+  approval record.
 - Deterministic unsigned release-candidate archives with checksums, CycloneDX
   SBOM, source-bound provenance, and byte-reproducibility tests.
 - Offline, fail-closed verification for candidate inventory, archive metadata,
