@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -16,6 +17,10 @@ function command(cwd, executable, args) {
   const result = spawnSync(executable, args, { cwd, encoding: "utf8" });
   assert.strictEqual(result.status, 0, result.stderr);
   return result.stdout.trim();
+}
+
+function sha256(file) {
+  return crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 }
 
 try {
@@ -49,15 +54,20 @@ try {
   ]);
 
   const draft = prepareReleaseEvidence(candidate, "maintainer@example.invalid");
-  const held = validateReleaseEvidence(draft, candidate);
+  const evidence = path.join(temporary, "evidence");
+  fs.mkdirSync(evidence);
+  const held = validateReleaseEvidence(draft, candidate, evidence);
   assert.strictEqual(held.decision, "hold");
   assert.ok(held.evidence_gaps.some((gap) => gap.id === "signature-verification"));
   assert.ok(held.evidence_gaps.some((gap) => gap.id === "approvals"));
 
   for (const gate of draft.gates) {
     gate.status = "pass";
-    gate.artifact ||= `${gate.id}.json`;
-    gate.sha256 ||= "a".repeat(64);
+    if (!gate.artifact) {
+      gate.artifact = `${gate.id}.json`;
+      fs.writeFileSync(path.join(evidence, gate.artifact), `${gate.id}\n`);
+      gate.sha256 = sha256(path.join(evidence, gate.artifact));
+    }
   }
   draft.gates.find((gate) => gate.id === "ci").run_ids = ["40381304029"];
   Object.assign(
@@ -82,10 +92,21 @@ try {
     signature: {
       method: "test fixture",
       artifact: `review-${index + 1}.sig`,
-      identity
+      identity,
+      scope: "evidence",
+      sha256: ""
     }
   }));
-  const ready = validateReleaseEvidence(draft, candidate);
+  for (const approval of draft.approvals) {
+    fs.writeFileSync(
+      path.join(evidence, approval.signature.artifact),
+      `${approval.reviewer.identity}\n`
+    );
+    approval.signature.sha256 = sha256(
+      path.join(evidence, approval.signature.artifact)
+    );
+  }
+  const ready = validateReleaseEvidence(draft, candidate, evidence);
   assert.strictEqual(
     ready.decision,
     "ready-for-publication-review",
@@ -94,16 +115,22 @@ try {
 
   draft.approvals[1].reviewer.identity = "reviewer-1";
   draft.approvals[1].signature.identity = "reviewer-1";
-  const duplicate = validateReleaseEvidence(draft, candidate);
+  const duplicate = validateReleaseEvidence(draft, candidate, evidence);
   assert.strictEqual(duplicate.decision, "invalid");
   assert.ok(duplicate.faults.some((fault) => /distinct/.test(fault)));
 
   draft.approvals[1].reviewer.identity = "reviewer-2";
   draft.approvals[1].signature.identity = "reviewer-2";
   draft.candidate.manifest_sha256 = "0".repeat(64);
-  const unbound = validateReleaseEvidence(draft, candidate);
+  const unbound = validateReleaseEvidence(draft, candidate, evidence);
   assert.strictEqual(unbound.decision, "invalid");
   assert.ok(unbound.faults.some((fault) => /manifest digest/.test(fault)));
+
+  draft.candidate.manifest_sha256 = sha256(path.join(candidate, "manifest.json"));
+  fs.appendFileSync(path.join(evidence, "security.json"), "tampered\n");
+  const changedEvidence = validateReleaseEvidence(draft, candidate, evidence);
+  assert.strictEqual(changedEvidence.decision, "invalid");
+  assert.ok(changedEvidence.faults.some((fault) => /gate security artifact/.test(fault)));
 
   console.log("release evidence tests passed");
 } finally {

@@ -59,11 +59,15 @@ completed record with:
 ```sh
 npm run release:evidence -- validate \
   --candidate dist/release \
-  --record dist/release-evidence.json
+  --record dist/release-evidence.json \
+  --evidence-root dist/release-evidence
 ```
 
-The strongest result is `ready-for-publication-review`. It does not authorize
-or create a release.
+The validator opens each gate and approval artifact from its declared
+candidate or evidence scope and recomputes its SHA-256 digest. It rejects
+absolute paths, parent traversal, symbolic links, non-files, missing files,
+and changed content. The strongest result is `ready-for-publication-review`.
+It does not authorize or create a release.
 
 ## Release authority
 
