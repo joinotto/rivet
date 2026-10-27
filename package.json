@@ -1,7 +1,7 @@
 {
-  "name": "rivet",
-  "version": "0.1.1",
-  "private": true,
+  "name": "@ottoai/rivet",
+  "version": "0.1.2-preview.1",
+  "private": false,
   "description": "Evidence-driven backend engineering skills for Codex and Claude Code.",
   "repository": {
     "type": "git",
@@ -21,6 +21,12 @@
     "LICENSE",
     "NOTICE"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "tag": "next",
+    "provenance": true
+  },
   "scripts": {
     "test": "node test/rivet-evidence.test.mjs && node test/skill-package-validator.test.mjs && node test/claude-macos-sandbox.test.mjs && node test/pr-verification.test.mjs && node test/osv-workflow.test.mjs && node test/fuzz-workflow.test.mjs && node test/coverage-guided-fuzz.test.mjs && node test/skill-installation.test.mjs",
     "test:release": "node test/release-candidate.test.mjs && node test/release-candidate-workflow.test.mjs",
@@ -33,7 +39,7 @@
     "test:migration": "node fixtures/migration-resume/run-evidence.mjs fixtures/migration-resume/evidence.json",
     "test:hosts": "node scripts/test-host-packages.mjs",
     "test:installation": "node test/skill-installation.test.mjs",
-    "test:distribution": "node test/direct-installation.test.mjs",
+    "test:distribution": "node test/direct-installation.test.mjs && node test/npm-publish-workflow.test.mjs",
     "skill": "node scripts/install-skill.mjs",
     "check:dco": "node scripts/check-dco.mjs",
     "check:ste": "node skills/rivet/scripts/rivet-ste.mjs skills/rivet",

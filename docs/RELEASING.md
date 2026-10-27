@@ -3,6 +3,43 @@
 Status: version `0.1.1` is designated for an unsigned development prerelease.
 No supported production release has occurred.
 
+## npm preview publication
+
+The selected public package is `@ottoai/rivet`. Source version
+`0.1.2-preview.1` is prepared but not published. Keep the existing GitHub
+`v0.1.1` tag and assets unchanged.
+
+The `npm-publish.yml` workflow is manual, restricted to this repository's
+`main` branch, and limited to `-preview.N` versions under the `next` tag.
+Its input revision must match the selected workflow revision and checkout.
+Checks run in a separate job without OIDC publishing permission.
+The publish job uses the `npm` environment and an isolated npm client.
+It requests public access and authenticated provenance without stored tokens.
+
+Before dispatch:
+
+1. Confirm that your npm account can create or publish `@ottoai/rivet`.
+2. Configure the package-specific GitHub trusted publisher on npm:
+   organization `joinotto`, repository `rivet`, workflow `npm-publish.yml`,
+   environment `npm`, with direct publish permission.
+3. Configure and review the GitHub `npm` deployment environment's approval
+   and branch rules. Rivet does not copy account settings from another package.
+4. If npm requires an initial package publication before this setup is
+   possible, complete that bootstrap through your authenticated account and
+   normal 2FA process. Review its exact bytes and clearly distinguish its
+   provenance status. Do not paste tokens into issues, source, or chat.
+5. Confirm that the selected main revision has passing protected checks.
+6. Dispatch with its full revision and matching preview version.
+7. Independently verify the registry package inventory, integrity, and
+   provenance, then test the public `npx` flow for both hosts.
+8. Update availability statements only after successful publication.
+
+OIDC publication for one package does not authorize a second package.
+The current CLI authentication and trusted-publisher setup are not assumed
+from another project. Do not fall back silently to an unsigned publish.
+An authenticated npm preview does not satisfy independent production review
+or authenticate the separate unsigned GitHub host archives.
+
 ## Development prerelease exception
 
 The maintainer approved an explicit evaluation exception on 2026-10-27 for
@@ -30,7 +67,7 @@ Build only from a clean committed revision:
 
 ```sh
 npm run package:release-candidate -- \
-  --version 0.1.1 \
+  --version 0.1.2-preview.1 \
   --revision "$(git rev-parse HEAD)" \
   --output dist/release
 ```
@@ -56,7 +93,7 @@ Verify a received candidate before review or signing:
 ```sh
 npm run verify:release-candidate -- \
   --input dist/release \
-  --version 0.1.1 \
+  --version 0.1.2-preview.1 \
   --revision COMMIT_ID
 ```
 

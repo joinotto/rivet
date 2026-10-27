@@ -37,6 +37,20 @@ GitHub source. This distribution has no install hooks or third-party dependencie
 Do not run `npx rivet`. The unscoped npm package is unrelated to this project.
 Rivet is not yet published to the npm registry.
 
+The selected package name is `@ottoai/rivet`. When the first npm preview is
+published, use:
+
+```sh
+npx --ignore-scripts @ottoai/rivet@next install --host codex --project .
+```
+
+This command is not available yet. `next` selects a preview and can change.
+For repeatable use, replace `next` with an exact published version.
+Both distributions use the same installer, preservation rules, and backups.
+The npm preview workflow uses package-specific OIDC publishing and provenance.
+That configuration and an actual publication must succeed before claiming
+authenticated npm provenance. It does not sign the separate GitHub host archives.
+
 A source archive has no Git checkout metadata. Its receipt records the package
 version, `source_revision: null`, and `source_state: unknown`. This is deliberate:
 a tag URL and a local inventory are not a publisher signature. Review the tag's

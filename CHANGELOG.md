@@ -3,6 +3,16 @@
 This file records user-visible changes. The initial version `0.1.0` is
 designated as an unsigned development prerelease, not a production release.
 
+## 0.1.2-preview.1 — Unreleased
+
+- Select `@ottoai/rivet` as the public npm package name.
+- Prepare public preview publication under `next` with required provenance.
+- Add a main-only, exact-revision, manually dispatched OIDC publishing workflow.
+  Its validation job has no publishing permission. No stored npm token is used.
+- Retain minimal package contents and managed lifecycle tests.
+- Keep npm commands explicitly unavailable until package authentication,
+  trusted-publisher setup, and actual registry publication succeed.
+
 ## 0.1.1 — Development prerelease (2026-10-27)
 
 ### Added
