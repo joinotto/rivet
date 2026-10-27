@@ -1,8 +1,34 @@
 # Releasing
 
-Status: npm version `0.1.2-preview.1` is a development preview with authenticated
-publication provenance. The separate GitHub `0.1.1` archives remain unsigned.
-No supported production release has occurred.
+Status: `0.1.3` is prepared for initial stable tooling publication under the
+one-time exception below. npm version `0.1.2-preview.1` remains the published
+development preview with authenticated provenance. The separate GitHub `0.1.1`
+archives remain unsigned. No production-approved release has occurred.
+
+## Initial stable tooling exception: 0.1.3
+
+On 2026-10-27, the maintainer authorized initial stable tooling publication as
+`0.1.3` under `latest` while retaining the normal production requirements.
+This is a specific publication exception, not a statement that those
+requirements are satisfied.
+
+The exception requires:
+
+- Exactly `@ottoai/rivet@0.1.3`, published under `latest`.
+- A clean, exact source revision and passing protected checks.
+- The existing `npm` deployment approval gate, OIDC publishing, and provenance.
+- Minimal reviewed package contents and both hosts' lifecycle tests.
+- Post-publication registry signature, provenance, source, and digest verification.
+- Explicit disclosure of outstanding real-user feedback, qualified security
+  review, and two independent release approvals.
+- No claim of security certification or production approval.
+- Preservation of all previously published versions and artifacts.
+
+The workflow permits this exact stable version only. The exception does not
+authorize a later stable version or remove the normal requirements below.
+It applies to npm tooling publication, not to signing or republishing the
+separate GitHub host archives. The initial release remains community-supported;
+users must assess their own production use.
 
 ## npm preview publication
 
@@ -22,8 +48,9 @@ The preview remains for evaluation; a registry tag is not production approval.
 Use the exact preview version or `next`. No further MFA retry is required for
 this rejected removal.
 
-The `npm-publish.yml` workflow is manual, restricted to this repository's
-`main` branch, and limited to `-preview.N` versions under the `next` tag.
+The `npm-publish.yml` workflow is manual and restricted to this repository's
+`main` branch. It permits `-preview.N` versions under `next`, or exactly
+`0.1.3` under `latest` through the initial stable tooling exception.
 Its input revision must match the selected workflow revision and checkout.
 Checks run in a separate job without OIDC publishing permission.
 The publish job uses the `npm` environment and an isolated npm client.
@@ -42,15 +69,16 @@ For each subsequent preview:
    for trusted-publisher setup. Do not approve that stage as a public release.
    Do not paste tokens into issues, source, or chat.
 5. Confirm that the selected main revision has passing protected checks.
-6. Dispatch with its full revision and matching preview version.
+6. Dispatch with its full revision, matching preview version, and `next` channel.
+   Use version `0.1.3` and channel `latest` only for the initial exception.
 7. Independently verify the registry package inventory, integrity, and
    provenance, then test the public `npx` flow for both hosts.
 8. Inspect registry tags after publication. npm can assign `latest` on the
    first publication even when `next` was selected, and can reject its removal.
    Do not assume that deletion is supported or repeat MFA attempts after a
    confirmed registry rejection. Document the actual tags and preview status.
-   Do not publish a placeholder or relabel the preview as stable to work around
-   this behavior. A future stable version requires the production gates below.
+   Do not publish a placeholder or relabel an existing preview as stable to work
+   around this behavior. A later stable version requires the production gates below.
 9. Update availability statements only after successful publication.
 
 To verify registry signatures and provenance, use a separate temporary project.
@@ -100,7 +128,7 @@ Build only from a clean committed revision:
 
 ```sh
 npm run package:release-candidate -- \
-  --version 0.1.2-preview.1 \
+  --version 0.1.3 \
   --revision "$(git rev-parse HEAD)" \
   --output dist/release
 ```
@@ -126,7 +154,7 @@ Verify a received candidate before review or signing:
 ```sh
 npm run verify:release-candidate -- \
   --input dist/release \
-  --version 0.1.2-preview.1 \
+  --version 0.1.3 \
   --revision COMMIT_ID
 ```
 

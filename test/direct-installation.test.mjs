@@ -39,7 +39,8 @@ try {
   assert.equal(metadata.name, "@ottoai/rivet", "Only publish under the selected scope.");
   assert.equal(metadata.private, false);
   assert.deepEqual(metadata.publishConfig, {
-    access: "public", registry: "https://registry.npmjs.org/", tag: "next", provenance: true,
+    access: "public", registry: "https://registry.npmjs.org/",
+    tag: metadata.version === "0.1.3" ? "latest" : "next", provenance: true,
   });
   assert.deepEqual(metadata.bin, { rivet: "scripts/install-skill.mjs" });
   assert.ok(!metadata.dependencies && !metadata.devDependencies);

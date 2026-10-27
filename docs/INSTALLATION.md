@@ -20,7 +20,7 @@ paths is refused.
 Use a maintained Node.js 22 runtime with npm. In an existing backend project:
 
 ```sh
-npx --ignore-scripts @ottoai/rivet@0.1.2-preview.1 install --host codex --project .
+npx --ignore-scripts @ottoai/rivet@0.1.3 install --host codex --project .
 ```
 
 Use `--host claude-code` for Claude Code. Add `--dry-run` to preview project
@@ -36,19 +36,27 @@ An npm confirmation prompt can appear on first use; approve only the expected
 third-party dependencies.
 
 Do not run `npx rivet`. The unscoped npm package is unrelated to this project.
-The public package is `@ottoai/rivet`. Version `0.1.2-preview.1` is available
-for evaluation, not supported production use. To select the current preview:
+The public package is `@ottoai/rivet`. Version `0.1.3` is the initial stable
+tooling release under the [maintainer exception](RELEASING.md).
+The normal production requirements remain incomplete and unchanged.
+An unreleased checkout can precede publication; confirm the selected version
+with `npm view @ottoai/rivet@0.1.3 version`.
+To select the current stable distribution channel:
 
 ```sh
-npx --ignore-scripts @ottoai/rivet@next install --host codex --project .
+npx --ignore-scripts @ottoai/rivet@latest install --host codex --project .
 ```
 
-`next` selects a preview and can change. For repeatable use, select an exact
+`latest` can change. For repeatable use, select an exact
 published version as in the first command.
-The npm preview has authenticated GitHub Actions provenance. Its registry
-signature, provenance, artifact digest, and source binding were verified after
-publication. This does not sign the separate GitHub host archives or prove
-production safety. See [releasing](RELEASING.md) for verification and release gates.
+The workflow requires authenticated GitHub Actions provenance. Verify the
+registry signature, provenance, artifact digest, and source binding for the
+selected published version. These checks do not sign the separate GitHub host
+archives or prove production safety. See [releasing](RELEASING.md) for verification
+and release gates.
+
+The earlier npm preview remains available as `@ottoai/rivet@0.1.2-preview.1`.
+Use `@ottoai/rivet@next` only to select the preview channel.
 
 The existing unsigned GitHub preview is still available:
 

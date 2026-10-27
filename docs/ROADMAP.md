@@ -9,7 +9,14 @@ Current capabilities include repository inspection, TRACE change records,
 database guidance, selected verification, security evidence, reliability,
 performance, and recoverable project-local installation.
 
-## First supported release
+## Initial stable tooling release
+
+Version `0.1.3` targets the `latest` npm channel under a one-time maintainer
+exception. This does not complete the production gates or waive them for
+subsequent releases. Publication requires the protected workflow and deployment
+approval. See [the exception and normal requirements](RELEASING.md).
+
+## First production-approved release
 
 - Provide clone-free, version-pinned installation for both active hosts.
   GitHub `npx` distribution is available in the unsigned `0.1.1` preview.
@@ -24,8 +31,8 @@ performance, and recoverable project-local installation.
 - Publish verified, signed artifacts with source revision, license, notices,
   software bill of materials, provenance, and required independent approvals.
 
-The current version is a development preview, not a supported production
-release. Follow the [release policy](RELEASING.md) before publication.
+The initial stable tooling release is not a production-approved release.
+Follow the [release policy](RELEASING.md) before claiming that status.
 
 ## Subsequent improvements
 

@@ -3,6 +3,20 @@
 This file records user-visible changes. The initial version `0.1.0` is
 designated as an unsigned development prerelease, not a production release.
 
+## 0.1.3 — Initial stable tooling release
+
+- Select the version-pinned npm command as the primary installation path.
+- Prepare `0.1.3` for the `latest` distribution channel under a one-time
+  maintainer exception authorized on 2026-10-27.
+- Limit the publishing guard's stable exception to this exact version.
+  Previews remain on `next`; later stable releases are not authorized by it.
+- Retain exact-revision checks, protected CI, deployment approval, OIDC
+  publishing, provenance, minimal contents, and managed recovery.
+- Keep the normal production requirements unchanged. Real-user feedback,
+  qualified security review, and two independent approvals remain incomplete.
+  Stable tooling publication does not claim those gates passed.
+- Leave the existing npm preview and GitHub prerelease artifacts unchanged.
+
 ## 0.1.2-preview.1 — npm development preview (2026-10-27)
 
 - Select `@ottoai/rivet` as the public npm package name.

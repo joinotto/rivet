@@ -23,13 +23,12 @@ It combines explicit invariants, database and system-design guidance, selected
 repository checks, and evidence receipts. Your project owns its tools, data,
 permissions, and model-provider configuration.
 
-Status: development preview. `@ottoai/rivet@0.1.2-preview.1` is published on npm
-with authenticated GitHub Actions provenance for isolated evaluation.
-The existing GitHub `0.1.1` archives remain unsigned.
-Neither distribution is a supported production release. Production publication requires the
-[release requirements](docs/RELEASING.md).
-npm also assigned `latest` to this first preview. A registry tag does not
-establish production readiness. Use the explicit version or `next` below.
+Release line: `0.1.3`, the initial stable tooling release under a one-time
+maintainer exception. Stable describes the distribution channel, not security
+certification or completion of the production requirements. Real-user feedback,
+qualified security review, and two independent approvals remain outstanding.
+The [release policy](docs/RELEASING.md) stays in place.
+The older GitHub `0.1.1` archives remain unsigned.
 
 ## Why Rivet
 
@@ -46,7 +45,7 @@ Use a maintained Node.js 22 runtime with npm. From your backend project,
 run the version-pinned command. No manual clone or global installation is needed:
 
 ```sh
-npx --ignore-scripts @ottoai/rivet@0.1.2-preview.1 install --host codex --project .
+npx --ignore-scripts @ottoai/rivet@0.1.3 install --host codex --project .
 ```
 
 For Claude Code, use `--host claude-code`.
@@ -56,9 +55,12 @@ downloaded code. npm downloads the package to its cache; `--ignore-scripts`
 disables package lifecycle hooks, not the installer you explicitly invoke.
 Rivet does not add a dependency to your backend project.
 
-The shorter preview command is
-`npx --ignore-scripts @ottoai/rivet@next install --host codex --project .`.
-The `next` tag can change. Pin the version above for repeatable use.
+The shorter stable-channel command is
+`npx --ignore-scripts @ottoai/rivet@latest install --host codex --project .`.
+The `latest` tag can change. Pin the version above for repeatable use.
+An unreleased checkout can precede npm publication. Check the selected version
+with `npm view @ottoai/rivet@0.1.3 version` before using its install command.
+Use `@ottoai/rivet@next` only when you intend to select a preview.
 Do not use `npx rivet`: that npm name belongs to an unrelated project.
 The downloaded-package receipt records an unknown Git revision. Verify npm
 provenance separately; a local receipt does not authenticate the publisher.

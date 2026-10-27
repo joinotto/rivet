@@ -1,8 +1,8 @@
 # Getting started
 
-Status: development preview. npm version `0.1.2-preview.1` has authenticated
-publication provenance. The separate GitHub `0.1.1` archives remain unsigned.
-Both are for isolated evaluation, not supported production use.
+Release line: `0.1.3`, the initial stable tooling release under a
+[one-time maintainer exception](RELEASING.md). Independent production
+requirements remain incomplete. The separate GitHub `0.1.1` archives remain unsigned.
 
 Rivet supports project-local installations for Codex and Claude Code. It does
 not install a model, change a model provider, modify host permissions, or
@@ -17,7 +17,7 @@ promise from the Node.js project.
 Run in your backend project:
 
 ```sh
-npx --ignore-scripts @ottoai/rivet@0.1.2-preview.1 install --host codex --project .
+npx --ignore-scripts @ottoai/rivet@0.1.3 install --host codex --project .
 ```
 
 For Claude Code, use `--host claude-code`. Add `--dry-run` to preview project
@@ -26,8 +26,11 @@ Review downloaded source before execution. See
 [installation and recovery](INSTALLATION.md) for cache, source-identity, and
 upgrade limitations. Do not use the unrelated npm package named `rivet`.
 
-Use `@ottoai/rivet@next` instead of the exact version to select the current
-preview. The tag can change. The [installation guide](INSTALLATION.md) also
+Use `@ottoai/rivet@latest` instead of the exact version to select the stable
+distribution channel. The tag can change. An unreleased checkout can precede
+npm publication; confirm availability with `npm view @ottoai/rivet@0.1.3 version`.
+Use `@ottoai/rivet@next` only to select a preview.
+The [installation guide](INSTALLATION.md) also
 documents the existing GitHub archive command and offline installation.
 
 ## 1. Obtain the source for checkout-based use
@@ -147,6 +150,6 @@ uses deprecated `sandbox-exec`; do not assume support on other systems.
 See [installation and recovery](INSTALLATION.md) for status, upgrade, removal,
 backups, lock recovery, and modified-file handling.
 
-Rivet remains a development preview until the real-project pilot, qualified
-security review, signatures, and independent release approvals pass. See
-[release policy](RELEASING.md).
+The initial stable tooling exception does not establish production approval.
+Real-user feedback, qualified security review, and independent release approvals
+remain outstanding. See [release policy](RELEASING.md).

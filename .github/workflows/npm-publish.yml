@@ -1,22 +1,30 @@
-name: Publish npm preview
+name: Publish npm release
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: Reviewed preview version (for example 0.1.2-preview.1)
+        description: Reviewed version (initial stable exception 0.1.3 or a preview)
         required: true
         type: string
       revision:
         description: Full commit identifier of the selected main revision
         required: true
         type: string
+      channel:
+        description: Registry channel for the reviewed release
+        required: true
+        default: next
+        type: choice
+        options:
+          - next
+          - latest
 
 permissions:
   contents: read
 
 concurrency:
-  group: npm-preview-publication
+  group: npm-publication
   cancel-in-progress: false
 
 jobs:
@@ -38,10 +46,11 @@ jobs:
           node-version: "22.23.3"
           package-manager-cache: false
 
-      - name: Require exact reviewed preview source
+      - name: Require exact reviewed release source
         env:
           SOURCE_REVISION: ${{ inputs.revision }}
           SOURCE_VERSION: ${{ inputs.version }}
+          SOURCE_CHANNEL: ${{ inputs.channel }}
         run: |
           test "$SOURCE_REVISION" = "$GITHUB_SHA"
           test "$SOURCE_REVISION" = "$(git rev-parse HEAD)"
@@ -50,11 +59,18 @@ jobs:
           import fs from "node:fs";
           const metadata = JSON.parse(fs.readFileSync("package.json", "utf8"));
           assert.match(process.env.SOURCE_REVISION, /^[a-f0-9]{40}$/);
-          assert.match(process.env.SOURCE_VERSION, /^\d+\.\d+\.\d+-preview\.\d+$/);
           assert.equal(metadata.name, "@ottoai/rivet");
           assert.equal(metadata.version, process.env.SOURCE_VERSION);
-          assert.equal(metadata.publishConfig.tag, "next");
+          assert.ok(["next", "latest"].includes(process.env.SOURCE_CHANNEL));
+          assert.equal(metadata.publishConfig.tag, process.env.SOURCE_CHANNEL);
           assert.equal(metadata.publishConfig.provenance, true);
+          if (process.env.SOURCE_CHANNEL === "next") {
+            assert.match(process.env.SOURCE_VERSION, /^\d+\.\d+\.\d+-preview\.\d+$/);
+          } else {
+            // This exception does not authorize later stable versions.
+            assert.equal(process.env.SOURCE_VERSION, "0.1.3",
+              "Only the initial maintainer-approved stable exception is authorized.");
+          }
           JS
 
       - name: Run checks without publishing permission
@@ -101,7 +117,13 @@ jobs:
           npm install --ignore-scripts --no-audit --no-fund \
             --prefix "$RUNNER_TEMP/rivet-npm-cli" npm@12.2.1
 
-      - name: Publish preview with OIDC and provenance
+      - name: Publish checked channel with OIDC and provenance
+        env:
+          PUBLISH_CHANNEL: ${{ inputs.channel }}
         run: |
+          case "$PUBLISH_CHANNEL" in
+            next|latest) ;;
+            *) exit 1 ;;
+          esac
           "$RUNNER_TEMP/rivet-npm-cli/node_modules/.bin/npm" publish \
-            --ignore-scripts --access public --tag next --provenance
+            --ignore-scripts --access public --tag "$PUBLISH_CHANNEL" --provenance
