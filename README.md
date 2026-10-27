@@ -28,6 +28,8 @@ with authenticated GitHub Actions provenance for isolated evaluation.
 The existing GitHub `0.1.1` archives remain unsigned.
 Neither distribution is a supported production release. Production publication requires the
 [release requirements](docs/RELEASING.md).
+npm also assigned `latest` to this first preview. A registry tag does not
+establish production readiness. Use the explicit version or `next` below.
 
 ## Why Rivet
 
