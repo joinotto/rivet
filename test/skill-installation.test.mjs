@@ -61,6 +61,10 @@ try {
     const receipt = JSON.parse(fs.readFileSync(path.join(target, ".rivet-installation.json"), "utf8"));
     assert.equal(receipt.host, host);
     assert.equal(receipt.inventory.files.some((file) => file.path === "SKILL.md"), true);
+    for (const document of ["LICENSE", "NOTICE"]) {
+      assert.equal(fs.readFileSync(path.join(target, document), "utf8"), fs.readFileSync(path.join(repository, document), "utf8"));
+      assert.equal(receipt.inventory.files.some((file) => file.path === document), true);
+    }
     assert.equal(JSON.parse(cli("status", host, root).stdout).decision, "installed");
     const beforeRepeated = inventory(root);
     assert.equal(JSON.parse(cli("install", host, root).stdout).decision, "unchanged");
@@ -175,6 +179,19 @@ try {
   assert.throws(() => manageSkill({ ...options, action: "upgrade" }), /bounded regular file/);
   assert.deepEqual(inventory(root), beforeOversized);
   fs.unlinkSync(path.join(source, "oversized"));
+  for (const filename of [".env.local", "private.pem", "private.key", "debug.log"]) {
+    fs.writeFileSync(path.join(source, filename), "Synthetic local data.\n");
+    const before = inventory(root);
+    assert.throws(() => manageSkill({ ...options, action: "upgrade" }), /Local or credential-bearing paths/);
+    assert.deepEqual(inventory(root), before);
+    fs.unlinkSync(path.join(source, filename));
+  }
+  const conflictingNotices = [{ path: "LICENSE", content: Buffer.from("notice") }];
+  fs.mkdirSync(path.join(source, "LICENSE"));
+  assert.throws(() => manageSkill({ ...options, action: "upgrade",
+    source: { ...options.source, notices: conflictingNotices },
+  }), /conflicting LICENSE/);
+  fs.rmdirSync(path.join(source, "LICENSE"));
   const backupLinked = project("backup-link");
   assert.equal(cli("install", "codex", backupLinked).status, 0);
   fs.mkdirSync(path.join(backupLinked, ".rivet"));
@@ -193,9 +210,65 @@ try {
     const result = cli("install", host, packagedProject, [], installer);
     assert.equal(result.status, 0, result.stderr);
     assert.equal(JSON.parse(result.stdout).decision, "installed");
+    for (const document of ["LICENSE", "NOTICE"]) {
+      assert.equal(fs.readFileSync(path.join(packagedProject, hostPaths[host], document), "utf8"), fs.readFileSync(path.join(repository, document), "utf8"));
+    }
     const wrongHost = host === "codex" ? "claude-code" : "codex";
     assert.equal(cli("install", wrongHost, packagedProject, [], installer).status, 2);
   }
+
+  const packagerSource = path.join(temporary, "packager-source");
+  fs.mkdirSync(path.join(packagerSource, "scripts"), { recursive: true });
+  fs.mkdirSync(path.join(packagerSource, "skills/rivet"), { recursive: true });
+  for (const name of ["install-skill.mjs", "package-hosts.mjs"]) {
+    fs.copyFileSync(path.join(repository, "scripts", name), path.join(packagerSource, "scripts", name));
+  }
+  for (const document of ["LICENSE", "NOTICE"]) {
+    fs.copyFileSync(path.join(repository, document), path.join(packagerSource, document));
+  }
+  fs.writeFileSync(path.join(packagerSource, "package.json"), '{"version":"0.1.0","type":"module"}\n');
+  fs.writeFileSync(path.join(packagerSource, "skills/rivet/SKILL.md"), "# Fixture skill\n");
+  fs.writeFileSync(path.join(packagerSource, ".gitignore"), ".env*\n");
+  for (const args of [
+    ["init", "-q"], ["add", "."],
+    ["-c", "user.name=Rivet Test", "-c", "user.email=rivet@example.invalid",
+      "-c", "commit.gpgsign=false", "commit", "-q", "-m", "fixture"],
+  ]) {
+    const result = spawnSync("git", args, { cwd: packagerSource, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr);
+  }
+  function packageFixture(args) {
+    return run(path.join(packagerSource, "scripts/package-hosts.mjs"), args, packagerSource);
+  }
+  const unrelated = path.join(packagerSource, "unrelated");
+  fs.mkdirSync(unrelated);
+  fs.writeFileSync(path.join(unrelated, "keep.txt"), "Keep this user file.\n");
+  assert.notEqual(packageFixture(["--output", unrelated, "--force"]).status, 0);
+  assert.equal(fs.readFileSync(path.join(unrelated, "keep.txt"), "utf8"), "Keep this user file.\n");
+  assert.notEqual(packageFixture(["--output", path.join(packagerSource, "scripts"), "--force"]).status, 0);
+  assert.equal(fs.existsSync(path.join(packagerSource, "scripts/install-skill.mjs")), true);
+  assert.notEqual(packageFixture(["--output", path.join(packagerSource, "skills/rivet"), "--force"]).status, 0);
+  assert.equal(fs.existsSync(path.join(packagerSource, "skills/rivet/SKILL.md")), true);
+  for (const args of [["--unknown"], ["--output"], ["--force", "--force"]]) {
+    assert.notEqual(packageFixture(args).status, 0);
+  }
+  const generated = path.join(packagerSource, "generated");
+  assert.equal(packageFixture(["--output", generated]).status, 0);
+  assert.equal(packageFixture(["--output", generated, "--force"]).status, 0);
+  const beforeIgnored = inventory(generated);
+  fs.writeFileSync(path.join(packagerSource, "skills/rivet/.env.local"), "Synthetic local data.\n");
+  const ignored = packageFixture(["--output", generated, "--force"]);
+  assert.notEqual(ignored.status, 0);
+  assert.match(ignored.stderr, /canonical skill contains ignored files/);
+  assert.deepEqual(inventory(generated), beforeIgnored);
+  fs.unlinkSync(path.join(packagerSource, "skills/rivet/.env.local"));
+  fs.symlinkSync(path.join(packagerSource, "LICENSE"), path.join(packagerSource, "skills/rivet/link"));
+  assert.notEqual(packageFixture(["--output", generated, "--force"]).status, 0);
+  assert.deepEqual(inventory(generated), beforeIgnored);
+  fs.unlinkSync(path.join(packagerSource, "skills/rivet/link"));
+  fs.writeFileSync(path.join(generated, "codex/user-notes.txt"), "Preserve unrelated content.");
+  assert.notEqual(packageFixture(["--output", generated, "--force"]).status, 0);
+  assert.equal(fs.readFileSync(path.join(generated, "codex/user-notes.txt"), "utf8"), "Preserve unrelated content.");
   console.log("Skill installation, upgrade, removal, recovery, and fresh-project workflow tests passed.");
 } finally {
   fs.rmSync(temporary, { recursive: true, force: true });

@@ -66,7 +66,7 @@ function safeRelative(relative) {
     relative.split("/").every((part) => part && part !== "." && part !== "..");
 }
 
-function snapshot(root, { host, ignoreReceipt = false } = {}) {
+function snapshot(root, { host, ignoreReceipt = false, source = false } = {}) {
   directory(root);
   const files = [];
   const directories = [];
@@ -79,6 +79,13 @@ function snapshot(root, { host, ignoreReceipt = false } = {}) {
       const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
       if (!safeRelative(relative) || relative === receiptName) {
         throw new Error(`Unsupported source path: ${relative}`);
+      }
+      if (source && relative.split("/").some((part) =>
+        part.startsWith(".") ||
+        ["node_modules", "dist", "coverage", "tmp"].includes(part) ||
+        /\.(?:key|pem|p12|pfx|log)$/i.test(part)
+      )) {
+        throw new Error(`Local or credential-bearing paths cannot enter a skill: ${relative}`);
       }
       if (files.length + directories.length >= limits.files) {
         throw new Error("The skill inventory exceeds its entry limit.");
@@ -104,6 +111,44 @@ function snapshot(root, { host, ignoreReceipt = false } = {}) {
   return { files, inventory: { directories, files: records } };
 }
 
+export function readSkillSource(root, host) {
+  if (!Object.hasOwnProperty.call(hostPaths, host)) throw new Error("Host must be codex or claude-code.");
+  const result = snapshot(root, { host, source: true });
+  if (!result.files.some((file) => file.path === "SKILL.md")) {
+    throw new Error("The source has no SKILL.md.");
+  }
+  return result;
+}
+
+function notices(root) {
+  return ["LICENSE", "NOTICE"].map((name) => ({ path: name, content: read(path.join(root, name)) }));
+}
+
+function includeNotices(sourceSnapshot, documents = []) {
+  for (const document of documents) {
+    if (!["LICENSE", "NOTICE"].includes(document.path) || !Buffer.isBuffer(document.content) ||
+        document.content.length > limits.fileBytes) {
+      throw new Error("The source notices are invalid.");
+    }
+    const existing = sourceSnapshot.files.find((file) => file.path === document.path);
+    if (sourceSnapshot.inventory.directories.includes(document.path) ||
+        (existing && !existing.content.equals(document.content))) {
+      throw new Error(`The skill and distribution have conflicting ${document.path} files.`);
+    }
+    if (!existing) sourceSnapshot.files.push({
+      path: document.path, bytes: document.content.length,
+      sha256: digest(document.content), content: document.content,
+    });
+  }
+  if (sourceSnapshot.files.length + sourceSnapshot.inventory.directories.length > limits.files ||
+      sourceSnapshot.files.reduce((total, file) => total + file.bytes, 0) > limits.totalBytes) {
+    throw new Error("The skill and notices exceed the inventory limits.");
+  }
+  sourceSnapshot.files.sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
+  sourceSnapshot.inventory.files = sourceSnapshot.files.map(({ content, ...record }) => record);
+  return sourceSnapshot;
+}
+
 export function sourceForHost(host) {
   if (!Object.hasOwnProperty.call(hostPaths, host)) throw new Error("Host must be codex or claude-code.");
   const packaged = path.join(container, "rivet-host.json");
@@ -118,6 +163,7 @@ export function sourceForHost(host) {
     return {
       root: path.join(container, "rivet"), version: metadata.version,
       revision: metadata.source_revision, state: metadata.source_state,
+      notices: notices(container),
     };
   }
   const repository = path.resolve(container, "..");
@@ -128,8 +174,18 @@ export function sourceForHost(host) {
   const status = spawnSync("git", ["status", "--porcelain"], {
     cwd: repository, encoding: "utf8", timeout: 30000,
   });
+  if (head.status === 0) {
+    const ignored = spawnSync("git", ["ls-files", "--others", "--ignored", "--exclude-standard", "--", "skills/rivet"], {
+      cwd: repository, encoding: "utf8", timeout: 30000,
+    });
+    if (ignored.status !== 0) throw new Error("Cannot inspect ignored canonical source files.");
+    if (ignored.stdout.trim()) {
+      throw new Error("The canonical skill contains ignored files. Remove them before installation or packaging.");
+    }
+  }
   return {
     root: path.join(repository, "skills/rivet"), version,
+    notices: notices(repository),
     revision: head.status === 0 ? head.stdout.trim() : null,
     state: head.status !== 0 || status.status !== 0 ? "unknown" : status.stdout.trim() ? "dirty" : "clean",
   };
@@ -236,10 +292,7 @@ export function manageSkill({ action, host, project, dryRun = false, source }) {
         !["clean", "dirty", "unknown"].includes(selected.state)) {
       throw new Error("The source identity is invalid.");
     }
-    sourceSnapshot = snapshot(selected.root, { host });
-    if (!sourceSnapshot.files.some((file) => file.path === "SKILL.md")) {
-      throw new Error("The source has no SKILL.md.");
-    }
+    sourceSnapshot = includeNotices(readSkillSource(selected.root, host), selected.notices);
     if (target === fs.realpathSync(selected.root)) throw new Error("Source and target must differ.");
   }
   function check(current) {

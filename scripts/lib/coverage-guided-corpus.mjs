@@ -81,23 +81,29 @@ export function readCorpus(directory, suppliedLimits = {}) {
 
 export function mergeCorpus(source, destination, suppliedLimits = {}) {
   const limits = { ...corpusLimits, ...suppliedLimits };
-  const existing = new Set(
-    readCorpus(destination, limits).map((record) => record.digest),
-  );
-  let added = 0;
+  const destinationRecords = readCorpus(destination, limits);
+  const existing = new Set(destinationRecords.map((record) => record.digest));
+  let totalBytes = destinationRecords.reduce((total, record) => total + record.content.length, 0);
+  const additions = [];
   for (const record of readCorpus(source, limits)) {
     if (existing.has(record.digest)) continue;
-    if (existing.size >= limits.files) {
+    if (destinationRecords.length + additions.length >= limits.files) {
       throw new Error(`The merged corpus exceeds the ${limits.files}-file limit.`);
     }
+    totalBytes += record.content.length;
+    if (totalBytes > limits.totalBytes) {
+      throw new Error(`The merged corpus exceeds the ${limits.totalBytes}-byte total limit.`);
+    }
+    additions.push(record);
+    existing.add(record.digest);
+  }
+  for (const record of additions) {
     fs.writeFileSync(path.join(destination, record.digest), record.content, {
       flag: "wx",
       mode: 0o600,
     });
-    existing.add(record.digest);
-    added += 1;
   }
-  return { added, files: existing.size };
+  return { added: additions.length, files: existing.size };
 }
 
 export function replaceCorpus(source, destination, suppliedLimits = {}) {

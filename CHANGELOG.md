@@ -31,6 +31,9 @@ The source package version is `0.1.0`.
 - Initial support is limited to Codex and Claude Code. Other coding tools
   are deferred.
 - Installation preserves project files and model-provider settings.
+- Installed skills retain license and notice files. Packaging refuses ignored
+  canonical files, local state, unsafe links, and unrelated replacement targets.
+- Corpus merges check combined byte and physical file limits before writing.
 - The ASD-STE100-aligned writing profile is optional and risk-based.
   Its checker does not certify compliance.
 - Experimental development helpers and implementation records are excluded
