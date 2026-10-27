@@ -1,13 +1,19 @@
 # Releasing
 
-Status: version `0.1.1` is designated for an unsigned development prerelease.
+Status: npm version `0.1.2-preview.1` is a development preview with authenticated
+publication provenance. The separate GitHub `0.1.1` archives remain unsigned.
 No supported production release has occurred.
 
 ## npm preview publication
 
-The selected public package is `@ottoai/rivet`. Source version
-`0.1.2-preview.1` is prepared but not published. Keep the existing GitHub
-`v0.1.1` tag and assets unchanged.
+The public package is `@ottoai/rivet`. Version `0.1.2-preview.1` was published
+on 2026-10-27 from revision `0dbb6f792aff16428ca0a1f419e06e995247e986`
+by [the approved workflow run](https://github.com/joinotto/rivet/actions/runs/40496596084).
+The registry signature and signed provenance were verified with npm's signature
+audit. The provenance binds the archive to this revision, repository, workflow,
+and run. The downloaded 47-file archive matched the reviewed source pack.
+Public `npx` lifecycle tests passed for both hosts without account credentials.
+Keep this published version and the existing GitHub `v0.1.1` tag and assets unchanged.
 
 The `npm-publish.yml` workflow is manual, restricted to this repository's
 `main` branch, and limited to `-preview.N` versions under the `next` tag.
@@ -16,7 +22,7 @@ Checks run in a separate job without OIDC publishing permission.
 The publish job uses the `npm` environment and an isolated npm client.
 It requests public access and authenticated provenance without stored tokens.
 
-Before dispatch:
+For each subsequent preview:
 
 1. Confirm that your npm account can create or publish `@ottoai/rivet`.
 2. Configure the package-specific GitHub trusted publisher on npm:
@@ -24,15 +30,33 @@ Before dispatch:
    environment `npm`, with direct publish permission.
 3. Configure and review the GitHub `npm` deployment environment's approval
    and branch rules. Rivet does not copy account settings from another package.
-4. If npm requires an initial package publication before this setup is
-   possible, complete that bootstrap through your authenticated account and
-   normal 2FA process. Review its exact bytes and clearly distinguish its
-   provenance status. Do not paste tokens into issues, source, or chat.
+4. Select a new, unused preview version. Do not overwrite a published version.
+   For a new package, an unpublished bootstrap stage can establish the name
+   for trusted-publisher setup. Do not approve that stage as a public release.
+   Do not paste tokens into issues, source, or chat.
 5. Confirm that the selected main revision has passing protected checks.
 6. Dispatch with its full revision and matching preview version.
 7. Independently verify the registry package inventory, integrity, and
    provenance, then test the public `npx` flow for both hosts.
-8. Update availability statements only after successful publication.
+8. Inspect registry tags after publication. npm can assign `latest` on the
+   first publication even when `next` was selected. Remove that extra tag
+   through the maintainer's authenticated npm session and normal 2FA process.
+   A preview must not be advertised as a supported stable release.
+9. Update availability statements only after successful publication.
+
+To verify registry signatures and provenance, use a separate temporary project.
+Install the exact version there with lifecycle hooks disabled, then run:
+
+```sh
+npm audit signatures --json --include-attestations
+```
+
+Use a current npm client that supports this output. Require no invalid or
+missing signatures and a verified provenance bundle for the exact package.
+Compare its subject digest, source commit, workflow, and run to the reviewed
+release. Compare the downloaded archive inventory and integrity with the
+reviewed source pack. Keep verification material and development helpers out
+of the distributed package.
 
 OIDC publication for one package does not authorize a second package.
 The current CLI authentication and trusted-publisher setup are not assumed

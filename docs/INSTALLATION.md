@@ -20,38 +20,45 @@ paths is refused.
 Use a maintained Node.js 22 runtime with npm. In an existing backend project:
 
 ```sh
-npx --ignore-scripts https://github.com/joinotto/rivet/archive/refs/tags/v0.1.1.tar.gz install --host codex --project .
+npx --ignore-scripts @ottoai/rivet@0.1.2-preview.1 install --host codex --project .
 ```
 
 Use `--host claude-code` for Claude Code. Add `--dry-run` to preview project
 changes. Replace `install` with `status`, `upgrade`, or `remove` for the same
-managed lifecycle. For an upgrade, select and review the desired release tag.
+managed lifecycle. For an upgrade, select and review the desired published version.
 Run each host command separately when a project uses both hosts.
 
 npm downloads code to its cache. It does not add a project dependency.
 `--ignore-scripts` disables package lifecycle hooks. It does not prevent the
 explicit installer from running. Review downloaded code before execution.
 An npm confirmation prompt can appear on first use; approve only the expected
-GitHub source. This distribution has no install hooks or third-party dependencies.
+`@ottoai/rivet` package and version. This distribution has no install hooks or
+third-party dependencies.
 
 Do not run `npx rivet`. The unscoped npm package is unrelated to this project.
-Rivet is not yet published to the npm registry.
-
-The selected package name is `@ottoai/rivet`. When the first npm preview is
-published, use:
+The public package is `@ottoai/rivet`. Version `0.1.2-preview.1` is available
+for evaluation, not supported production use. To select the current preview:
 
 ```sh
 npx --ignore-scripts @ottoai/rivet@next install --host codex --project .
 ```
 
-This command is not available yet. `next` selects a preview and can change.
-For repeatable use, replace `next` with an exact published version.
-Both distributions use the same installer, preservation rules, and backups.
-The npm preview workflow uses package-specific OIDC publishing and provenance.
-That configuration and an actual publication must succeed before claiming
-authenticated npm provenance. It does not sign the separate GitHub host archives.
+`next` selects a preview and can change. For repeatable use, select an exact
+published version as in the first command.
+The npm preview has authenticated GitHub Actions provenance. Its registry
+signature, provenance, artifact digest, and source binding were verified after
+publication. This does not sign the separate GitHub host archives or prove
+production safety. See [releasing](RELEASING.md) for verification and release gates.
 
-A source archive has no Git checkout metadata. Its receipt records the package
+The existing unsigned GitHub preview is still available:
+
+```sh
+npx --ignore-scripts https://github.com/joinotto/rivet/archive/refs/tags/v0.1.1.tar.gz install --host codex --project .
+```
+
+Both distributions use the same installer, preservation rules, and backups.
+
+A downloaded npm package or source archive has no Git checkout metadata. Its receipt records the package
 version, `source_revision: null`, and `source_state: unknown`. This is deliberate:
 a tag URL and a local inventory are not a publisher signature. Review the tag's
 commit on GitHub or use a verified host archive for source-bound metadata.

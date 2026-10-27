@@ -23,10 +23,10 @@ It combines explicit invariants, database and system-design guidance, selected
 repository checks, and evidence receipts. Your project owns its tools, data,
 permissions, and model-provider configuration.
 
-Status: development preview. The latest published GitHub version is `0.1.1`,
-an unsigned development prerelease for isolated evaluation. The source prepares
-`@ottoai/rivet@0.1.2-preview.1` for npm; it is not yet published. Neither is a supported
-production release. Production publication requires the
+Status: development preview. `@ottoai/rivet@0.1.2-preview.1` is published on npm
+with authenticated GitHub Actions provenance for isolated evaluation.
+The existing GitHub `0.1.1` archives remain unsigned.
+Neither distribution is a supported production release. Production publication requires the
 [release requirements](docs/RELEASING.md).
 
 ## Why Rivet
@@ -44,7 +44,7 @@ Use a maintained Node.js 22 runtime with npm. From your backend project,
 run the version-pinned command. No manual clone or global installation is needed:
 
 ```sh
-npx --ignore-scripts https://github.com/joinotto/rivet/archive/refs/tags/v0.1.1.tar.gz install --host codex --project .
+npx --ignore-scripts @ottoai/rivet@0.1.2-preview.1 install --host codex --project .
 ```
 
 For Claude Code, use `--host claude-code`.
@@ -54,11 +54,12 @@ downloaded code. npm downloads the package to its cache; `--ignore-scripts`
 disables package lifecycle hooks, not the installer you explicitly invoke.
 Rivet does not add a dependency to your backend project.
 
-The selected npm name is `@ottoai/rivet`. After npm publication, the shorter
-command will be `npx --ignore-scripts @ottoai/rivet@next install --host codex --project .`.
-It is not available yet. Pin an exact published version for repeatable use.
+The shorter preview command is
+`npx --ignore-scripts @ottoai/rivet@next install --host codex --project .`.
+The `next` tag can change. Pin the version above for repeatable use.
 Do not use `npx rivet`: that npm name belongs to an unrelated project.
-The archive flow records an unknown Git revision, not authenticated provenance.
+The downloaded-package receipt records an unknown Git revision. Verify npm
+provenance separately; a local receipt does not authenticate the publisher.
 Use a verified host release archive when you need a source-bound receipt.
 
 Start the coding tool in the backend project. Invoke `$rivet` in Codex or

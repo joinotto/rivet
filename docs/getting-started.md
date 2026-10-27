@@ -1,7 +1,8 @@
 # Getting started
 
-Status: unsigned development preview. Version `0.1.1` is for isolated
-evaluation, not supported production use.
+Status: development preview. npm version `0.1.2-preview.1` has authenticated
+publication provenance. The separate GitHub `0.1.1` archives remain unsigned.
+Both are for isolated evaluation, not supported production use.
 
 Rivet supports project-local installations for Codex and Claude Code. It does
 not install a model, change a model provider, modify host permissions, or
@@ -16,7 +17,7 @@ promise from the Node.js project.
 Run in your backend project:
 
 ```sh
-npx --ignore-scripts https://github.com/joinotto/rivet/archive/refs/tags/v0.1.1.tar.gz install --host codex --project .
+npx --ignore-scripts @ottoai/rivet@0.1.2-preview.1 install --host codex --project .
 ```
 
 For Claude Code, use `--host claude-code`. Add `--dry-run` to preview project
@@ -25,17 +26,17 @@ Review downloaded source before execution. See
 [installation and recovery](INSTALLATION.md) for cache, source-identity, and
 upgrade limitations. Do not use the unrelated npm package named `rivet`.
 
-The shorter npm distribution is being prepared as `@ottoai/rivet`.
-It is not published yet. Keep using the GitHub command above until the
-[installation guide](INSTALLATION.md) confirms registry availability.
+Use `@ottoai/rivet@next` instead of the exact version to select the current
+preview. The tag can change. The [installation guide](INSTALLATION.md) also
+documents the existing GitHub archive command and offline installation.
 
 ## 1. Obtain the source for checkout-based use
 
 Review the source revision before installation. For a signed release, verify
 the publisher identity and artifact digests according to the
 [release policy](RELEASING.md).
-The current candidates are unsigned. A local receipt does not authenticate
-their publisher.
+The separate GitHub host candidates are unsigned. A local receipt does not
+authenticate a publisher, including when npm provenance is available.
 
 ```sh
 git clone https://github.com/joinotto/rivet.git
