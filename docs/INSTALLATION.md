@@ -11,6 +11,9 @@ providers, change permissions, or execute repository checks.
 
 The source is the reviewed Rivet checkout or an extracted host package.
 Its files are bounded and read without following symbolic links.
+Installation retains `LICENSE` and `NOTICE` in the managed skill directory.
+Canonical source that contains ignored files, local state, or credential-file
+paths is refused.
 
 ## Status
 

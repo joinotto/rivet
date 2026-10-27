@@ -103,6 +103,22 @@ try {
   assert.deepStrictEqual(replaceCorpus(destination, replacement), { files: 2 });
   assert.strictEqual(readCorpus(replacement).length, 2);
 
+  const boundedSource = path.join(temporary, "bounded-source");
+  const boundedDestination = path.join(temporary, "bounded-destination");
+  fs.mkdirSync(boundedSource);
+  fs.mkdirSync(boundedDestination);
+  fs.writeFileSync(path.join(boundedSource, "one"), "one");
+  fs.writeFileSync(path.join(boundedSource, "two"), "two");
+  fs.writeFileSync(path.join(boundedDestination, "seed"), "zero");
+  const before = fs.readdirSync(boundedDestination);
+  assert.throws(() => mergeCorpus(boundedSource, boundedDestination, { totalBytes: 9 }), /merged corpus exceeds the 9-byte total limit/);
+  assert.deepStrictEqual(fs.readdirSync(boundedDestination), before, "A byte-limit refusal must not partially merge inputs.");
+  assert.throws(() => mergeCorpus(boundedSource, boundedDestination, { files: 2 }), /merged corpus exceeds the 2-file limit/);
+  assert.deepStrictEqual(fs.readdirSync(boundedDestination), before, "A file-limit refusal must not partially merge inputs.");
+  fs.writeFileSync(path.join(boundedDestination, "duplicate"), "zero");
+  assert.throws(() => mergeCorpus(boundedSource, boundedDestination, { files: 2 }), /merged corpus exceeds the 2-file limit/);
+  assert.deepStrictEqual(fs.readdirSync(boundedDestination).sort(), ["duplicate", "seed"], "Physical duplicate files still consume the file budget.");
+
   fs.writeFileSync(
     path.join(source, "oversized"),
     Buffer.alloc(corpusLimits.fileBytes + 1),

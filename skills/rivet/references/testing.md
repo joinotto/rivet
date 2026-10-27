@@ -49,3 +49,15 @@ Reject tests that:
 
 Record skipped, flaky, unavailable, and quarantined tests separately from passed tests.
 
+## Execution environment
+
+Record the runtime, command, configuration, and permission boundary. If a
+runner cannot start, distinguish that failure from a failed assertion. Use
+a documented local runner option when it can preserve the same tests and
+boundary. Do not weaken isolation to make a check pass.
+
+A successful application build does not prove that test files compile or that
+test assertions pass. Observe those checks separately. Disable unrelated
+telemetry and other external side effects in isolated tests. Close servers and
+connections after each test.
+

@@ -47,6 +47,19 @@ Apple marks the underlying `sandbox-exec` command as deprecated. This profile
 is not portable and is not a long-term product boundary. Do not silently fall
 back to unsandboxed execution when the launcher is unavailable.
 
+For headless execution, Claude Code bare mode skips normal skill discovery.
+Use `--add-dir` with the selected project to load its `.claude/skills`
+directory. Check structured error fields as well as the process exit code.
+
+A workspace-only write boundary can block Claude Code client-state writes.
+Use `CLAUDE_CONFIG_DIR` for disposable project-local client state when the
+workflow requires isolation. Preserve the selected provider and its authorized
+credential mechanism. Do not copy credentials into the repository or permit
+home-directory writes merely to resolve a startup error.
+
+See the official [headless guide](https://code.claude.com/docs/en/headless)
+and [environment-variable reference](https://code.claude.com/docs/en/env-vars).
+
 ## Integration contract
 
 Each host integration must declare:

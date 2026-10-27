@@ -5,7 +5,7 @@ import os from "os";
 import path from "path";
 import process from "process";
 import { fileURLToPath } from "url";
-import { sourceForHost } from "./install-skill.mjs";
+import { readSkillSource, sourceForHost } from "./install-skill.mjs";
 
 const repository = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -13,6 +13,17 @@ const repository = path.resolve(
 );
 const source = path.join(repository, "skills", "rivet");
 const argv = process.argv.slice(2);
+const seen = new Set();
+for (let index = 0; index < argv.length; index += 1) {
+  const flag = argv[index];
+  if (!["--output", "--force"].includes(flag) || seen.has(flag)) {
+    throw new Error(`Unknown or repeated option: ${flag}`);
+  }
+  seen.add(flag);
+  if (flag === "--output" && (!argv[++index] || argv[index].startsWith("--"))) {
+    throw new Error("--output requires a directory.");
+  }
+}
 const outputFlag = argv.indexOf("--output");
 const output = path.resolve(
   repository,
@@ -34,24 +45,23 @@ const hosts = [
   },
 ];
 
-function copyDirectory(from, to, includeAgentMetadata) {
+function copySnapshot(snapshot, to) {
   fs.mkdirSync(to, { recursive: true });
-  for (const entry of fs.readdirSync(from, { withFileTypes: true })) {
-    if (!includeAgentMetadata && entry.name === "agents") continue;
-    const sourcePath = path.join(from, entry.name);
-    const targetPath = path.join(to, entry.name);
-    if (entry.isDirectory()) {
-      copyDirectory(sourcePath, targetPath, includeAgentMetadata);
-    } else if (entry.isFile()) {
-      fs.copyFileSync(sourcePath, targetPath);
-    }
+  for (const directory of snapshot.inventory.directories) {
+    fs.mkdirSync(path.join(to, directory), { recursive: true });
+  }
+  for (const file of snapshot.files) {
+    fs.writeFileSync(path.join(to, file.path), file.content, { flag: "wx", mode: 0o644 });
   }
 }
 
-const outputParent = fs.existsSync(path.dirname(output))
-  ? fs.realpathSync(path.dirname(output))
-  : path.dirname(output);
-const canonicalOutput = path.join(outputParent, path.basename(output));
+let ancestor = output;
+while (!fs.existsSync(ancestor)) {
+  const parent = path.dirname(ancestor);
+  if (parent === ancestor) throw new Error("Cannot resolve the output directory.");
+  ancestor = parent;
+}
+const canonicalOutput = path.resolve(fs.realpathSync(ancestor), path.relative(ancestor, output));
 const allowed = allowedRoots.some(
   (root) =>
     canonicalOutput !== root &&
@@ -61,6 +71,13 @@ if (!allowed) {
   console.error("Output must be inside the Rivet repository or system temporary directory.");
   process.exit(1);
 }
+if (canonicalOutput === source || canonicalOutput.startsWith(`${source}${path.sep}`) ||
+    source.startsWith(`${canonicalOutput}${path.sep}`)) {
+  throw new Error("Output must not overlap the canonical source.");
+}
+const prepared = hosts.map((host) => ({
+  host, identity: sourceForHost(host.id), snapshot: readSkillSource(source, host.id),
+}));
 
 if (fs.existsSync(output)) {
   if (!force) {
@@ -68,13 +85,48 @@ if (fs.existsSync(output)) {
     console.error("Use --force to replace generated packages.");
     process.exit(1);
   }
+  const information = fs.lstatSync(output);
+  if (!information.isDirectory() || information.isSymbolicLink() ||
+      JSON.stringify(fs.readdirSync(output).sort()) !== JSON.stringify(hosts.map((host) => host.id).sort())) {
+    throw new Error("--force can replace only a complete generated host-package directory.");
+  }
+  for (const host of hosts) {
+    const root = path.join(output, host.id);
+    if (!fs.lstatSync(root).isDirectory() || fs.lstatSync(root).isSymbolicLink() ||
+        JSON.stringify(fs.readdirSync(root).sort()) !==
+          JSON.stringify(["LICENSE", "NOTICE", "install.mjs", "rivet", "rivet-host.json"])) {
+      throw new Error("The replacement target has an unexpected package inventory.");
+    }
+    const metadataFile = path.join(root, "rivet-host.json");
+    const descriptor = fs.openSync(metadataFile, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    let metadata;
+    try {
+      const metadataInfo = fs.fstatSync(descriptor);
+      if (!metadataInfo.isFile() || metadataInfo.size > 65536) {
+        throw new Error("The replacement target has unsafe package metadata.");
+      }
+      const content = Buffer.alloc(metadataInfo.size + 1);
+      const bytes = fs.readSync(descriptor, content, 0, content.length, 0);
+      const after = fs.fstatSync(descriptor);
+      if (bytes !== metadataInfo.size || after.size !== metadataInfo.size ||
+          after.mtimeMs !== metadataInfo.mtimeMs || after.ctimeMs !== metadataInfo.ctimeMs) {
+        throw new Error("The replacement metadata changed during inspection.");
+      }
+      metadata = JSON.parse(content.subarray(0, bytes).toString("utf8"));
+    } finally {
+      fs.closeSync(descriptor);
+    }
+    if (metadata.schema !== 1 || metadata.host !== host.id) {
+      throw new Error("The replacement target is not a generated Rivet package.");
+    }
+    readSkillSource(path.join(root, "rivet"), host.id);
+  }
   fs.rmSync(output, { recursive: true });
 }
 
-for (const host of hosts) {
+for (const { host, identity, snapshot } of prepared) {
   const target = path.join(output, host.id, "rivet");
-  copyDirectory(source, target, host.include_agent_metadata);
-  const identity = sourceForHost(host.id);
+  copySnapshot(snapshot, target);
   const manifest = {
     schema: 1,
     host: host.id,

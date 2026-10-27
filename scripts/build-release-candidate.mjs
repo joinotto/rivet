@@ -112,7 +112,6 @@ function tarArchive(root) {
 const version = value("--version");
 const revision = value("--revision");
 const output = path.resolve(repository, value("--output") || "dist/release");
-const force = argv.includes("--force");
 const allowDirty = argv.includes("--allow-dirty");
 
 function requireSafeOutput(target) {
@@ -169,10 +168,8 @@ if (status.stdout.trim() && !allowDirty) {
   throw new Error("The worktree is dirty. Commit the candidate source first.");
 }
 if (fs.existsSync(output)) {
-  if (!force) throw new Error(`Output already exists: ${output}`);
-  fs.rmSync(output, { recursive: true });
+  throw new Error(`Output already exists: ${output}. Use a new candidate directory; --force does not authorize deletion.`);
 }
-fs.mkdirSync(output, { recursive: true });
 
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-release-"));
 try {
@@ -185,6 +182,7 @@ try {
   if (packaged.status !== 0) {
     throw new Error(packaged.stderr || "Host package generation failed.");
   }
+  fs.mkdirSync(output, { recursive: true });
 
   const artifactRecords = [];
   for (const host of fs.readdirSync(packages).sort()) {
