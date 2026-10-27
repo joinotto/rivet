@@ -6,14 +6,46 @@ ASD-STE100 document.
 ## Scope
 
 Install only in an explicit project directory. The installer supports Codex
-and Claude Code. It does not install globally, download code, change model
+and Claude Code. The installer itself does not install globally, download code, change model
 providers, change permissions, or execute repository checks.
 
-The source is the reviewed Rivet checkout or an extracted host package.
+The source is the reviewed Rivet checkout, a downloaded source package, or an extracted host package.
 Its files are bounded and read without following symbolic links.
 Installation retains `LICENSE` and `NOTICE` in the managed skill directory.
 Canonical source that contains ignored files, local state, or credential-file
 paths is refused.
+
+## Direct command without a clone
+
+Use a maintained Node.js 22 runtime with npm. In an existing backend project:
+
+```sh
+npx --ignore-scripts https://github.com/joinotto/rivet/archive/refs/tags/v0.1.1.tar.gz install --host codex --project .
+```
+
+Use `--host claude-code` for Claude Code. Add `--dry-run` to preview project
+changes. Replace `install` with `status`, `upgrade`, or `remove` for the same
+managed lifecycle. For an upgrade, select and review the desired release tag.
+Run each host command separately when a project uses both hosts.
+
+npm downloads code to its cache. It does not add a project dependency.
+`--ignore-scripts` disables package lifecycle hooks. It does not prevent the
+explicit installer from running. Review downloaded code before execution.
+An npm confirmation prompt can appear on first use; approve only the expected
+GitHub source. This distribution has no install hooks or third-party dependencies.
+
+Do not run `npx rivet`. The unscoped npm package is unrelated to this project.
+Rivet is not yet published to the npm registry.
+
+A source archive has no Git checkout metadata. Its receipt records the package
+version, `source_revision: null`, and `source_state: unknown`. This is deliberate:
+a tag URL and a local inventory are not a publisher signature. Review the tag's
+commit on GitHub or use a verified host archive for source-bound metadata.
+GitHub tags can be moved; a full commit archive URL can pin the source more
+precisely, but it still does not authenticate the publisher.
+
+For offline use, retain a downloaded, reviewed host archive and invoke its
+standalone `install.mjs`. The checkout commands below remain supported.
 
 ## Status
 

@@ -168,12 +168,18 @@ export function sourceForHost(host) {
   }
   const repository = path.resolve(container, "..");
   const version = JSON.parse(read(path.join(repository, "package.json"), 65536)).version;
-  const head = spawnSync("git", ["rev-parse", "HEAD"], {
+  // A downloaded package can be nested in another Git worktree. Never attribute
+  // that worktree's identity or ignored-file rules to Rivet's source.
+  const top = spawnSync("git", ["rev-parse", "--show-toplevel"], {
     cwd: repository, encoding: "utf8", timeout: 30000,
   });
-  const status = spawnSync("git", ["status", "--porcelain"], {
+  const hasOwnGit = top.status === 0 && fs.realpathSync(top.stdout.trim()) === fs.realpathSync(repository);
+  const head = hasOwnGit ? spawnSync("git", ["rev-parse", "HEAD"], {
     cwd: repository, encoding: "utf8", timeout: 30000,
-  });
+  }) : { status: 1 };
+  const status = hasOwnGit ? spawnSync("git", ["status", "--porcelain"], {
+    cwd: repository, encoding: "utf8", timeout: 30000,
+  }) : { status: 1 };
   if (head.status === 0) {
     const ignored = spawnSync("git", ["ls-files", "--others", "--ignored", "--exclude-standard", "--", "skills/rivet"], {
       cwd: repository, encoding: "utf8", timeout: 30000,
@@ -383,7 +389,7 @@ if (process.argv[1] && stat(path.resolve(process.argv[1])) &&
   try {
     const args = process.argv.slice(2);
     if (args.length === 1 && ["--help", "-h"].includes(args[0])) {
-      console.log("node install.mjs install|status|upgrade|remove --host codex|claude-code --project DIRECTORY [--dry-run]");
+      console.log("rivet install|status|upgrade|remove --host codex|claude-code --project DIRECTORY [--dry-run]");
     } else {
       const action = args.shift();
       const options = { action };

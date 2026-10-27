@@ -11,6 +11,11 @@ performance, and recoverable project-local installation.
 
 ## First supported release
 
+- Provide clone-free, version-pinned installation for both active hosts.
+  GitHub `npx` distribution is available in the `0.1.1` preview. A shorter
+  registry command needs an owned npm name, publishing access, and authenticated
+  package provenance before stable publication.
+
 - Validate fresh-project installation, upgrade, removal, and recovery.
 - Keep first-use commands and compatibility documentation tested.
 - Evaluate the product on representative backend projects with real users.

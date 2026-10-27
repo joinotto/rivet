@@ -10,6 +10,7 @@ const repository = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   ".."
 );
+const version = JSON.parse(fs.readFileSync(path.join(repository, "package.json"), "utf8")).version;
 const temporary = path.join(
   repository,
   ".rivet",
@@ -33,7 +34,7 @@ function run(output, extra = []) {
     [
       "scripts/build-release-candidate.mjs",
       "--version",
-      "0.1.0",
+      version,
       "--revision",
       revision,
       "--output",
@@ -89,7 +90,7 @@ try {
     [
       "scripts/build-release-candidate.mjs",
       "--version",
-      "0.1.0",
+      version,
       "--revision",
       spawnSync("git", ["rev-parse", "HEAD"], {
         cwd: repository,
@@ -152,7 +153,7 @@ try {
   assert.strictEqual(provenance.predicate.rivetMetadata.unsigned, true);
 
   for (const host of ["codex", "claude-code"]) {
-    const archive = path.join(first, `rivet-0.1.0-${host}.tar`);
+    const archive = path.join(first, `rivet-${version}-${host}.tar`);
     assert.ok(fs.statSync(archive).size > 1024);
     const listed = spawnSync("tar", ["-tf", archive], { encoding: "utf8" });
     assert.strictEqual(listed.status, 0, listed.stderr);

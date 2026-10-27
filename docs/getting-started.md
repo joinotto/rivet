@@ -1,6 +1,6 @@
 # Getting started
 
-Status: unsigned development preview. Version `0.1.0` is for isolated
+Status: unsigned development preview. Version `0.1.1` is for isolated
 evaluation, not supported production use.
 
 Rivet supports project-local installations for Codex and Claude Code. It does
@@ -11,7 +11,21 @@ Use a maintained Node.js 22 runtime for deployment. Node.js 16 compatibility
 remains covered by the test suite; compatibility is not a runtime support
 promise from the Node.js project.
 
-## 1. Obtain the source
+## Fast path: no manual clone
+
+Run in your backend project:
+
+```sh
+npx --ignore-scripts https://github.com/joinotto/rivet/archive/refs/tags/v0.1.1.tar.gz install --host codex --project .
+```
+
+For Claude Code, use `--host claude-code`. Add `--dry-run` to preview project
+changes. Then start your coding tool and invoke `$rivet` or `/rivet`.
+Review downloaded source before execution. See
+[installation and recovery](INSTALLATION.md) for cache, source-identity, and
+upgrade limitations. Do not use the unrelated npm package named `rivet`.
+
+## 1. Obtain the source for checkout-based use
 
 Review the source revision before installation. For a signed release, verify
 the publisher identity and artifact digests according to the
