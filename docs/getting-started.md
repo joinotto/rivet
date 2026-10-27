@@ -25,6 +25,10 @@ Review downloaded source before execution. See
 [installation and recovery](INSTALLATION.md) for cache, source-identity, and
 upgrade limitations. Do not use the unrelated npm package named `rivet`.
 
+The shorter npm distribution is being prepared as `@ottoai/rivet`.
+It is not published yet. Keep using the GitHub command above until the
+[installation guide](INSTALLATION.md) confirms registry availability.
+
 ## 1. Obtain the source for checkout-based use
 
 Review the source revision before installation. For a signed release, verify

@@ -23,8 +23,9 @@ It combines explicit invariants, database and system-design guidance, selected
 repository checks, and evidence receipts. Your project owns its tools, data,
 permissions, and model-provider configuration.
 
-Status: development preview. Version `0.1.1` is designated as an unsigned
-development prerelease for isolated evaluation. It is not a supported
+Status: development preview. The latest published GitHub version is `0.1.1`,
+an unsigned development prerelease for isolated evaluation. The source prepares
+`@ottoai/rivet@0.1.2-preview.1` for npm; it is not yet published. Neither is a supported
 production release. Production publication requires the
 [release requirements](docs/RELEASING.md).
 
@@ -53,6 +54,9 @@ downloaded code. npm downloads the package to its cache; `--ignore-scripts`
 disables package lifecycle hooks, not the installer you explicitly invoke.
 Rivet does not add a dependency to your backend project.
 
+The selected npm name is `@ottoai/rivet`. After npm publication, the shorter
+command will be `npx --ignore-scripts @ottoai/rivet@next install --host codex --project .`.
+It is not available yet. Pin an exact published version for repeatable use.
 Do not use `npx rivet`: that npm name belongs to an unrelated project.
 The archive flow records an unknown Git revision, not authenticated provenance.
 Use a verified host release archive when you need a source-bound receipt.

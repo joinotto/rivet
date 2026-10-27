@@ -20,7 +20,11 @@ try {
   const packed = JSON.parse(good(run("npm", [
     "pack", "--json", "--ignore-scripts", "--pack-destination", temporary,
   ], repository)).stdout)[0];
-  const archive = path.join(temporary, packed.filename);
+  // Older npm clients can report the unsanitized scoped name in JSON even
+  // though the physical archive uses a normalized filename.
+  const archives = fs.readdirSync(temporary).filter((name) => name.endsWith(".tgz"));
+  assert.equal(archives.length, 1, "Packing must create exactly one archive.");
+  const archive = path.join(temporary, archives[0]);
   for (const file of packed.files) {
     assert.ok(["package.json", "README.md", "LICENSE", "NOTICE"].includes(file.path) ||
       file.path === "scripts/install-skill.mjs" || file.path.startsWith("skills/rivet/"),
@@ -28,7 +32,11 @@ try {
     assert.ok(!file.path.split("/").some((part) =>
       [".git", ".rivet", "node_modules", "dist", "test", "fixtures"].includes(part)));
   }
-  assert.equal(metadata.private, true, "Prevent accidental publication under an unrelated registry name.");
+  assert.equal(metadata.name, "@ottoai/rivet", "Only publish under the selected scope.");
+  assert.equal(metadata.private, false);
+  assert.deepEqual(metadata.publishConfig, {
+    access: "public", registry: "https://registry.npmjs.org/", tag: "next", provenance: true,
+  });
   assert.deepEqual(metadata.bin, { rivet: "scripts/install-skill.mjs" });
   assert.ok(!metadata.dependencies && !metadata.devDependencies);
   for (const hook of ["preinstall", "install", "postinstall", "prepare", "prepack", "postpack"]) {
