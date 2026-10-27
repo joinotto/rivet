@@ -17,9 +17,13 @@ function good(result) {
   return result;
 }
 try {
-  const packed = JSON.parse(good(run("npm", [
+  const packingOutput = JSON.parse(good(run("npm", [
     "pack", "--json", "--ignore-scripts", "--pack-destination", temporary,
-  ], repository)).stdout)[0];
+  ], repository)).stdout);
+  // npm 12 keys pack results by package name; older clients return an array.
+  assert.equal(Object.keys(packingOutput).length, 1, "Packing must report exactly one package.");
+  const packed = Array.isArray(packingOutput) ? packingOutput[0] : packingOutput[metadata.name];
+  assert.ok(packed && Array.isArray(packed.files), "Packing must report the selected package files.");
   // Older npm clients can report the unsanitized scoped name in JSON even
   // though the physical archive uses a normalized filename.
   const archives = fs.readdirSync(temporary).filter((name) => name.endsWith(".tgz"));
