@@ -23,8 +23,10 @@ It combines explicit invariants, database and system-design guidance, selected
 repository checks, and evidence receipts. Your project owns its tools, data,
 permissions, and model-provider configuration.
 
-Status: development preview. No public release. Publication remains on hold
-until the [release requirements](docs/RELEASING.md) pass.
+Status: development preview. Version `0.1.0` is designated as an unsigned
+development prerelease for isolated evaluation. It is not a supported
+production release. Production publication requires the
+[release requirements](docs/RELEASING.md).
 
 ## Why Rivet
 

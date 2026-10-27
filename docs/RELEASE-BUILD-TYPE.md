@@ -41,6 +41,6 @@ The statement records the builder script digest and a deterministic invocation
 identifier. It has no signature. It does not satisfy a SLSA build level and
 does not authenticate the source, invocation, builder, or artifacts.
 
-A public release requires an authenticated build service, a separately
+A supported production release requires an authenticated build service, a separately
 selected identity policy, signature verification, retained CI evidence, and
 independent approval.

@@ -135,6 +135,10 @@ function explicitFiles() {
     let descriptor;
     let body;
     try {
+      const canonical = fs.realpathSync(absolute);
+      if (!canonical.startsWith(`${canonicalCwd}${path.sep}`)) {
+        throw new Error("The file list must resolve inside the project.");
+      }
       descriptor = fs.openSync(
         absolute,
         fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0),
@@ -149,6 +153,7 @@ function explicitFiles() {
       body = fs.readFileSync(descriptor);
     } catch (error) {
       if (
+        error.message === "The file list must resolve inside the project." ||
         error.message === "The file list must be an existing file." ||
         error.message === "The file list must not exceed 1 MiB."
       ) {

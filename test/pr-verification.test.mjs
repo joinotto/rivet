@@ -39,6 +39,7 @@ fs.writeFileSync(
     },
   }, null, 2)}\n`,
 );
+fs.writeFileSync(path.join(fixture, ".gitignore"), ".rivet/\n");
 
 git("init", "--initial-branch=main");
 git("config", "user.name", "Rivet Test");
@@ -101,6 +102,7 @@ assert.deepStrictEqual(
   manifest.files.map((item) => item.path),
   [
     "changed-files.nul",
+    "secret-files.nul",
     "secret-scan.json",
     "verification-receipt.json",
     "verification.md",
@@ -174,9 +176,46 @@ const symbolicLinkVerification = run(
 );
 assert.strictEqual(symbolicLinkVerification.status, 1);
 assert.match(symbolicLinkVerification.stderr, /regular files only/);
+const outsideReports = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-pr-boundary-"));
+try {
+  fs.symlinkSync(outsideReports, path.join(fixture, "outside-reports"));
+  for (const directory of ["outside-reports", "outside-reports/not-created/reports"]) {
+    const escaped = run(process.execPath, ["skills/rivet/scripts/rivet-pr-verify.mjs"], {
+      env: { ...process.env, RIVET_BASE_SHA: base, RIVET_HEAD_SHA: head, RIVET_REPORT_DIR: directory },
+    });
+    assert.strictEqual(escaped.status, 1);
+    assert.match(escaped.stderr, /non-symbolic project directories/);
+  }
+  assert.deepStrictEqual(fs.readdirSync(outsideReports), []);
+  const marker = path.join(outsideReports, "keep.txt");
+  fs.writeFileSync(marker, "Keep this user file.\n");
+  fs.mkdirSync(path.join(fixture, "linked-report-file"));
+  fs.symlinkSync(marker, path.join(fixture, "linked-report-file/changed-files.nul"));
+  const linkedWrite = run(process.execPath, ["skills/rivet/scripts/rivet-pr-verify.mjs"], {
+    env: { ...process.env, RIVET_BASE_SHA: base, RIVET_HEAD_SHA: head, RIVET_REPORT_DIR: "linked-report-file" },
+  });
+  assert.strictEqual(linkedWrite.status, 1);
+  assert.strictEqual(fs.readFileSync(marker, "utf8"), "Keep this user file.\n");
+} finally {
+  fs.unlinkSync(path.join(fixture, "outside-reports"));
+  fs.rmSync(path.join(fixture, "linked-report-file"), { recursive: true, force: true });
+  fs.rmSync(outsideReports, { recursive: true, force: true });
+}
+git("rm", "--", "src/api/orders,\nreport.js");
+git("commit", "-m", "remove route");
+const deletionHead = git("rev-parse", "HEAD");
+const deletionResult = run(process.execPath, ["skills/rivet/scripts/rivet-pr-verify.mjs"], {
+  env: { ...process.env, RIVET_BASE_SHA: head, RIVET_HEAD_SHA: deletionHead, RIVET_REPORT_DIR: ".rivet/deletion" },
+});
+assert.strictEqual(deletionResult.status, 0, deletionResult.stderr);
+const deletionReport = JSON.parse(fs.readFileSync(path.join(fixture, ".rivet/deletion/report.json")));
+assert.deepStrictEqual(deletionReport.impact.files, ["src/api/orders,\nreport.js"]);
+assert.strictEqual(deletionReport.secret_scan.files_checked, 0);
+assert.strictEqual(deletionReport.secret_scan.decision, "pass");
 fs.rmSync(path.join(fixture, ".rivet/ci"), { recursive: true, force: true });
 const exposedValue = "this-is-a-secret-value";
 const keyName = ["api", "Key"].join("");
+fs.mkdirSync(path.join(fixture, "src"), { recursive: true });
 fs.writeFileSync(
   path.join(fixture, "src/config.js"),
   `export const ${keyName} = "${exposedValue}";\n`,

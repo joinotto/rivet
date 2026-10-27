@@ -1,9 +1,9 @@
 # Changelog
 
-This file records user-visible changes. Rivet has no public release yet.
-The source package version is `0.1.0`.
+This file records user-visible changes. The initial version `0.1.0` is
+designated as an unsigned development prerelease, not a production release.
 
-## Unreleased
+## 0.1.0 — Development prerelease (2026-10-27)
 
 ### Added
 
@@ -46,6 +46,11 @@ The source package version is `0.1.0`.
   dependency tool fails.
 - Evidence outputs resolve existing ancestors before directory creation and
   use regular-file descriptors that do not follow final symbolic links.
+- Candidate verification rejects malformed archive sizes, duplicate entries,
+  and trailing archive data.
+- PR reports refuse symbolic output directories and files. Deleted paths
+  remain in impact analysis but are not scanned as existing file content.
+- File-list inputs must resolve inside the selected project.
 - The ASD-STE100-aligned writing profile is optional and risk-based.
   Its checker does not certify compliance.
 - Experimental development helpers and implementation records are excluded
@@ -54,3 +59,5 @@ The source package version is `0.1.0`.
   categorized index. Only essential repository Markdown files remain at root.
 - Publication remains subject to real-project pilots, qualified review,
   authenticated artifacts, and independent approvals.
+- An explicit evaluation exception permits this unsigned development
+  prerelease. Production requirements remain unchanged.

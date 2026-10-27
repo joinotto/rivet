@@ -41,6 +41,19 @@ function rewriteProvenance(candidate, mutate) {
   fs.writeFileSync(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
+function rewriteArchive(candidate, mutate) {
+  const name = "rivet-0.1.0-codex.tar";
+  const file = path.join(candidate, name);
+  const content = mutate(fs.readFileSync(file));
+  fs.writeFileSync(file, content);
+  const manifestFile = path.join(candidate, "manifest.json");
+  const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
+  const record = manifest.files.find((entry) => entry.file === name);
+  record.bytes = content.length;
+  record.sha256 = crypto.createHash("sha256").update(content).digest("hex");
+  fs.writeFileSync(manifestFile, JSON.stringify(manifest));
+}
+
 try {
   const source = path.join(temporary, "source");
   fs.cpSync(repository, source, {
@@ -81,6 +94,33 @@ try {
   assert.strictEqual(valid.archives, 2);
   assert.deepStrictEqual(valid.hosts, ["claude-code", "codex"]);
   assert.strictEqual(valid.signature, "not-checked");
+  for (const [index, size] of ["-0000001000", "+0000000001", "0000000001x", "77777777777"].entries()) {
+    const malformed = copyCandidate(candidate, `invalid-size-${index}`);
+    rewriteArchive(malformed, (content) => {
+      content.fill(0, 124, 136);
+      content.write(size, 124, "ascii");
+      content.fill(0x20, 148, 156);
+      const checksum = content.subarray(0, 512).reduce((sum, byte) => sum + byte, 0);
+      content.write(`${checksum.toString(8).padStart(6, "0")}\0 `, 148, "ascii");
+      return content;
+    });
+    const boundedResult = spawnSync(process.execPath, [
+      "--max-old-space-size=64", path.join(repository, "scripts/verify-release-candidate.mjs"),
+      "--input", malformed,
+    ], { encoding: "utf8", timeout: 3000 });
+    assert.strictEqual(boundedResult.status, 1, `${boundedResult.error || ""}\n${boundedResult.stderr}`);
+    assert.ok(JSON.parse(boundedResult.stdout).faults.some((fault) => /invalid or truncated entry size/.test(fault)));
+  }
+  const duplicated = copyCandidate(candidate, "duplicate-entry");
+  rewriteArchive(duplicated, (content) => {
+    const size = Number.parseInt(content.subarray(124, 136).toString("ascii"), 8);
+    const record = content.subarray(0, 512 + Math.ceil(size / 512) * 512);
+    return Buffer.concat([record, content]);
+  });
+  assert.ok(verifyReleaseCandidate(duplicated).faults.some((fault) => /duplicate entry/.test(fault)));
+  const trailing = copyCandidate(candidate, "trailing-data");
+  rewriteArchive(trailing, (content) => Buffer.concat([content, Buffer.alloc(512, 1)]));
+  assert.ok(verifyReleaseCandidate(trailing).faults.some((fault) => /no trailing data/.test(fault)));
 
   const retiredHost = copyCandidate(candidate, "retired-host");
   const retiredManifestFile = path.join(retiredHost, "manifest.json");

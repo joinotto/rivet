@@ -1,6 +1,7 @@
 # Getting started
 
-Status: development preview. No public release.
+Status: unsigned development preview. Version `0.1.0` is for isolated
+evaluation, not supported production use.
 
 Rivet supports project-local installations for Codex and Claude Code. It does
 not install a model, change a model provider, modify host permissions, or
