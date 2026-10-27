@@ -3,15 +3,22 @@
 This file records user-visible changes. The initial version `0.1.0` is
 designated as an unsigned development prerelease, not a production release.
 
-## 0.1.2-preview.1 — Unreleased
+## 0.1.2-preview.1 — npm development preview (2026-10-27)
 
 - Select `@ottoai/rivet` as the public npm package name.
-- Prepare public preview publication under `next` with required provenance.
+- Publish the public npm preview under `next` with authenticated provenance.
 - Add a main-only, exact-revision, manually dispatched OIDC publishing workflow.
   Its validation job has no publishing permission. No stored npm token is used.
 - Retain minimal package contents and managed lifecycle tests.
-- Keep npm commands explicitly unavailable until package authentication,
-  trusted-publisher setup, and actual registry publication succeed.
+- Verify registry signatures, signed provenance, the exact source revision,
+  and the 47-file archive against the reviewed source.
+- Test public, version-pinned `npx` installation, status, upgrade, removal,
+  and recovery for Codex and Claude Code without project dependency changes.
+- Accept npm 12 package-keyed pack metadata as well as older array output.
+- Update repository guides with the available npm command. The published
+  artifact is immutable and retains the README prepared before publication.
+- Keep the release designated for evaluation. Authenticated npm provenance
+  does not satisfy the remaining independent production-review gates.
 
 ## 0.1.1 — Development prerelease (2026-10-27)
 

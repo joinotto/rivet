@@ -12,10 +12,10 @@ performance, and recoverable project-local installation.
 ## First supported release
 
 - Provide clone-free, version-pinned installation for both active hosts.
-  GitHub `npx` distribution is available in the `0.1.1` preview. A shorter
-  registry command will use `@ottoai/rivet`. Its preview workflow is prepared;
-  package access, trusted-publisher configuration, and authenticated publication
-  remain outstanding before the shorter command is available.
+  GitHub `npx` distribution is available in the unsigned `0.1.1` preview.
+  The npm command is available as `@ottoai/rivet@0.1.2-preview.1` and `@next`.
+  Package-specific trusted publishing, a deployment approval gate, authenticated
+  provenance, and public installation tests are complete for this preview.
 
 - Validate fresh-project installation, upgrade, removal, and recovery.
 - Keep first-use commands and compatibility documentation tested.
