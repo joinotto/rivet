@@ -14,6 +14,7 @@ const repository = path.resolve(
   "..",
 );
 const source = path.join(repository, "skills", "rivet");
+const version = JSON.parse(fs.readFileSync(path.join(repository, "package.json"), "utf8")).version;
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-conformance-"));
 const packages = path.join(temporary, "packages");
 const fixture = path.join(temporary, "fixture");
@@ -85,7 +86,7 @@ try {
     );
     assert.strictEqual(manifest.schema, 1);
     assert.strictEqual(manifest.host, host);
-    assert.strictEqual(manifest.version, "0.1.0");
+    assert.strictEqual(manifest.version, version);
     assert.match(manifest.source_revision, /^[a-f0-9]{40}$/);
     assert.ok(["clean", "dirty"].includes(manifest.source_state));
     assert.strictEqual(manifest.canonical_source, "skills/rivet");

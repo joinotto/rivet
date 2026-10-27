@@ -23,7 +23,7 @@ It combines explicit invariants, database and system-design guidance, selected
 repository checks, and evidence receipts. Your project owns its tools, data,
 permissions, and model-provider configuration.
 
-Status: development preview. Version `0.1.0` is designated as an unsigned
+Status: development preview. Version `0.1.1` is designated as an unsigned
 development prerelease for isolated evaluation. It is not a supported
 production release. Production publication requires the
 [release requirements](docs/RELEASING.md).
@@ -39,19 +39,23 @@ production release. Production publication requires the
 
 ## Quick Start
 
-Use a maintained Node.js 22 runtime. Clone and review this repository, then
-install into an existing backend project:
+Use a maintained Node.js 22 runtime with npm. From your backend project,
+run the version-pinned command. No manual clone or global installation is needed:
 
 ```sh
-git clone https://github.com/joinotto/rivet.git
-cd rivet
-node scripts/install-skill.mjs install \
-  --host codex --project /absolute/path/backend --dry-run
-node scripts/install-skill.mjs install \
-  --host codex --project /absolute/path/backend
+npx --ignore-scripts https://github.com/joinotto/rivet/archive/refs/tags/v0.1.1.tar.gz install --host codex --project .
 ```
 
 For Claude Code, use `--host claude-code`.
+
+Add `--dry-run` to preview project changes. Review the source before executing
+downloaded code. npm downloads the package to its cache; `--ignore-scripts`
+disables package lifecycle hooks, not the installer you explicitly invoke.
+Rivet does not add a dependency to your backend project.
+
+Do not use `npx rivet`: that npm name belongs to an unrelated project.
+The archive flow records an unknown Git revision, not authenticated provenance.
+Use a verified host release archive when you need a source-bound receipt.
 
 Start the coding tool in the backend project. Invoke `$rivet` in Codex or
 `/rivet` in Claude Code. Ask it to inspect the repository and preview detected

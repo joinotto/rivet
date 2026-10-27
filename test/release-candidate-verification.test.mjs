@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { verifyReleaseCandidate } from "../scripts/verify-release-candidate.mjs";
 
 const repository = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const version = JSON.parse(fs.readFileSync(path.join(repository, "package.json"), "utf8")).version;
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-release-verify-"));
 
 function command(cwd, executable, args) {
@@ -42,7 +43,7 @@ function rewriteProvenance(candidate, mutate) {
 }
 
 function rewriteArchive(candidate, mutate) {
-  const name = "rivet-0.1.0-codex.tar";
+  const name = `rivet-${version}-codex.tar`;
   const file = path.join(candidate, name);
   const content = mutate(fs.readFileSync(file));
   fs.writeFileSync(file, content);
@@ -79,7 +80,7 @@ try {
   command(source, process.execPath, [
     "scripts/build-release-candidate.mjs",
     "--version",
-    "0.1.0",
+    version,
     "--revision",
     revision,
     "--output",
@@ -87,7 +88,7 @@ try {
   ]);
 
   const valid = verifyReleaseCandidate(candidate, {
-    version: "0.1.0",
+    version,
     revision
   });
   assert.strictEqual(valid.decision, "pass", JSON.stringify(valid.faults));
@@ -126,12 +127,12 @@ try {
   const retiredManifestFile = path.join(retiredHost, "manifest.json");
   const retiredManifest = JSON.parse(fs.readFileSync(retiredManifestFile, "utf8"));
   fs.renameSync(
-    path.join(retiredHost, "rivet-0.1.0-claude-code.tar"),
-    path.join(retiredHost, "rivet-0.1.0-cursor.tar"),
+    path.join(retiredHost, `rivet-${version}-claude-code.tar`),
+    path.join(retiredHost, `rivet-${version}-cursor.tar`),
   );
   retiredManifest.files.find(
-    (record) => record.file === "rivet-0.1.0-claude-code.tar",
-  ).file = "rivet-0.1.0-cursor.tar";
+    (record) => record.file === `rivet-${version}-claude-code.tar`,
+  ).file = `rivet-${version}-cursor.tar`;
   retiredManifest.hosts = ["codex", "cursor"];
   fs.writeFileSync(retiredManifestFile, JSON.stringify(retiredManifest));
   const retiredResult = verifyReleaseCandidate(retiredHost);
@@ -140,7 +141,7 @@ try {
 
   const changedArchive = copyCandidate(candidate, "changed-archive");
   fs.appendFileSync(
-    path.join(changedArchive, "rivet-0.1.0-codex.tar"),
+    path.join(changedArchive, `rivet-${version}-codex.tar`),
     "tampered"
   );
   const archiveResult = verifyReleaseCandidate(changedArchive);

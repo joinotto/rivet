@@ -61,6 +61,9 @@ jobs:
       - name: Run host-package conformance
         run: npm run test:hosts
 
+      - name: Test clone-free distribution
+        run: npm run test:distribution
+
       - name: Run seeded evaluation
         run: npm run test:evaluation
 

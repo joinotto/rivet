@@ -1,6 +1,6 @@
 {
   "name": "rivet",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Evidence-driven backend engineering skills for Codex and Claude Code.",
   "repository": {
@@ -12,6 +12,15 @@
   },
   "keywords": ["agent-skills", "codex", "claude-code", "backend", "database-design", "testing", "security", "developer-tools"],
   "type": "module",
+  "bin": {
+    "rivet": "scripts/install-skill.mjs"
+  },
+  "files": [
+    "scripts/install-skill.mjs",
+    "skills/rivet/",
+    "LICENSE",
+    "NOTICE"
+  ],
   "scripts": {
     "test": "node test/rivet-evidence.test.mjs && node test/skill-package-validator.test.mjs && node test/claude-macos-sandbox.test.mjs && node test/pr-verification.test.mjs && node test/osv-workflow.test.mjs && node test/fuzz-workflow.test.mjs && node test/coverage-guided-fuzz.test.mjs && node test/skill-installation.test.mjs",
     "test:release": "node test/release-candidate.test.mjs && node test/release-candidate-workflow.test.mjs",
@@ -24,6 +33,7 @@
     "test:migration": "node fixtures/migration-resume/run-evidence.mjs fixtures/migration-resume/evidence.json",
     "test:hosts": "node scripts/test-host-packages.mjs",
     "test:installation": "node test/skill-installation.test.mjs",
+    "test:distribution": "node test/direct-installation.test.mjs",
     "skill": "node scripts/install-skill.mjs",
     "check:dco": "node scripts/check-dco.mjs",
     "check:ste": "node skills/rivet/scripts/rivet-ste.mjs skills/rivet",

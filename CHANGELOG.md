@@ -3,6 +3,25 @@
 This file records user-visible changes. The initial version `0.1.0` is
 designated as an unsigned development prerelease, not a production release.
 
+## 0.1.1 — Development prerelease (2026-10-27)
+
+### Added
+
+- Clone-free, version-pinned GitHub archive installation through `npx` for
+  Codex and Claude Code, using the same managed installer and recovery rules.
+- Minimal npm packaging allowlist and a `rivet` executable. No lifecycle hooks,
+  global install, project dependency, or third-party runtime dependency.
+- Offline packed-distribution lifecycle tests on both supported Node.js versions.
+
+### Changed
+
+- Quick-start guides lead with the direct command, not a repository clone.
+- Downloaded source cannot inherit the Git identity of a containing worktree.
+  Archive receipts explicitly record unknown Git provenance.
+- Release tests obtain the version from package metadata.
+- This update remains an unsigned evaluation prerelease. Production gates
+  are unchanged. The unrelated unscoped npm package is not this Rivet.
+
 ## 0.1.0 — Development prerelease (2026-10-27)
 
 ### Added

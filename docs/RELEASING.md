@@ -1,12 +1,13 @@
 # Releasing
 
-Status: version `0.1.0` is designated for an unsigned development prerelease.
+Status: version `0.1.1` is designated for an unsigned development prerelease.
 No supported production release has occurred.
 
 ## Development prerelease exception
 
 The maintainer approved an explicit evaluation exception on 2026-10-27 for
-version `0.1.0`. This exception permits publication of a verified unsigned
+version `0.1.0`, and requested publication of the clone-free installation update
+as version `0.1.1`. This exception permits publication of a verified unsigned
 candidate as a development prerelease. It does not approve production use.
 
 The prerelease must:
@@ -29,7 +30,7 @@ Build only from a clean committed revision:
 
 ```sh
 npm run package:release-candidate -- \
-  --version 0.1.0 \
+  --version 0.1.1 \
   --revision "$(git rev-parse HEAD)" \
   --output dist/release
 ```
@@ -55,7 +56,7 @@ Verify a received candidate before review or signing:
 ```sh
 npm run verify:release-candidate -- \
   --input dist/release \
-  --version 0.1.0 \
+  --version 0.1.1 \
   --revision COMMIT_ID
 ```
 
