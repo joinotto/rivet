@@ -11,10 +11,12 @@ performance, and recoverable project-local installation.
 
 ## Initial stable tooling release
 
-Version `0.1.3` targets the `latest` npm channel under a one-time maintainer
+Version `0.1.3` is published under the `latest` npm channel through a one-time maintainer
 exception. This does not complete the production gates or waive them for
-subsequent releases. Publication requires the protected workflow and deployment
-approval. See [the exception and normal requirements](RELEASING.md).
+subsequent releases. Publication used the protected workflow and deployment
+approval. Registry signatures, provenance, exact-source archive identity, and
+both hosts' public installation lifecycle were verified.
+See [the exception and normal requirements](RELEASING.md).
 
 ## First production-approved release
 
