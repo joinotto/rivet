@@ -262,7 +262,7 @@ try {
   fs.unlinkSync(metadataPath);
   fs.symlinkSync(externalMetadata, metadataPath);
   assert.notEqual(packageFixture(["--output", generated, "--force"]).status, 0);
-  assert.equal(fs.lstatSync(metadataPath).isSymbolicLink(), true);
+  assert.equal(fs.readlinkSync(metadataPath), externalMetadata);
   assert.deepEqual(fs.readFileSync(externalMetadata), metadataContent);
   fs.unlinkSync(metadataPath);
   fs.writeFileSync(metadataPath, metadataContent);
