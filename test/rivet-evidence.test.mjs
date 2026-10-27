@@ -3007,6 +3007,10 @@ try {
   fs.writeFileSync(path.join(secretOutside, "private.json"),
     JSON.stringify({ ["api" + "_key"]: syntheticCredential }));
   fs.symlinkSync(secretOutside, path.join(fixture, "outside-directory"));
+  fs.writeFileSync(path.join(secretOutside, "files.nul"), "private.json\0");
+  const outsideList = invoke(fixture, ["impact", "--files-from", "outside-directory/files.nul", "--json"]);
+  assert.strictEqual(outsideList.status, 1);
+  assert.match(outsideList.stderr, /file list must resolve inside the project/);
   const outsideScan = invoke(fixture, ["secrets", "--files", "outside-directory/private.json", "--json"]);
   assert.strictEqual(outsideScan.status, 1);
   assert.strictEqual(JSON.parse(outsideScan.stdout).files_checked, 0);

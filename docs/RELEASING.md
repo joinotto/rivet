@@ -1,6 +1,27 @@
 # Releasing
 
-Status: no public release has occurred.
+Status: version `0.1.0` is designated for an unsigned development prerelease.
+No supported production release has occurred.
+
+## Development prerelease exception
+
+The maintainer approved an explicit evaluation exception on 2026-10-27 for
+version `0.1.0`. This exception permits publication of a verified unsigned
+candidate as a development prerelease. It does not approve production use.
+
+The prerelease must:
+
+- Use the exact tested source revision and verified artifact digests.
+- Be marked as a GitHub prerelease and not the latest stable release.
+- Include only the two host archives, checksums, SBOM, provenance, and manifest.
+- State that the artifacts and provenance are unsigned.
+- State that qualified review, real-user feedback, authenticated signing, and
+  independent production approvals remain incomplete.
+- Exclude private development files, pilot reports, and reviewer drafts.
+
+This exception applies only to the designated prerelease. It does not waive
+the production requirements below. Preserve the prerelease tag and its assets.
+Use a new version for a subsequent release.
 
 ## Candidate
 
@@ -65,7 +86,8 @@ Do not fabricate reviewer identities, qualifications, conclusions, signatures,
 or pilot feedback. An agent review does not replace a required human approval.
 Keep sensitive review material and customer information private.
 
-Do not publish while a required condition is incomplete. Use immutable
+Do not publish a production release while a required condition is incomplete.
+Use immutable
 versioned artifacts. Do not move a published version tag or replace its files.
 
 ## Compromise and revocation

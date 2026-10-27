@@ -299,7 +299,7 @@ try {
         limitations: [
           "This statement is unsigned and does not authenticate the builder.",
           "A reproducible archive does not prove that its source or builder is trusted.",
-          "Release publication requires signatures, reviewer approval, and retained CI evidence."
+          "Production publication requires signatures, reviewer approval, and retained CI evidence."
         ]
       }
     }
@@ -323,8 +323,8 @@ try {
     files: manifestFiles,
     decision: status.stdout.trim() ? "test-candidate" : "unsigned-candidate",
     limitations: [
-      "This bundle is not published or signed.",
-      "This bundle is not an official Rivet release."
+      "This bundle is unsigned and does not authenticate a publisher.",
+      "Candidate verification alone does not authorize production publication."
     ]
   };
   fs.writeFileSync(

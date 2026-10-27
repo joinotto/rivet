@@ -49,11 +49,12 @@ function tarString(block, start, length) {
 
 function tarNumber(block, start, length) {
   const value = tarString(block, start, length).trim();
-  return value ? Number.parseInt(value, 8) : 0;
+  return value && /^[0-7]+$/.test(value) ? Number.parseInt(value, 8) : value ? NaN : 0;
 }
 
 function inspectTar(content, archive, faults) {
   const entries = [];
+  const paths = new Set();
   let offset = 0;
   while (offset + 512 <= content.length) {
     const header = content.subarray(offset, offset + 512);
@@ -71,14 +72,20 @@ function inspectTar(content, archive, faults) {
     const relative = prefix ? `${prefix}/${name}` : name;
     const size = tarNumber(header, 124, 12);
     const type = String.fromCharCode(header[156] || 0);
+    if (!Number.isSafeInteger(size) || size < 0 || size > content.length - offset - 512) {
+      faults.push(`${archive} has an invalid or truncated entry size.`);
+      return entries;
+    }
     if (
       !relative ||
       relative.startsWith("/") ||
-      relative.split("/").includes("..") ||
-      relative.includes("\\")
+      relative.split("/").some((part) => !part || part === "." || part === "..") ||
+      /[\\\x00-\x1f\x7f]/.test(relative)
     ) {
       faults.push(`${archive} has an unsafe path: ${relative || "<empty>"}.`);
     }
+    if (paths.has(relative)) faults.push(`${archive} has a duplicate entry: ${relative}.`);
+    paths.add(relative);
     if (type !== "0" && type !== "\0") {
       faults.push(`${archive} contains a non-file entry: ${relative}.`);
     }
@@ -104,8 +111,9 @@ function inspectTar(content, archive, faults) {
     });
     offset = dataStart + Math.ceil(size / 512) * 512;
   }
-  if (offset + 1024 > content.length) {
-    faults.push(`${archive} does not have two terminating tar blocks.`);
+  if (offset + 1024 !== content.length ||
+      !content.subarray(offset).every((byte) => byte === 0)) {
+    faults.push(`${archive} must end with exactly two zero tar blocks and no trailing data.`);
   }
   return entries;
 }

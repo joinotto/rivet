@@ -48,12 +48,40 @@ function inlineCode(value) {
 }
 
 function fileEvidence(file) {
-  const body = fs.readFileSync(file);
+  const body = readRegularFile(file);
   return {
     path: path.basename(file),
     size: body.length,
     sha256: crypto.createHash("sha256").update(body).digest("hex"),
   };
+}
+
+function writeReportFile(file, body) {
+  const descriptor = fs.openSync(file,
+    fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK,
+    0o600);
+  try {
+    if (!fs.fstatSync(descriptor).isFile()) throw new Error("Report output must be a regular file.");
+    fs.ftruncateSync(descriptor, 0);
+    fs.writeFileSync(descriptor, body);
+  } finally {
+    fs.closeSync(descriptor);
+  }
+}
+
+function prepareReportDirectory() {
+  let current = fs.realpathSync(cwd);
+  for (const part of path.relative(cwd, outputRoot).split(path.sep)) {
+    current = path.join(current, part);
+    let information;
+    try { information = fs.lstatSync(current); } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+    }
+    if (!information) fs.mkdirSync(current, { mode: 0o700 });
+    else if (!information.isDirectory() || information.isSymbolicLink()) {
+      throw new Error("Report output must use non-symbolic project directories.");
+    }
+  }
 }
 
 function readRegularFile(file) {
@@ -75,7 +103,11 @@ function readRegularFile(file) {
 
 function verifyReport(directory) {
   if (!directory) throw new Error("Use verify-report <report-directory>.");
-  const root = fs.realpathSync(path.resolve(cwd, directory));
+  const supplied = path.resolve(cwd, directory);
+  if (!fs.lstatSync(supplied).isDirectory() || fs.lstatSync(supplied).isSymbolicLink()) {
+    throw new Error("The report root must be a non-symbolic directory.");
+  }
+  const root = fs.realpathSync(supplied);
   let entries;
   try {
     entries = fs.readdirSync(root, { withFileTypes: true });
@@ -167,11 +199,8 @@ if (process.argv[2] === "verify-report") {
 if (!validRevision(base) || !validRevision(head)) {
   fail("RIVET_BASE_SHA and RIVET_HEAD_SHA must be full lowercase commit identifiers.");
 }
-if (
-  outputRoot !== cwd &&
-  !outputRoot.startsWith(`${cwd}${path.sep}`)
-) {
-  fail("RIVET_REPORT_DIR must be inside the project.");
+if (outputRoot === cwd || !outputRoot.startsWith(`${cwd}${path.sep}`)) {
+  fail("RIVET_REPORT_DIR must be a separate directory inside the project.");
 }
 if (!fs.existsSync(cli)) fail("The Rivet evidence CLI is unavailable.");
 
@@ -198,9 +227,9 @@ const diff = run(
 );
 if (diff.status !== 0) fail("Git could not determine the pull-request file set.");
 
-fs.mkdirSync(outputRoot, { recursive: true, mode: 0o700 });
+prepareReportDirectory();
 const filesPath = path.join(outputRoot, "changed-files.nul");
-fs.writeFileSync(filesPath, diff.stdout, { mode: 0o600 });
+writeReportFile(filesPath, diff.stdout);
 
 const relativeFilesPath = path.relative(cwd, filesPath);
 const impact = run(process.execPath, [
@@ -227,11 +256,17 @@ try {
 }
 
 const secretScanPath = path.join(outputRoot, "secret-scan.json");
+const contentDiff = run("git",
+  ["diff", "--name-only", "--diff-filter=ACMRTUXB", "-z", mergeBase, head, "--"],
+  { binary: true });
+if (contentDiff.status !== 0) fail("Git could not determine the changed-content file set.");
+const secretFilesPath = path.join(outputRoot, "secret-files.nul");
+writeReportFile(secretFilesPath, contentDiff.stdout);
 const secretScan = run(process.execPath, [
   cli,
   "secrets",
   "--files-from",
-  relativeFilesPath,
+  path.relative(cwd, secretFilesPath),
   "--json",
 ]);
 if (![0, 2].includes(secretScan.status)) {
@@ -250,10 +285,9 @@ if (
 ) {
   fail("Rivet produced an unsupported secret scan report.");
 }
-fs.writeFileSync(
+writeReportFile(
   secretScanPath,
   `${JSON.stringify(secretScanReport, null, 2)}\n`,
-  { mode: 0o600 },
 );
 if (secretScanReport.decision === "fail") {
   console.error(
@@ -285,7 +319,7 @@ if (!fs.existsSync(receiptPath)) {
 }
 let receipt;
 try {
-  receipt = JSON.parse(fs.readFileSync(receiptPath, "utf8"));
+  receipt = JSON.parse(readRegularFile(receiptPath).toString("utf8"));
 } catch {
   fail("Rivet produced an invalid verification receipt.");
 }
@@ -314,9 +348,7 @@ const report = {
 };
 
 const reportPath = path.join(outputRoot, "report.json");
-fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, {
-  mode: 0o600,
-});
+writeReportFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
 
 const lines = [
   "# Rivet pull-request verification",
@@ -390,7 +422,7 @@ lines.push(
   "",
 );
 const summaryPath = path.join(outputRoot, "summary.md");
-fs.writeFileSync(summaryPath, lines.join("\n"), { mode: 0o600 });
+writeReportFile(summaryPath, lines.join("\n"));
 
 if (process.env.GITHUB_STEP_SUMMARY) {
   fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n"));
@@ -398,6 +430,7 @@ if (process.env.GITHUB_STEP_SUMMARY) {
 
 const evidenceFiles = [
   filesPath,
+  secretFilesPath,
   secretScanPath,
   receiptPath,
   verificationSummaryPath,
@@ -405,7 +438,7 @@ const evidenceFiles = [
   summaryPath,
 ];
 const manifestPath = path.join(outputRoot, "manifest.json");
-fs.writeFileSync(
+writeReportFile(
   manifestPath,
   `${JSON.stringify({
     schema: 1,
@@ -415,7 +448,6 @@ fs.writeFileSync(
     head_revision: head,
     files: evidenceFiles.map(fileEvidence),
   }, null, 2)}\n`,
-  { mode: 0o600 },
 );
 
 console.log(`Rivet PR report: ${path.relative(cwd, summaryPath)}`);
