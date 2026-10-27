@@ -15,6 +15,13 @@ and run. The downloaded 47-file archive matched the reviewed source pack.
 Public `npx` lifecycle tests passed for both hosts without account credentials.
 Keep this published version and the existing GitHub `v0.1.1` tag and assets unchanged.
 
+The first npm publication received both `next` and `latest`. The registry
+rejected removal of `latest` with HTTP 400 after successful browser
+authentication. This matches [a reported npm registry limitation](https://github.com/npm/cli/issues/8490).
+The preview remains for evaluation; a registry tag is not production approval.
+Use the exact preview version or `next`. No further MFA retry is required for
+this rejected removal.
+
 The `npm-publish.yml` workflow is manual, restricted to this repository's
 `main` branch, and limited to `-preview.N` versions under the `next` tag.
 Its input revision must match the selected workflow revision and checkout.
@@ -39,9 +46,11 @@ For each subsequent preview:
 7. Independently verify the registry package inventory, integrity, and
    provenance, then test the public `npx` flow for both hosts.
 8. Inspect registry tags after publication. npm can assign `latest` on the
-   first publication even when `next` was selected. Remove that extra tag
-   through the maintainer's authenticated npm session and normal 2FA process.
-   A preview must not be advertised as a supported stable release.
+   first publication even when `next` was selected, and can reject its removal.
+   Do not assume that deletion is supported or repeat MFA attempts after a
+   confirmed registry rejection. Document the actual tags and preview status.
+   Do not publish a placeholder or relabel the preview as stable to work around
+   this behavior. A future stable version requires the production gates below.
 9. Update availability statements only after successful publication.
 
 To verify registry signatures and provenance, use a separate temporary project.
