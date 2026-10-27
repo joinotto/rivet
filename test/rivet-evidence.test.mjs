@@ -3032,6 +3032,36 @@ const escapedRecord = invoke(fixture, [
 ]);
 assert.strictEqual(escapedRecord.status, 1);
 assert.match(escapedRecord.stderr, /inside the project/);
+const outputOutside = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-output-boundary-"));
+try {
+  fs.symlinkSync(outputOutside, path.join(fixture, "output-link"));
+  for (const output of ["output-link/direct.md", "output-link/not-created/nested.md"]) {
+    const escapedOutput = invoke(fixture, ["record", "--output", output]);
+    assert.strictEqual(escapedOutput.status, 1, escapedOutput.stderr);
+    assert.match(escapedOutput.stderr, /inside the project/);
+  }
+  assert.deepStrictEqual(fs.readdirSync(outputOutside), []);
+  fs.symlinkSync(path.join(outputOutside, "missing.md"), path.join(fixture, "broken-output.md"));
+  const brokenOutput = invoke(fixture, ["record", "--output", "broken-output.md"]);
+  assert.strictEqual(brokenOutput.status, 1);
+  assert.match(brokenOutput.stderr, /broken symbolic link/);
+  const retainedOutput = path.join(fixture, "retained-output.md");
+  fs.writeFileSync(retainedOutput, "Preserve this existing file.\n");
+  fs.symlinkSync(retainedOutput, path.join(fixture, "internal-output-link.md"));
+  const linkedOutput = invoke(fixture, ["record", "--output", "internal-output-link.md", "--force"]);
+  assert.strictEqual(linkedOutput.status, 1);
+  assert.strictEqual(fs.readFileSync(retainedOutput, "utf8"), "Preserve this existing file.\n");
+  fs.writeFileSync(path.join(outputOutside, "state.json"), '{"system":"private"}');
+  const escapedArtifact = invoke(fixture, ["threat-model", "validate", "--file", "output-link/state.json"]);
+  assert.strictEqual(escapedArtifact.status, 1);
+  assert.match(escapedArtifact.stderr, /resolve inside the project/);
+} finally {
+  fs.unlinkSync(path.join(fixture, "output-link"));
+  fs.unlinkSync(path.join(fixture, "broken-output.md"));
+  fs.unlinkSync(path.join(fixture, "internal-output-link.md"));
+  fs.unlinkSync(path.join(fixture, "retained-output.md"));
+  fs.rmSync(outputOutside, { recursive: true, force: true });
+}
 
 const init = invoke(fixture, ["init"]);
 assert.strictEqual(init.status, 0, init.stderr);

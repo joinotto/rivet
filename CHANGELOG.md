@@ -44,6 +44,8 @@ The source package version is `0.1.0`.
   Test guidance separates runner startup failures from assertion results.
 - Empty dependency findings are not treated as clean evidence when the
   dependency tool fails.
+- Evidence outputs resolve existing ancestors before directory creation and
+  use regular-file descriptors that do not follow final symbolic links.
 - The ASD-STE100-aligned writing profile is optional and risk-based.
   Its checker does not certify compliance.
 - Experimental development helpers and implementation records are excluded
