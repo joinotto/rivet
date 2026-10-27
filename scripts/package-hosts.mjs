@@ -98,11 +98,24 @@ if (fs.existsSync(output)) {
       throw new Error("The replacement target has an unexpected package inventory.");
     }
     const metadataFile = path.join(root, "rivet-host.json");
-    const metadataInfo = fs.lstatSync(metadataFile);
-    if (!metadataInfo.isFile() || metadataInfo.isSymbolicLink() || metadataInfo.size > 65536) {
-      throw new Error("The replacement target has unsafe package metadata.");
+    const descriptor = fs.openSync(metadataFile, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    let metadata;
+    try {
+      const metadataInfo = fs.fstatSync(descriptor);
+      if (!metadataInfo.isFile() || metadataInfo.size > 65536) {
+        throw new Error("The replacement target has unsafe package metadata.");
+      }
+      const content = Buffer.alloc(metadataInfo.size + 1);
+      const bytes = fs.readSync(descriptor, content, 0, content.length, 0);
+      const after = fs.fstatSync(descriptor);
+      if (bytes !== metadataInfo.size || after.size !== metadataInfo.size ||
+          after.mtimeMs !== metadataInfo.mtimeMs || after.ctimeMs !== metadataInfo.ctimeMs) {
+        throw new Error("The replacement metadata changed during inspection.");
+      }
+      metadata = JSON.parse(content.subarray(0, bytes).toString("utf8"));
+    } finally {
+      fs.closeSync(descriptor);
     }
-    const metadata = JSON.parse(fs.readFileSync(metadataFile, "utf8"));
     if (metadata.schema !== 1 || metadata.host !== host.id) {
       throw new Error("The replacement target is not a generated Rivet package.");
     }

@@ -255,6 +255,17 @@ try {
   const generated = path.join(packagerSource, "generated");
   assert.equal(packageFixture(["--output", generated]).status, 0);
   assert.equal(packageFixture(["--output", generated, "--force"]).status, 0);
+  const metadataPath = path.join(generated, "codex/rivet-host.json");
+  const metadataContent = fs.readFileSync(metadataPath);
+  const externalMetadata = path.join(unrelated, "external-metadata.json");
+  fs.writeFileSync(externalMetadata, metadataContent);
+  fs.unlinkSync(metadataPath);
+  fs.symlinkSync(externalMetadata, metadataPath);
+  assert.notEqual(packageFixture(["--output", generated, "--force"]).status, 0);
+  assert.equal(fs.lstatSync(metadataPath).isSymbolicLink(), true);
+  assert.deepEqual(fs.readFileSync(externalMetadata), metadataContent);
+  fs.unlinkSync(metadataPath);
+  fs.writeFileSync(metadataPath, metadataContent);
   const beforeIgnored = inventory(generated);
   fs.writeFileSync(path.join(packagerSource, "skills/rivet/.env.local"), "Synthetic local data.\n");
   const ignored = packageFixture(["--output", generated, "--force"]);
