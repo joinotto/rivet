@@ -24,7 +24,8 @@ repository checks, and evidence receipts. Your project owns its tools, data,
 permissions, and model-provider configuration.
 
 Release line: `0.1.3`, the initial stable tooling release under a one-time
-maintainer exception. Stable describes the distribution channel, not security
+maintainer exception. `@ottoai/rivet@0.1.3` is available on npm under `latest`.
+Stable describes the distribution channel, not security
 certification or completion of the production requirements. Real-user feedback,
 qualified security review, and two independent approvals remain outstanding.
 The [release policy](docs/RELEASING.md) stays in place.

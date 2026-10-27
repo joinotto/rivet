@@ -1,7 +1,7 @@
 # Releasing
 
-Status: `0.1.3` is prepared for initial stable tooling publication under the
-one-time exception below. npm version `0.1.2-preview.1` remains the published
+Status: `0.1.3` is published under `latest` through the initial stable tooling
+exception below. npm version `0.1.2-preview.1` remains the published
 development preview with authenticated provenance. The separate GitHub `0.1.1`
 archives remain unsigned. No production-approved release has occurred.
 
@@ -29,6 +29,26 @@ authorize a later stable version or remove the normal requirements below.
 It applies to npm tooling publication, not to signing or republishing the
 separate GitHub host archives. The initial release remains community-supported;
 users must assess their own production use.
+
+### Verified publication
+
+Version `0.1.3` was published on 2026-10-27 from
+`a6a1287e42c809e033f679d4f619524ed8fda251` by
+[the approved workflow run](https://github.com/joinotto/rivet/actions/runs/40500264403).
+The public 47-file archive matched the reviewed source pack byte-for-byte.
+npm's signature audit verified the registry signature and signed provenance.
+The provenance subject digest, repository, source commit, workflow, and run
+matched the selected release.
+
+Anonymous public `npx` tests passed for Codex and Claude Code through both
+`@0.1.3` and `@latest`: dry-run, installation, status, upgrade, removal, and
+backup recovery. Preview-to-stable upgrades also passed for both hosts and
+retained the previous preview as a backup. Project dependencies, lockfiles,
+and user instructions were unchanged.
+
+Registry tags were verified as `latest: 0.1.3` and `next: 0.1.2-preview.1`.
+These are artifact and installation checks, not independent human production
+approval. The normal requirements remain outstanding as disclosed above.
 
 ## npm preview publication
 
