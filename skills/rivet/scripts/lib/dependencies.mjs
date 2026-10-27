@@ -95,6 +95,15 @@ export function normalizeDependencyResult(adapter, result) {
     };
   }
 
+  if (!findings.length && result.status !== 0) {
+    return {
+      result: "tool-failure",
+      finding_count: null,
+      findings: [],
+      reason: "The dependency tool did not complete successfully; empty findings do not establish a clean result.",
+    };
+  }
+
   return {
     result: findings.length ? "findings" : "pass",
     finding_count: findings.length,

@@ -23,7 +23,7 @@ const sourceIsDirty =
     encoding: "utf8"
   }).stdout.trim().length > 0;
 
-function run(output) {
+function run(output, extra = []) {
   const revision = spawnSync("git", ["rev-parse", "HEAD"], {
     cwd: repository,
     encoding: "utf8"
@@ -38,7 +38,8 @@ function run(output) {
       revision,
       "--output",
       output,
-      "--allow-dirty"
+      "--allow-dirty",
+      ...extra
     ],
     { cwd: repository, encoding: "utf8" }
   );
@@ -66,6 +67,17 @@ try {
   assert.strictEqual(firstRun.status, 0, firstRun.stderr);
   assert.strictEqual(secondRun.status, 0, secondRun.stderr);
   assert.deepStrictEqual(inventory(first), inventory(second));
+  const originalInventory = inventory(first);
+  const replacement = run(first, ["--force"]);
+  assert.notStrictEqual(replacement.status, 0);
+  assert.match(replacement.stderr, /Use a new candidate directory/);
+  assert.deepStrictEqual(inventory(first), originalInventory);
+  const unrelated = path.join(temporary, "user-files");
+  fs.mkdirSync(unrelated);
+  fs.writeFileSync(path.join(unrelated, "keep.txt"), "keep\n");
+  const unrelatedReplacement = run(unrelated, ["--force"]);
+  assert.notStrictEqual(unrelatedReplacement.status, 0);
+  assert.strictEqual(fs.readFileSync(path.join(unrelated, "keep.txt"), "utf8"), "keep\n");
 
   const outside = fs.mkdtempSync(
     path.join(os.tmpdir(), "rivet-release-outside-")

@@ -21,6 +21,10 @@ It also creates SHA-256 sums, a CycloneDX software bill of materials, an
 unsigned in-toto Statement with the SLSA v1 provenance predicate, and a
 manifest. The build uses normalized timestamps, owners, and file modes.
 
+Use a new output directory for each build. The builder does not delete an
+existing output directory, even with `--force`. Source validation occurs
+before the builder creates the output directory.
+
 See [release build type](RELEASE-BUILD-TYPE.md).
 
 ## Verify

@@ -10,7 +10,7 @@ import {
   discoverDependencyAdapters,
   discoverSecurityAdapters,
 } from "./lib/adapters.mjs";
-import { fingerprint, redact } from "./lib/redact.mjs";
+import { fingerprint, quotedSecretAssignment, redact } from "./lib/redact.mjs";
 import { discoverTopology, topologyImpact } from "./lib/topology.mjs";
 import { normalizeDependencyResult } from "./lib/dependencies.mjs";
 import {
@@ -432,13 +432,25 @@ function mapProject() {
 }
 
 function walkFiles(root, output = []) {
-  if (!fs.existsSync(root)) return output;
-  const stat = fs.statSync(root);
-  if (stat.isFile()) {
+  let stat;
+  try {
+    stat = fs.lstatSync(root);
+  } catch {
     output.push(root);
     return output;
   }
-  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+  if (!stat.isDirectory() || stat.isSymbolicLink()) {
+    output.push(root);
+    return output;
+  }
+  let entries;
+  try {
+    entries = fs.readdirSync(root, { withFileTypes: true });
+  } catch {
+    output.push(root);
+    return output;
+  }
+  for (const entry of entries) {
     if (
       [".git", "node_modules", "vendor", "target", "dist", "build"].includes(
         entry.name,
@@ -466,27 +478,40 @@ function secretScan() {
     },
     {
       id: "assigned-secret",
-      pattern:
-        /\b(api[_-]?key|token|password|secret)\s*[:=]\s*["']([^"'\s]{12,})["']/gi,
+      pattern: quotedSecretAssignment(),
+      minimumValueLength: 12,
     },
   ];
   const findings = [];
   let filesChecked = 0;
+  const unavailable = [];
 
   for (const file of files) {
-    if (!file.startsWith(`${cwd}${path.sep}`)) continue;
+    if (!file.startsWith(`${cwd}${path.sep}`)) {
+      unavailable.push({ file: path.relative(cwd, file), reason: "outside-project" });
+      continue;
+    }
     let descriptor;
     let body;
     try {
+      const parent = fs.realpathSync(path.dirname(file));
+      if (parent !== canonicalCwd && !parent.startsWith(`${canonicalCwd}${path.sep}`)) {
+        unavailable.push({ file: path.relative(cwd, file), reason: "outside-project-through-symbolic-parent" });
+        continue;
+      }
       descriptor = fs.openSync(
         file,
         fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0),
       );
       const stat = fs.fstatSync(descriptor);
-      if (!stat.isFile() || stat.size > 1024 * 1024) continue;
+      if (!stat.isFile() || stat.size > 1024 * 1024) {
+        unavailable.push({ file: path.relative(cwd, file), reason: "not-a-bounded-regular-file" });
+        continue;
+      }
       body = fs.readFileSync(descriptor, "utf8");
       filesChecked += 1;
     } catch {
+      unavailable.push({ file: path.relative(cwd, file), reason: "unreadable-or-symbolic-file" });
       continue;
     } finally {
       if (descriptor !== undefined) fs.closeSync(descriptor);
@@ -495,7 +520,10 @@ function secretScan() {
     lines.forEach((line, index) => {
       for (const rule of patterns) {
         rule.pattern.lastIndex = 0;
-        const match = rule.pattern.exec(line);
+        let match = rule.pattern.exec(line);
+        while (match && rule.minimumValueLength && match[4].length < rule.minimumValueLength) {
+          match = rule.pattern.exec(line);
+        }
         if (!match) continue;
         findings.push({
           id: rule.id,
@@ -513,7 +541,8 @@ function secretScan() {
     evidence_class: "observed",
     files_checked: filesChecked,
     findings,
-    decision: findings.length ? "fail" : "pass",
+    unavailable,
+    decision: findings.length ? "fail" : unavailable.length ? "incomplete" : "pass",
     limitations: [
       "Pattern scanning cannot identify all secret formats.",
       "A finding requires confirmation and credential rotation when exposed.",
@@ -528,9 +557,13 @@ function secretScan() {
         `- ${item.file}:${item.line} ${item.id} ${item.fingerprint} ${item.value}`,
       );
     }
+    for (const item of unavailable) {
+      console.log(`- Not scanned: ${item.file} (${item.reason})`);
+    }
     for (const item of report.limitations) console.log(`- ${item}`);
   }
   if (findings.length) process.exitCode = 2;
+  else if (unavailable.length) process.exitCode = 1;
 }
 
 function runAdapters(adapters, workflow, options = {}) {
@@ -2820,9 +2853,11 @@ function githubOutput(receipt) {
 
 function verify() {
   const project = detectProject();
+  const verificationChecks = project.checks.filter((check) => !check.active_target);
   const specialized = [
     ...project.security_checks,
     ...project.dependency_checks,
+    ...project.checks.filter((check) => check.active_target),
   ];
   const availableEvidence = specialized.map((check) => ({
     adapter_schema: check.schema,
@@ -2834,7 +2869,9 @@ function verify() {
     network: check.network ?? false,
     status: "not-run",
     reason:
-      check.kind === "dependency-audit"
+      check.active_target
+        ? "Run the explicit contract workflow with an authorized target."
+        : check.kind === "dependency-audit"
         ? "Run the explicit dependencies workflow because the adapter can use network advisory data."
         : "Run the explicit security workflow with the required authorization for repository-declared security commands.",
   }));
@@ -2844,16 +2881,16 @@ function verify() {
     .filter(Boolean);
 
   const selected = requested.length
-    ? project.checks.filter(
+    ? verificationChecks.filter(
         (check) =>
           requested.includes(check.id) ||
           requested.includes(check.base_id),
       )
-    : project.checks;
+    : verificationChecks;
 
   const unavailable = requested.filter(
     (id) =>
-      !project.checks.some(
+      !verificationChecks.some(
         (check) => check.id === id || check.base_id === id,
       ),
   );
@@ -2917,7 +2954,11 @@ function verify() {
       tool_version: null,
       command_digest: null,
       configuration_digest: null,
-      reason: "No detected repository check has this identifier.",
+      reason: project.checks.some(
+        (check) => check.active_target && (check.id === id || check.base_id === id),
+      )
+        ? "Active-target checks require the explicit contract workflow with an authorized target."
+        : "No detected repository check has this identifier.",
     });
   }
 
@@ -2939,7 +2980,7 @@ function verify() {
     limitations: [
       "Only detected repository checks were run.",
       ...(availableEvidence.length
-        ? ["Detected specialized security or dependency adapters were not run automatically."]
+        ? ["Detected specialized adapters were not run automatically."]
         : []),
       "A passing generic check does not prove security, migration safety, authorization, or production behavior.",
     ],

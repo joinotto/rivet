@@ -34,6 +34,16 @@ The source package version is `0.1.0`.
 - Installed skills retain license and notice files. Packaging refuses ignored
   canonical files, local state, unsafe links, and unrelated replacement targets.
 - Corpus merges check combined byte and physical file limits before writing.
+- Release builds preserve existing output directories. Generic verification
+  does not execute active-target contract checks without the explicit workflow.
+- Secret redaction handles quoted JSON values. Requested unreadable files
+  produce incomplete scan evidence instead of a passing result.
+- Secret scans do not traverse symbolic directories or read files through
+  symbolic parents outside the project.
+- Database guidance distinguishes cursor ordering from commit visibility.
+  Test guidance separates runner startup failures from assertion results.
+- Empty dependency findings are not treated as clean evidence when the
+  dependency tool fails.
 - The ASD-STE100-aligned writing profile is optional and risk-based.
   Its checker does not certify compliance.
 - Experimental development helpers and implementation records are excluded

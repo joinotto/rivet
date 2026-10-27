@@ -22,6 +22,28 @@ Record:
 - Choose delete behavior deliberately.
 - Do not use JSON to avoid modeling stable facts.
 
+State the functional dependencies before claiming a normal form. A repeated
+tenant identifier can be an integrity or access requirement. Explain that
+choice. Do not label a denormalized design fully normalized.
+
+## Ordering and pagination
+
+Define what "newest" means: event time, row creation time, or committed
+visibility. These orders can differ.
+
+- Use a unique, immutable ordering tuple and matching cursor comparison.
+- Preserve timestamp precision when encoding and decoding the cursor.
+- Treat UUIDv7 time ordering as distinct from strict generation or commit
+  ordering. Same-millisecond values, multiple generators, and clock changes
+  require explicit assumptions.
+- State how late commits, updates, and deletes affect traversal. Keyset
+  pagination alone does not provide a consistent snapshot.
+- Validate cursor size, format, version, filters, and tenant scope. Encoding
+  is not authentication. Enforce authorization on every page.
+
+See [RFC 9562, sections 5.7 and 6.2](https://www.rfc-editor.org/rfc/rfc9562.html)
+and [PostgreSQL ordering requirements](https://www.postgresql.org/docs/current/queries-limit.html).
+
 ## Transactions
 
 State the read set, write set, isolation need, possible conflicts, external side effects, retry behavior, and maximum duration.

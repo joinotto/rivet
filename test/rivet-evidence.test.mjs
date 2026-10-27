@@ -24,6 +24,7 @@ import {
   validateAdvancedReview,
 } from "../skills/rivet/scripts/lib/advanced-review.mjs";
 import { evaluateCampaign } from "../skills/rivet/scripts/lib/evaluate.mjs";
+import { redact } from "../skills/rivet/scripts/lib/redact.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repository = path.resolve(here, "..");
@@ -1035,6 +1036,33 @@ assert.strictEqual(
 const contractDryRun = invoke(intelligence, ["contract", "--dry-run"]);
 assert.strictEqual(contractDryRun.status, 0, contractDryRun.stderr);
 assert.match(contractDryRun.stdout, /test:contract/);
+const unauthorizedContractVerification = invoke(intelligence, [
+  "verify", "--checks", "test:contract", "--json",
+]);
+assert.strictEqual(unauthorizedContractVerification.status, 1, unauthorizedContractVerification.stderr);
+const blockedContractReceipt = JSON.parse(unauthorizedContractVerification.stdout);
+assert.strictEqual(blockedContractReceipt.decision, "incomplete");
+assert.strictEqual(blockedContractReceipt.results.length, 1);
+assert.strictEqual(blockedContractReceipt.results[0].id, "test:contract");
+assert.strictEqual(blockedContractReceipt.results[0].result, "unavailable");
+assert.match(blockedContractReceipt.results[0].reason, /authorized target/);
+assert.ok(blockedContractReceipt.available_evidence.some((item) =>
+  item.id === "test:contract" && item.status === "not-run" && /authorized target/.test(item.reason)
+));
+const contractOnly = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-contract-gate-"));
+try {
+  fs.writeFileSync(path.join(contractOnly, "package.json"), JSON.stringify({
+    scripts: { "test:contract": 'node -e "require(\'fs\').writeFileSync(\'contract-ran\', \'unexpected\')"' },
+  }));
+  for (const options of [["verify", "--json"], ["verify", "--checks", "test:contract", "--json"]]) {
+    const blocked = invoke(contractOnly, options);
+    assert.strictEqual(blocked.status, 1, blocked.stderr);
+    assert.strictEqual(fs.existsSync(path.join(contractOnly, "contract-ran")), false);
+    assert.strictEqual(JSON.parse(blocked.stdout).available_evidence[0].status, "not-run");
+  }
+} finally {
+  fs.rmSync(contractOnly, { recursive: true, force: true });
+}
 const contractWithoutAuthorization = invoke(intelligence, [
   "contract",
   "--target",
@@ -2952,6 +2980,47 @@ assert.strictEqual(secretScan.status, 2, secretScan.stderr);
 assert.strictEqual(JSON.parse(secretScan.stdout).findings.length, 1);
 assert.doesNotMatch(secretScan.stdout, /this-is-a-secret-value/);
 
+const syntheticCredential = "synthetic-value-only-never-use";
+const quotedSecretFile = path.join(fixture, "quoted-secrets.json");
+fs.writeFileSync(quotedSecretFile, JSON.stringify({ ["api" + "_key"]: syntheticCredential }));
+const quotedScan = invoke(fixture, ["secrets", "--files", "quoted-secrets.json", "--json"]);
+assert.strictEqual(quotedScan.status, 2, quotedScan.stderr);
+assert.strictEqual(JSON.parse(quotedScan.stdout).findings[0].id, "assigned-secret");
+assert.doesNotMatch(quotedScan.stdout, /synthetic-value-only/);
+const redactedObject = JSON.parse(redact(JSON.stringify({
+  ["api" + "_key"]: syntheticCredential,
+  ["pass" + "word"]: 'a value with spaces and "escaped" quotes',
+})));
+assert.strictEqual(redactedObject["api" + "_key"], "[REDACTED]");
+assert.strictEqual(redactedObject["pass" + "word"], "[REDACTED]");
+const missingSecretScan = invoke(fixture, ["secrets", "--files", "absent-file", "--json"]);
+assert.strictEqual(missingSecretScan.status, 1);
+assert.strictEqual(JSON.parse(missingSecretScan.stdout).decision, "incomplete");
+const largeSecretFile = path.join(fixture, "too-large.txt");
+fs.writeFileSync(largeSecretFile, Buffer.alloc(1024 * 1024 + 1));
+const boundedSecretScan = invoke(fixture, ["secrets", "--files", "too-large.txt", "--json"]);
+assert.strictEqual(boundedSecretScan.status, 1);
+assert.strictEqual(JSON.parse(boundedSecretScan.stdout).decision, "incomplete");
+fs.unlinkSync(largeSecretFile);
+const secretOutside = fs.mkdtempSync(path.join(os.tmpdir(), "rivet-secret-boundary-"));
+try {
+  fs.writeFileSync(path.join(secretOutside, "private.json"),
+    JSON.stringify({ ["api" + "_key"]: syntheticCredential }));
+  fs.symlinkSync(secretOutside, path.join(fixture, "outside-directory"));
+  const outsideScan = invoke(fixture, ["secrets", "--files", "outside-directory/private.json", "--json"]);
+  assert.strictEqual(outsideScan.status, 1);
+  assert.strictEqual(JSON.parse(outsideScan.stdout).files_checked, 0);
+  assert.strictEqual(JSON.parse(outsideScan.stdout).unavailable[0].reason, "outside-project-through-symbolic-parent");
+  fs.symlinkSync(fixture, path.join(fixture, "recursive-link"));
+  const noRecursiveFollow = invoke(fixture, ["secrets", "--json"]);
+  assert.strictEqual(noRecursiveFollow.status, 2, noRecursiveFollow.stderr);
+  assert.ok(JSON.parse(noRecursiveFollow.stdout).unavailable.some((item) => item.file === "recursive-link"));
+} finally {
+  fs.unlinkSync(path.join(fixture, "outside-directory"));
+  fs.unlinkSync(path.join(fixture, "recursive-link"));
+  fs.rmSync(secretOutside, { recursive: true, force: true });
+}
+
 const defaultSecretScan = invoke(fixture, ["secrets", "--json"]);
 assert.strictEqual(defaultSecretScan.status, 2, defaultSecretScan.stderr);
 assert.ok(JSON.parse(defaultSecretScan.stdout).files_checked > 1);
@@ -3000,6 +3069,18 @@ const npmClean = normalizeDependencyResult(
   { status: 0, stdout: JSON.stringify({ vulnerabilities: {} }) },
 );
 assert.strictEqual(npmClean.result, "pass");
+for (const [id, stdout] of [
+  ["npm-audit", JSON.stringify({ vulnerabilities: {} })],
+  ["cargo-audit", JSON.stringify({ vulnerabilities: { list: [] } })],
+  ["pip-audit", "[]"],
+  ["govulncheck", ""],
+]) {
+  for (const status of [1, null]) {
+    const failedEmpty = normalizeDependencyResult({ id }, { status, stdout });
+    assert.strictEqual(failedEmpty.result, "tool-failure");
+    assert.strictEqual(failedEmpty.finding_count, null);
+  }
+}
 
 const invalidAudit = normalizeDependencyResult(
   { id: "npm-audit" },
